@@ -1,0 +1,6 @@
+.vscode
+
+bazel-*
+
+!third_party/BUILD
+third_party/*
