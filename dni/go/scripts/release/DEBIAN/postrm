@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#sudo rm -f /usr/bin/dnictl
+sudo systemctl daemon-reload
+result=`systemctl list-units | grep dni.service`
+if [ "${result}" != "" ]; then
+    sudo systemctl stop dni.service
+    sudo systemctl daemon-reload
+fi
+
+sudo rm -f /etc/systemd/system/dni.service
+sudo rm -rf /usr/local/dni
+
+sudo systemctl daemon-reload

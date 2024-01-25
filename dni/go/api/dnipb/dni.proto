@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = ".;dnipb";
+
+package dnipb;
+
+service DNI {
+    rpc   RunGraph             (GraphReq)              returns (GeneralReply)      {}
+    rpc   PauseGraph           (GraphReq)              returns (GeneralReply)      {}
+    rpc   RerunGraph           (GraphReq)              returns (GeneralReply)      {}
+    rpc   DestroyGraph         (GraphReq)              returns (GeneralReply)      {}
+}
+
+message Empty {}
+
+message GeneralReply {
+    bool   result   = 1;
+    string content  = 2;
+}
+
+message GraphReq {
+    string request = 1;
+}
+
+//protoc --go_out=plugins=grpc:. dni.proto

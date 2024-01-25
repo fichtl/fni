@@ -1,0 +1,33 @@
+input_stream: "{all_inputs}" 
+output_stream: "{endpoint}"
+
+node:
+  runner: "dataStatistics"
+  input_stream:
+    window: "count"
+    winsize: "2"
+  output_stream:
+  from: ""(node)
+  to: ""(node)
+
+node2:
+  runner: "dataStatistics"
+  input_stream: 
+    from: "pcapfile"
+    pcapfile: "/tmp/pcap/b.pcap"
+  output_stream:
+    to: "nodes"
+    nodes:
+    - "node3"
+
+node3:
+  runner: "Sum"
+  input_stream:
+    from: "nodes"
+    nodes_input:
+    - "node1"
+    - "node2"
+  output_stream:
+    to: "file"
+    file: "/tmp/pcap/pcap.txt"
+

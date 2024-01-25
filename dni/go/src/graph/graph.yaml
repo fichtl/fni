@@ -1,0 +1,17 @@
+input_stream: "sndServerConfig"
+output_stream: "dataBase"
+nodes_num: 1
+
+node1:
+  runner: "telemetry"
+  input_stream:
+    from: "sndServerConfig"
+    snd_url: "172.17.17.23:8001"
+    manage: 
+    - "eno1"
+    protected: 
+    - "enp5s0f0"
+  output_stream:
+    to: "dataBase"
+    db_url: "10.17.1.27:8086"
+    db_name: "snding"

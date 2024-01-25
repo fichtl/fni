@@ -1,0 +1,9 @@
+[Unit]
+Description=DNI service
+
+[Service]
+Type=simple
+ExecStart= /usr/local/dni/start_service.sh 
+
+[Install]
+WantedBy=multi-user.target
