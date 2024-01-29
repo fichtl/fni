@@ -2,5 +2,7 @@
 
 bazel-*
 
-!third_party/BUILD
+*.pb.*
+
 third_party/*
+!third_party/BUILD

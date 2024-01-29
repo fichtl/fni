@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package dni;
+
+import "google/protobuf/any.proto";
+import "dni/framework/stream_handler.proto";
+
+message InputStreamInfo {
+    string tag = 1;
+}
+
+message GraphConfig {
+    message Node {
+
+        string name = 1;
+
+        string task = 2;
+
+        repeated string input_stream = 3;
+
+        repeated string output_stream = 4;
+
+        repeated string input_side_data = 5;
+
+        repeated string output_side_data = 6;
+
+        repeated google.protobuf.Any options = 8;
+
+        InputStreamHandlerConfig input_stream_handler = 9;
+
+        OutputStreamHandlerConfig output_stream_handler = 10;
+
+        repeated InputStreamInfo input_stream_info = 11;
+
+        string executor = 12;
+    }
+
+    repeated Node node = 1;
+
+    int32 num_threads = 2;
+
+    // repeated StatusHandlerConfig status_handler = 3;
+
+    repeated string input_stream = 4;
+
+    repeated string output_stream = 5;
+
+    repeated string input_side_data = 6;
+
+    repeated string output_side_data = 7;
+
+    InputStreamHandlerConfig input_stream_handler = 8;
+
+    OutputStreamHandlerConfig output_stream_handler = 9;
+
+    string type = 20;
+
+    repeated google.protobuf.Any options = 1001;
+}

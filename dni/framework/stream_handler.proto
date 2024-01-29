@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package dni;
+
+import "google/protobuf/any.proto";
+
+message InputStreamHandlerConfig {
+    optional string input_stream_handler = 1;
+
+    optional google.protobuf.Any options = 2;
+}
+
+message OutputStreamHandlerConfig {
+    optional string output_stream_handler = 1;
+
+    repeated string input_side_data = 2;
+
+    optional google.protobuf.Any options = 3;
+}
