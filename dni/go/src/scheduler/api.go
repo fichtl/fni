@@ -1,6 +1,8 @@
 package scheduler
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func RunGraph(graphfile string) (string, error) {
 	graph, err := InitialGraph(graphfile)
@@ -13,7 +15,7 @@ func RunGraph(graphfile string) (string, error) {
 	if err := graph.Run(); err != nil {
 		return "", err
 	}
-	return graph.Info.GraphID, nil
+	return graph.GraphID, nil
 }
 
 func PauseGraph(id string) error {

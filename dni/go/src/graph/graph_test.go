@@ -1,6 +1,8 @@
 package graph
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestParseGraph(t *testing.T) {
 	graphfile := "./graph.yaml"
@@ -27,4 +29,23 @@ func TestParseGraph3(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(*gc)
+}
+
+func TestReadGraphConfig(t *testing.T) {
+	graphfile := "02-graph.yaml"
+	gc, err := GetGraphConfig(graphfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(gc)
+
+	node, err := gc.GetNodeEdge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := gc.GetSourceEdge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(src, node)
 }

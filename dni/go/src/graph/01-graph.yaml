@@ -1,0 +1,52 @@
+input_stream:
+  - name: "DBINPUT:Packet"
+    db_url: "172.17.17.27:8086"
+    db_name: "dni"
+    db_table: "packet"
+    tags:
+      - "host:rose"
+  - name: "DBINPUT:Netdev"
+    db_url: "172.17.17.27:8086"
+    db_name: "dni"
+    db_table: "netdev"
+    tags:
+      - "host:rose"
+  - name: "DBINPUT:Resource"
+    db_url: "172.17.17.27:8086"
+    db_name: "dni"
+    db_table: "resource"
+    tags:
+      - "host:rose"
+output_stream:
+  - name: "DBOUTPUT:DetectionData"
+    db_url: "172.17.17.27:8086"
+    db_name: "dni"
+    db_table: "detection"
+
+nodes:
+  - runner: "PacketCleanRunner"
+    input_stream:
+    - "DBINPUT:Packet"
+    output_stream:
+    - "PACKET:packet_clean_data"
+
+  - runner: "NetdevCleanRunner"
+    input_stream:
+    - "DBINPUT:Netdev"
+    output_stream:
+    - "NETDEV:netdev_clean_data"
+
+  - runner: "ResourceCleanRunner"
+    input_stream:
+    - "DBINPUT:Resource"
+    output_stream:
+    - "RESOURCE:resource_clean_data"
+
+  - runner: "DDoSDetectionRunner"
+    input_stream:
+    - "PACKET:packet_clean_data"
+    - "NETDEV:netdev_clean_data"
+    - "RESOURCE:resource_clean_data"
+    output_stream:
+    - "DBOUTPUT:DetectionData"
+
