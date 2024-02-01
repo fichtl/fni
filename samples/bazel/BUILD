@@ -1,7 +1,7 @@
 licenses(["notice"])
 
 py_binary(
-    name = "main",
+    name = "py_main",
     srcs = ["dni.py"],
     main = "dni.py",
 )
