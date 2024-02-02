@@ -1,14 +1,14 @@
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//visibility:public"])
 
-package_group(
-    name = "dni_internal",
-    packages = [
-        "//dni/...",
-    ],
-)
+# package_group(
+#     name = "dni_internal",
+#     packages = [
+#         "//dni/...",
+#     ],
+# )
 
 proto_library(
     name = "dni_proto",
@@ -29,7 +29,7 @@ cc_proto_library(
 proto_library(
     name = "stream_handler_proto",
     srcs = ["stream_handler.proto"],
-    visibility = [":dni_internal"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_protobuf//:any_proto",
     ],
@@ -37,6 +37,11 @@ proto_library(
 
 cc_proto_library(
     name = "stream_handler_cc_proto",
-    visibility = [":dni_internal"],
+    visibility = ["//visibility:public"],
     deps = [":stream_handler_proto"],
+)
+
+exports_files(
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
 )

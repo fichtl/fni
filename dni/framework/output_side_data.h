@@ -2,15 +2,16 @@
 
 #include <vector>
 
+#include "dni/framework/dtype.h"
 #include "dni/framework/datum.h"
-#include "dni/framework/datum_type.h"
 #include "dni/framework/input_side_data.h"
 
 namespace dni {
 
         class OutputSideDatum {
-                OutputSideDatum();
-                virtual ~OutputSideDatum();
+        public:
+                OutputSideDatum() = default;
+                virtual ~OutputSideDatum() = default;
         };
 
         class OutputSideDatumImpl: public OutputSideDatum {
@@ -18,13 +19,18 @@ namespace dni {
                 OutputSideDatumImpl() = default;
                 ~OutputSideDatumImpl() override = default;
 
-                int Intialize(const std::string& name, const DatumType* type);
+                int Intialize(const std::string& name, const Dtype* type)
+                {
+                        name_ = name;
+                        datum_type_ = type;
+                        return 0;
+                }
 
-                void PrepareForRun();
+                void PrepareForRun() {}
 
                 Datum Data() const { return datum_; }
 
-                void AddMirror(InputSideDataHandler* input_side_data_handler, int id);
+                void AddMirror(InputSideDataHandler* input_side_data_handler, int id) {}
 
         private:
                 struct Mirror {
@@ -35,9 +41,11 @@ namespace dni {
                         int id;
                 };
 
+                std::string name_;
+
                 Datum datum_;
 
-                const DatumType* datum_type_;
+                const Dtype* datum_type_;
 
                 std::vector<Mirror> mirrors_;
         };

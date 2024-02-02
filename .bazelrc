@@ -12,6 +12,8 @@ build --host_cxxopt=-std=c++17
 build --copt=-w
 # build --enable_platform_specific_config
 
+build:debug --copt=-g --copt='-D DNI_DEBUG' --strip=never --subcommands --verbose_failures
+
 # Enable stack traces
 test --test_env="GTEST_INSTALL_FAILURE_SIGNAL_HANDLER=1"
 

@@ -75,7 +75,7 @@ void async_tasks_from_runtime()
                 {
                         rt.silent_async([&]() { ++counter; });
                 }
-                rt.corun_all();
+                rt.join();
                 assert(counter == 100);
                 std::cout << "value of counter for the first round is: " << counter
                           << std::endl;
@@ -84,7 +84,7 @@ void async_tasks_from_runtime()
                 {
                         rt.silent_async([&]() { ++counter; });
                 }
-                rt.corun_all();
+                rt.join();
                 assert(counter == 200);
                 std::cout << "final value of counter is: " << counter << std::endl;
         });

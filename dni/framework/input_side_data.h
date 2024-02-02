@@ -1,10 +1,12 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <optional>
 #include <string>
 
 #include "dni/framework/datum.h"
-#include "dni/framework/datum_type.h"
+#include "dni/framework/dtype.h"
 
 namespace dni {
 
@@ -14,15 +16,21 @@ namespace dni {
         class InputSideDataHandler {
         public:
                 int PrepareForRun(
-                    const DatumTypeSet* input_side_data_types,
+                    const DtypeSet* input_side_data_types,
                     const std::map<std::string, Datum>& all_side_data);
+
+                void Set(int i, const Datum& d);
 
                 const InputSideData& Data() const { return *input_side_data_; }
 
         private:
-                const DatumTypeSet* input_side_data_types_;
+                const DtypeSet* input_side_data_types_;
 
-                const InputSideData* input_side_data_;
+                std::unique_ptr<InputSideData> input_side_data_;
         };
+
+        std::optional<std::unique_ptr<InputSideData>> prepareInputSideData(
+            const DtypeSet& input_side_data_types,
+            const std::map<std::string, Datum>& input_side_data);
 
 }   // namespace dni

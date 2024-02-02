@@ -25,6 +25,12 @@ cc_binary(
 )
 
 cc_binary(
+    name = "looping",
+    srcs = ["looping.cc"],
+    deps = ["//third_party:taskflow"],
+)
+
+cc_binary(
     name = "control_flow",
     srcs = ["control_flow.cc"],
     deps = ["//third_party:taskflow"],

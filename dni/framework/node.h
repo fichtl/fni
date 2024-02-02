@@ -5,7 +5,8 @@
 
 #include "dni/framework/context.h"
 #include "dni/framework/datum.h"
-#include "dni/framework/datum_type.h"
+#include "dni/framework/dni.pb.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/graph_config.h"
 #include "dni/framework/input_stream_handler.h"
 #include "dni/framework/input_stream_manager.h"
@@ -14,16 +15,11 @@
 #include "dni/framework/output_stream_manager.h"
 #include "dni/framework/task.h"
 #include "dni/framework/task_state.h"
+#include "fmt/format.h"
 
 namespace dni {
 
-        enum class NodeReadiness {
-                kNotReady,
-                kReadyForProcess,
-                kReadyForClose,
-        };
-
-        enum class NodeStatus {
+        enum NodeStatus {
                 kStateUninitialized = 0,
                 kStatePrepared = 1,
                 kStateOpened = 2,
@@ -32,61 +28,72 @@ namespace dni {
 
         class Node {
         public:
-                Node();
-
                 int Initialize(
-                    const ValidatedGraphConfig* graph,
+                    const ParsedGraphConfig* graph_config,
                     NodeInfo::NodeRef node_ref,
                     InputStreamManager* input_stream_managers,
                     OutputStreamManager* output_stream_managers,
-                    OutputSideData* output_side_data);
+                    OutputSideDatumImpl* output_side_data);
 
                 int Id() const { return node_info_ ? node_info_->Node().index : -1; }
 
                 int PrepareForRun(const std::map<std::string, Datum>& all_side_data);
 
-                void InputStreamHeadersReady();
+                void InputStreamReady();
                 void InputSideDataReady();
-                void OutputStreamHeadersReady();
-                void OutputSideDataReady();
+                bool IsReady();
 
-                int OpenTask();
+                int Open();
 
-                int ProcessTask(Context* cnotext);
+                int Process();
 
-                int CloseTask();
+                int Close();
+
+                int Finish();
 
                 const NodeConfig& Config() const { return node_info_->Config(); }
 
-                bool IsSource() const
+                const std::unordered_set<std::string>& Predecessors() const
                 {
-                        return input_stream_handler_->NStreams() == 0 &&
-                               output_stream_handler_->NStreams() != 0;
+                        return node_info_->Predecessors();
                 }
 
+                bool IsSource() const;
+
+                const TaskState& GetState() const { return *task_state_; }
+                Context* GetContext() const { return context_manager_.DefaultContext(); }
+
         private:
-                int InitializeInputSideData(OutputSideDatumImpl* output_side_data_impl);
+                int initializeInputSideData(OutputSideDatumImpl* output_side_data);
 
-                int InitializeOutputSideData(
-                    const DatumTypeSet& output_side_data_types,
-                    OutputSideDatumImpl* output_side_data_impl);
+                int initializeOutputSideData(
+                    const DtypeSet& output_side_data_types,
+                    OutputSideDatumImpl* output_side_data);
 
-                int InitializeInputStream(OutputStreamManager* output_stream_managers);
-
-                int InitializeOutputStream(
+                int initializeInputStream(
                     InputStreamManager* input_stream_managers,
                     OutputStreamManager* output_stream_managers);
 
-                int InitializeInputStreamHandler(
-                    const InputStreamHandlerConfig& handler_config,
-                    const DatumTypeSet& input_stream_types);
+                int initializeOutputStream(OutputStreamManager* output_stream_managers);
 
-                int InitializeOutputStreamHandler(
+                int initializeInputStreamHandler(
+                    const InputStreamHandlerConfig& handler_config,
+                    const DtypeSet& input_stream_types);
+
+                int initializeOutputStreamHandler(
                     const OutputStreamHandlerConfig& handler_config,
-                    const DatumTypeSet& output_stream_types);
+                    const DtypeSet& output_stream_types);
+
+                void closeInputStreams();
+
+                void closeOutputStreams(OutputStreamSet* outputs);
 
                 std::string name_;
 
+                // Control number of tasks in parallel.
+                int nproc_ = 1;
+
+                std::mutex status_mu_;
                 NodeStatus status_ = NodeStatus::kStateUninitialized;
 
                 std::unique_ptr<TaskBase> task_;
@@ -94,20 +101,67 @@ namespace dni {
 
                 ContextManager context_manager_;
 
-                std::mutex mu_;
-
-                std::unique_ptr<DatumTypeSet> input_side_data_types_;
-
+                std::unique_ptr<DtypeSet> input_side_data_types_;
                 InputSideDataHandler input_side_data_handler_;
+                bool input_side_data_ready_;
+
+                std::unique_ptr<InputStreamHandler> input_stream_handler_;
+                bool input_stream_ready_;
 
                 std::unique_ptr<OutputSideData> output_side_data_;
 
-                std::unique_ptr<InputStreamHandler> input_stream_handler_;
-
                 std::unique_ptr<OutputStreamHandler> output_stream_handler_;
 
-                const ValidatedGraphConfig* graph_cfg_ = nullptr;
+                const ParsedGraphConfig* graph_cfg_ = nullptr;
                 const NodeInfo* node_info_ = nullptr;
+
+                friend class fmt::formatter<dni::Node>;
+                friend class fmt::formatter<std::unique_ptr<dni::Node>>;
         };
 
 }   // namespace dni
+
+namespace fmt {
+
+        template <>
+        struct formatter<dni::NodeStatus>: formatter<std::string_view> {
+                auto format(const dni::NodeStatus& st, format_context& ctx) const
+                {
+                        switch (st)
+                        {
+                        case dni::NodeStatus::kStateUninitialized:
+                                return format_to(ctx.out(), "UNINITIALIZED");
+                        case dni::NodeStatus::kStatePrepared:
+                                return format_to(ctx.out(), "PREPARED");
+                        case dni::NodeStatus::kStateOpened:
+                                return format_to(ctx.out(), "OPENED");
+                        case dni::NodeStatus::kStateClosed:
+                                return format_to(ctx.out(), "CLOSED");
+                        default: return format_to(ctx.out(), "UNEXPECTED");
+                        }
+                }
+        };
+
+        template <>
+        struct formatter<dni::Node>: formatter<std::string_view> {
+                auto format(const dni::Node& node, format_context& ctx) const
+                {
+                        return format_to(
+                            ctx.out(), "node {}: task({}), {}, {}", node.name_,
+                            node.Config().Proto().task(), *node.input_stream_handler_,
+                            *node.output_stream_handler_);
+                }
+        };
+        template <>
+        struct formatter<std::unique_ptr<dni::Node>>: formatter<std::string_view> {
+                auto format(
+                    const std::unique_ptr<dni::Node>& node, format_context& ctx) const
+                {
+                        return format_to(
+                            ctx.out(), "node {}: task({}), {}, {}", node->name_,
+                            node->Config().Proto().task(), *node->input_stream_handler_,
+                            *node->output_stream_handler_);
+                }
+        };
+
+}   // namespace fmt

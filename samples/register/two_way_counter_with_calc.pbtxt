@@ -1,0 +1,44 @@
+type: "Counter"
+
+input_stream: "GIn0:0:GInSSS"
+input_stream: "GIn1:0:GInTTT"
+output_stream: "GOut0:0:GOutSSS"
+output_stream: "GOut1:0:GOutTTT"
+output_stream: "GOut2:0:GOutUUU"
+output_stream: "GOut3:0:GOutVVV"
+
+node {
+  name: "A"
+  task: "TwoWayCountTask"
+  input_stream: "GIn0:0:GInSSS"
+  input_stream: "GIn1:0:GInTTT"
+  output_stream: "AOut0:0:AOut000"
+  output_stream: "AOut1:0:AOut111"
+}
+
+node {
+  name: "B"
+  task: "TwoWayCountOppositeTask"
+  input_stream: "AOut0:0:AOut000"
+  input_stream: "AOut1:0:AOut111"
+  output_stream: "BOut0:0:BOut000"
+  output_stream: "BOut1:0:BOut111"
+}
+
+node {
+  name: "C"
+  task: "TwoWayCountTask"
+  input_stream: "BOut0:0:BOut000"
+  input_stream: "BOut1:0:BOut111"
+  output_stream: "COut0:0:COut000"
+  output_stream: "COut1:0:COut111"
+}
+
+node {
+  name: "D"
+  task: "TwoWayCountOppositeTask"
+  input_stream: "COut0:0:COut000"
+  input_stream: "COut1:0:COut111"
+  output_stream: "GOut0:0:GOutSSS"
+  output_stream: "GOut1:0:GOutTTT"
+}

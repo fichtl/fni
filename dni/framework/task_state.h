@@ -12,27 +12,30 @@ namespace dni {
 
         class TaskState {
         public:
+                const InputSideData* input_side_data;
+                OutputSideData* output_side_data;
+
                 TaskState(
                     const std::string& name, int id, const std::string& type,
-                    const GraphConfig::Node& cfg);
+                    const GraphConfig::Node& cfg)
+                    : name_(name), id_(id), type_(type), cfg_(cfg)
+                {}
                 TaskState(const TaskState&) = delete;
                 TaskState& operator=(const TaskState&) = delete;
-                ~TaskState();
+                ~TaskState() {}
 
-                void Reset();
+                void Reset() { input_side_data = nullptr; }
 
-                const InputSideData& Input() const { return *input_side_data_; }
+                const std::string& TaskType() const { return type_; }
 
-                OutputSideData& Output() { return *output_side_data_; }
+                const std::string& NodeName() const { return name_; }
+                const int& NodeId() const { return id_; }
 
         private:
                 const std::string name_;
                 const int id_;
                 const std::string type_;
                 const GraphConfig::Node cfg_;
-
-                const InputSideData* input_side_data_;
-                OutputSideData* output_side_data_;
         };
 
 }   // namespace dni

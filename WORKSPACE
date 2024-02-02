@@ -59,3 +59,41 @@ http_archive(
     strip_prefix = "protobuf-3.19.1",
     urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.19.1.tar.gz"],
 )
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
+    strip_prefix = "rules_proto-97d8af4dc474595af3900dd85cb3a29ad28cc313",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+    ],
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+
+rules_proto_toolchains()
+
+http_archive(
+    name = "fmtlib",
+    build_file = "@//third_party:fmtlib.BUILD",
+    patch_args = [
+        "-p1",
+    ],
+    sha256 = "1250e4cc58bf06ee631567523f48848dc4596133e163f02615c97f78bab6c811",
+    strip_prefix = "fmt-10.2.1",
+    url = "https://github.com/fmtlib/fmt/archive/refs/tags/10.2.1.tar.gz",
+)
+
+http_archive(
+    name = "spdlog",
+    build_file = "@//third_party:spdlog.BUILD",
+    patch_args = [
+        "-p1",
+    ],
+    sha256 = "534f2ee1a4dcbeb22249856edfb2be76a1cf4f708a20b0ac2ed090ee24cfdbc9",
+    strip_prefix = "spdlog-1.13.0",
+    url = "https://github.com/gabime/spdlog/archive/refs/tags/v1.13.0.tar.gz",
+)

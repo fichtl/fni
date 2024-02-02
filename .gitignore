@@ -6,5 +6,8 @@ bazel-*
 
 third_party/*
 !third_party/BUILD
+!third_party/fmtlib.BUILD
+!third_party/spdlog.BUILD
+!third_party/zlib.BUILD
 
 *.onnx
