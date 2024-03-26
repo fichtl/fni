@@ -1,0 +1,9 @@
+orderID,userName,mgmtIP,userPwd,hostName,role,group,nodeID
+1,guodong,172.17.17.21,XXX,ddos21,protected,ddos-nj-a1,63711452-1b74-7b3c-f85d-e562de0fa140
+2,guodong,172.17.17.22,XXX,ddos22,protected,ddos-nj-a2,a74251ab-5fc3-3d09-34d2-ea1d7a0bad12
+3,asn,172.17.17.52,XXX,asn52-614,protected,test-nj-a1,5a7e8115-81f2-4524-add4-784c34ed01f7
+4,asn,172.17.17.96,XXX,asn96-614,protected,test-nj-a2,41fc219d-93a2-451c-aa5e-910807d021c4
+5,asn,172.17.17.81,XXX,pml614-a10,A10,test-nj-b1,bd8ca84f-381f-4e7d-8584-d7101212f9cc
+6,asn,172.17.17.51,XXX,shore,controller,test-nj-x1,void
+7,guodong,172.17.17.50,XXX,asn50-614,attacker,test-nj-y1,d081bdf3-7c12-489c-9b5e-39ed5de2ce3f
+8,guodong,172.17.17.19,XXX,ddos19,controller,ddos-nj-x2,void

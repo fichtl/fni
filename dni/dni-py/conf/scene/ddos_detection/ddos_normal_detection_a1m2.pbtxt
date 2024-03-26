@@ -1,0 +1,27 @@
+# DDoS Detection Demo
+# -- normal detection by model(a1m2)
+
+# input
+input_stream {
+    input_stream: "packet_initial"
+}
+
+# output
+output_stream {
+    output_stream: "normal_a1m2_output"
+    output_stream: "normal_a1m2_basis"
+}
+
+# nodes
+node {
+    executor: "telemetry_packet_stat_latest"
+    input_stream: "packet_initial"
+    output_stream: "packet_latest"
+}
+
+node {
+    executor: "decision_a1m2_result"
+    input_stream: "packet_latest"
+    output_stream: "normal_a1m2_output"
+    output_stream: "normal_a1m2_basis"
+}

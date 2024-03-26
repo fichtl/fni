@@ -1,0 +1,58 @@
+# DDoS Detection Demo
+# -- anomaly detection by model(b1m2)
+
+# input
+input_stream {
+    input_stream: "normal_a1m2_basis"
+    input_stream: "packet_stat"
+    input_stream: "netdev_stat"
+    input_stream: "resource_stat"
+}
+
+# output
+output_stream {
+    output_stream: "b1m2_stat_preprocess"
+}
+
+# nodes
+node {
+    executor: "telemetry_abnormal_nic"
+    input_stream: "normal_a1m2_basis"
+    output_stream: "abnormal_nic"
+}
+
+node {
+    executor: "telemetry_abnormal_packet_latest"
+    input_stream: "packet_stat"
+    input_stream: "abnormal_nic"
+    output_stream: "abnormal_packet_latest"
+}
+
+node {
+    executor: "telemetry_abnormal_netdev_latest"
+    input_stream: "netdev_stat"
+    input_stream: "abnormal_nic"
+    output_stream: "abnormal_netdev_latest"
+}
+
+node {
+    executor: "telemetry_abnormal_resource_latest"
+    input_stream: "resource_stat"
+    input_stream: "abnormal_nic"
+    output_stream: "abnormal_resource_latest"
+}
+
+node {
+    executor: "telemetry_abnormal_stat_merge"
+    input_stream: "abnormal_packet_latest"
+    input_stream: "abnormal_netdev_latest"
+    input_stream: "abnormal_resource_latest"
+    output_stream: "abnormal_stat_latest"
+}
+
+node {
+    executor: "preprocessing_b1m2_abnormal_stat"
+    input_stream: "abnormal_stat_latest"
+    output_stream: "b1m2_stat_preprocess"
+}
+

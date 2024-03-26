@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ddos_detection_config;
+
+message InputStream {
+  repeated string input_stream = 1;
+}
+
+message OutputStream {
+  repeated string output_stream = 1;
+}
+
+message Node {
+  string executor = 1;
+  repeated string input_stream = 2;
+  repeated string output_stream = 3;
+}
+
+message DDoSDetectionConfig {
+  InputStream input_stream = 1;
+  OutputStream output_stream = 2;
+  repeated Node node = 3;
+}

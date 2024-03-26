@@ -1,0 +1,51 @@
+# DDoS Detection Demo
+
+input_stream:
+  - name: "ddos_detection_data"
+    input_stream_info:
+    - "packet"
+    - "netdev"
+    - "resource"
+    - "pcap"
+
+output_stream:
+  - name: "ddos_detection_result"
+    output_stream_info:
+    - "system_status"
+    - "detect_info"
+
+nodes:
+  - executor: "normal_detection"
+    input_stream:
+      - name: "ddos_detection_data"
+      - input_stream_info:
+        - "netdev"
+    output_stream:
+      - name: "normal_detection_result"
+      - output_stream_info:
+        - "normal_status"
+
+  - executor: "anomaly_detection"
+    input_stream:
+      - name: "normal_detection_result"
+      - input_stream_info:
+          - "normal_status"
+    output_stream:
+      - name: "anomaly_detection_result"
+      - output_stream_info:
+        - "anomaly_status"
+        - "anomaly_info"
+        - "anomaly_dataframe"
+
+  - executor: "attack_detection"
+    input_stream:
+      - name: "anomaly_detection_result"
+      - input_stream_info:
+        - "anomaly_status"
+        - "anomaly_info"
+        - "anomaly_dataframe"
+    output_stream:
+      - name: "attack_detection_result"
+      - output_stream_info:
+        - "system_status"
+        - "detect_info"

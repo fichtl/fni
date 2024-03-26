@@ -1,0 +1,67 @@
+# DDoS Detection Demo
+# -- attack detection by model(c1m2)
+
+# input
+input_stream {
+    input_stream: "normal_status"
+    input_stream: "packet"
+    input_stream: "netdev"
+    input_stream: "resource"
+}
+
+# output
+output_stream {
+    output_stream: "b1m2_decision"
+    output_stream: "anomaly_status"
+    output_stream: "anomaly_info"
+}
+
+# nodes
+node {
+    executor: "anomaly_detection_telemetry_packet"
+    input_stream: "normal_status"
+    input_stream: "packet"
+    output_stream: "packet_stat"
+}
+
+node {
+    executor: "anomaly_detection_telemetry_netdev"
+    input_stream: "normal_status"
+    input_stream: "netdev"
+    output_stream: "netdev_stat"
+}
+
+node {
+    executor: "anomaly_detection_telemetry_resource"
+    input_stream: "normal_status"
+    input_stream: "resource"
+    output_stream: "resource_stat"
+}
+
+node {
+    executor: "anomaly_detection_telemetry_merge"
+    input_stream: "packet_stat"
+    input_stream: "netdev_stat"
+    input_stream: "resource_stat"
+    output_stream: "snding_stat"
+}
+
+node {
+    executor: "anomaly_detection_model_preprocess"
+    input_stream: "snding_stat"
+    output_stream: "b1m2_preprocess"
+}
+
+node {
+    executor: "anomaly_detection_model_detect"
+    input_stream: "b1m2_preprocess"
+    output_stream: "b1m2_detect"
+}
+
+node {
+    executor: "anomaly_detection_model_decision"
+    input_stream: "b1m2_detect"
+    output_stream: "b1m2_decision"
+    output_stream: "anomaly_status"
+    output_stream: "anomaly_info"
+}
