@@ -4,8 +4,8 @@ cc_binary(
     name = "pbtxt2taskflow",
     srcs = [
         "pbtxt2taskflow.cc",
-        "//dni/framework:context.h",
-        "//dni/framework:context_manager.h",
+        "//dni/framework:task_context.h",
+        "//dni/framework:task_context_manager.h",
         "//dni/framework:dtype.h",
         "//dni/framework:datum.h",
         "//dni/framework:default_input_stream_handler.h",
@@ -23,7 +23,7 @@ cc_binary(
         "//dni/framework:output_stream.h",
         "//dni/framework:output_stream_handler.h",
         "//dni/framework:output_stream_manager.h",
-        "//dni/framework:register.h",
+        "//dni/framework:task_register.h",
         "//dni/framework:subgraph.h",
         "//dni/framework:task.h",
         "//dni/framework:task_state.h",
@@ -32,7 +32,7 @@ cc_binary(
         "//dni/framework:utils/tags.h",
         ###
         ###
-        "//dni/framework:context_manager.cc",
+        "//dni/framework:task_context_manager.cc",
         "//dni/framework:datum.cc",
         "//dni/framework:default_input_stream_handler.cc",
         "//dni/framework:graph.cc",
@@ -54,6 +54,6 @@ cc_binary(
     deps = [
         "//dni/framework:dni_cc_proto",
         "//dni/framework:stream_handler_cc_proto",
-        "//third_party:taskflow",
+        "@taskflow",
     ],
 )

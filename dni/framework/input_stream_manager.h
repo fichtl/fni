@@ -6,8 +6,8 @@
 #include <mutex>
 #include <string>
 
-#include "dni/framework/dtype.h"
 #include "dni/framework/datum.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/input_stream.h"
 #include "fmt/format.h"
 
@@ -35,6 +35,8 @@ namespace dni {
                 bool IsDone() const;
 
                 bool IsEmpty() const;
+
+                void Clear();
 
                 int Size() const;
 

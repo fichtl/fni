@@ -20,35 +20,31 @@ namespace dni {
                 OutputStreamManager(const OutputStreamManager&) = delete;
                 OutputStreamManager& operator=(const OutputStreamManager&) = delete;
 
-                int Initialize(const std::string& name, const Dtype* type)
-                {
-                        output_stream_spec_.name = name;
-                        output_stream_spec_.datum_type = type;
-                        return 0;
-                }
+                int Initialize(const std::string& name, const Dtype* type);
 
-                // TODO: not fully implemented.
-                void PrepareForRun() { return; }
+                void PrepareForRun();
 
-                void AddMirror(InputStreamHandler* input_stream_handler, int id)
-                {
-                        mirrors_.emplace_back(input_stream_handler, id);
-                }
+                // TODO: move to OutputStreamHandler.
+                void AddMirror(InputStreamHandler* ish, int id);
 
-                // TODO: not fully implemented.
-                void Close() {};
+                void Close();
 
                 OutputStreamSpec* Spec() { return &output_stream_spec_; }
 
                 std::string Name() { return output_stream_spec_.name; }
 
+                // A Mirror is a reference to the corresponding InputStream(Manager) of
+                // the successor node indexed by the InputStreamHandler and its slot.
+                // TODO: move to OutputStreamHandler.
                 struct Mirror {
                         Mirror(InputStreamHandler* ish, int id): ish(ish), id(id) {}
-
+                        // Pointer to the InputStreamHandler of the successor node.
                         InputStreamHandler* ish;
+                        // Index of the InputStream(Manager) of the successor node.
                         int id;
                 };
 
+                // TODO: move to OutputStreamHandler.
                 const std::vector<Mirror>& Mirrors() { return mirrors_; }
 
         private:
@@ -75,7 +71,7 @@ namespace fmt {
                     format_context& ctx) const
                 {
                         return format_to(
-                            ctx.out(), "{}:{:p}", mirror.id, fmt::ptr(mirror.ish));
+                            ctx.out(), "{:p}:{}", fmt::ptr(mirror.ish), mirror.id);
                 }
         };
 

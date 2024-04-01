@@ -79,9 +79,6 @@ rules_proto_toolchains()
 http_archive(
     name = "fmtlib",
     build_file = "@//third_party:fmtlib.BUILD",
-    patch_args = [
-        "-p1",
-    ],
     sha256 = "1250e4cc58bf06ee631567523f48848dc4596133e163f02615c97f78bab6c811",
     strip_prefix = "fmt-10.2.1",
     url = "https://github.com/fmtlib/fmt/archive/refs/tags/10.2.1.tar.gz",
@@ -90,10 +87,31 @@ http_archive(
 http_archive(
     name = "spdlog",
     build_file = "@//third_party:spdlog.BUILD",
-    patch_args = [
-        "-p1",
-    ],
     sha256 = "534f2ee1a4dcbeb22249856edfb2be76a1cf4f708a20b0ac2ed090ee24cfdbc9",
     strip_prefix = "spdlog-1.13.0",
     url = "https://github.com/gabime/spdlog/archive/refs/tags/v1.13.0.tar.gz",
+)
+
+http_archive(
+    name = "taskflow",
+    build_file = "@//third_party:taskflow.BUILD",
+    sha256 = "5a1cd9cf89f93a97fcace58fd73ed2fc8ee2053bcb43e047acb6bc121c3edf4c",
+    strip_prefix = "taskflow-3.6.0",
+    url = "https://github.com/taskflow/taskflow/archive/refs/tags/v3.6.0.tar.gz",
+)
+
+http_archive(
+    name = "onnxruntime_macos_arm64",
+    build_file = "@//third_party:onnxruntime_macos.BUILD",
+    sha256 = "89566f424624a7ad9a7d9d5e413c44b9639a994d7171cf409901d125b16e2bb3",
+    strip_prefix = "onnxruntime-osx-arm64-1.17.1",
+    url = "https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-osx-arm64-1.17.1.tgz",
+)
+
+http_archive(
+    name = "onnxruntime_linux_x64",
+    build_file = "@//third_party:onnxruntime_linux.BUILD",
+    sha256 = "89b153af88746665909c758a06797175ae366280cbf25502c41eb5955f9a555e",
+    strip_prefix = "onnxruntime-linux-x64-1.17.1",
+    url = "https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-linux-x64-1.17.1.tgz",
 )

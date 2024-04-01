@@ -15,7 +15,7 @@ namespace dni {
 
                 DefaultInputStreamHandler(
                     std::shared_ptr<utils::TagMap> tag_map,
-                    ContextManager* context_manager, bool in_parallel);
+                    TaskContextManager* context_manager, bool in_parallel);
 
                 DataReadiness GetReadiness(std::time_t* ts) override;
 

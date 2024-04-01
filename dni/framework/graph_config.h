@@ -29,7 +29,7 @@ namespace dni {
                         NodeRef(NodeType type, int index): type(type), index(index) {}
 
                         NodeType type = NodeType::UNKNOWN;
-
+                        // Index to node.
                         int index = -1;
                 };
 
@@ -116,38 +116,19 @@ namespace dni {
 
                 int OutputStreamIndex(const std::string& name) const
                 {
-                        auto it = stream_name_to_producer_.find(name);
-                        if (it != stream_name_to_producer_.end())
+                        auto it = output_stream_to_index_.find(name);
+                        if (it != output_stream_to_index_.end())
                                 return it->second;
                         return -1;
                 }
 
                 int OutputSideDataIndex(const std::string& name) const
                 {
-                        auto it = output_side_data_name_to_producer_.find(name);
-                        if (it != output_side_data_name_to_producer_.end())
+                        auto it = output_side_data_to_index_.find(name);
+                        if (it != output_side_data_to_index_.end())
                                 return it->second;
                         return -1;
                 }
-
-                // TODO: remove this after re-inspecting the implementation of
-                // ParsedGraphConfig::InitializeStreams and Node::initializeOutputStream.
-                // It's supposed to be included by the global list of output streams
-                // naturally.
-                // int GraphOutputStreamIndex(const std::string& name) const
-                // {
-                //         auto iter = std::find(
-                //             graph_output_names_.begin(), graph_output_names_.end(),
-                //             name);
-                //         if (iter != graph_output_names_.end())
-                //         {
-                //                 return iter - graph_output_names_.begin();
-                //         }
-                //         else
-                //         {
-                //                 return -1;
-                //         }
-                // }
 
         private:
                 int InitializeNodes();
@@ -167,29 +148,41 @@ namespace dni {
                 std::vector<EdgeInfo> input_streams_;
 
                 std::vector<EdgeInfo> output_streams_;
-                // Stream name to the index of the output stream.
-                std::unordered_map<std::string, int> stream_name_to_producer_;
+                // Map from output stream to its index.
+                //  key: output stream name.
+                //  val: index of the output stream in `output_streams_`.
+                std::unordered_map<std::string, int> output_stream_to_index_;
+                // Map from output stream to the corresponding node.
+                //  key: output stream name;
+                //  val: name of the node that the output stream belongs to.
+                std::unordered_map<std::string, std::string> output_stream_to_node_;
 
                 std::vector<EdgeInfo> input_side_data_;
 
                 std::vector<EdgeInfo> output_side_data_;
-                std::unordered_map<std::string, int> output_side_data_name_to_producer_;
-
-                // key: output stream name; val: name of the node that the output stream
-                // belongs to.
-                std::unordered_map<std::string, std::string>
-                    output_stream_name_to_node_name_;
-                // key: output side data name; val: name of the node that the output side
-                // data belongs to.
-                std::unordered_map<std::string, std::string>
-                    output_side_data_name_to_node_name_;
-
-                std::vector<std::string> graph_output_names_;
+                // Map from name to the index of the global output side data.
+                //  key: output side data name.
+                //  val: index of the output side data in `output_side_data_`.
+                std::unordered_map<std::string, int> output_side_data_to_index_;
+                // Map from output side data to the corresponding node.
+                //  key: output stream name;
+                //  val: name of the node that the output side data belongs to.
+                std::unordered_map<std::string, std::string> output_side_data_to_node_;
         };
 
 }   // namespace dni
 
 namespace fmt {
+
+        // TODO:
+        template <>
+        struct formatter<dni::GraphConfig>: formatter<std::string_view> {
+                auto format(const dni::GraphConfig& gc, format_context& ctx) const
+                {
+                        return format_to(
+                            ctx.out(), "{}, node size: {}", gc.type(), gc.node_size());
+                }
+        };
 
         template <>
         struct formatter<dni::EdgeInfo>: formatter<std::string_view> {

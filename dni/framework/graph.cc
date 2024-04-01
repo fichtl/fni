@@ -29,7 +29,14 @@
 
 namespace dni {
 
-        Graph::Graph(GraphConfig config) { Initialize(std::move(config)); }
+        Graph::Graph(GraphConfig config)
+        {
+                if (Initialize(std::move(config)))
+                {
+                        spdlog::critical("failed to initialize Graph");
+                        spdlog::shutdown();
+                }
+        }
 
         int Graph::InitializeStreams()
         {
@@ -77,7 +84,7 @@ namespace dni {
                         int osi = cfg_->OutputStreamIndex(stream_name);
                         if (osi < 0)
                         {
-                                spdlog::error("failed to locate graph input stream");
+                                SPDLOG_ERROR("failed to locate graph input stream");
                                 return -1;
                         }
 
@@ -85,14 +92,14 @@ namespace dni {
                         if (cfg_->OutputStreams()[osi].parent.type !=
                             NodeInfo::NodeType::GRAPH_INPUT_STREAM)
                         {
-                                spdlog::error("invalid graph input stream info");
+                                SPDLOG_ERROR("invalid graph input stream info");
                                 return -1;
                         }
 
                         int node_idx = cfg_->Nodes().size() + graph_input_stream_count;
                         if (edge.parent.index != node_idx)
                         {
-                                spdlog::error(
+                                SPDLOG_ERROR(
                                     "ParsedGraphConfig idx({}) != calculated idx({})",
                                     edge.parent.index,
                                     node_idx);
@@ -126,7 +133,7 @@ namespace dni {
                             output_stream_managers_.get(), output_side_data_.get());
                 }
 
-                SPDLOG_DEBUG("\n{:}", fmt::join(nodes_, "\n"));
+                SPDLOG_DEBUG("nodes after initialization:\n{:}", fmt::join(nodes_, "\n"));
 
                 return 0;
         }
@@ -148,7 +155,7 @@ namespace dni {
                 auto validated_config = std::make_unique<ParsedGraphConfig>();
                 if (validated_config->Initialize(config))
                 {
-                        spdlog::error("failed to initialize graph config from protobuf");
+                        SPDLOG_ERROR("failed to initialize graph config from protobuf");
                         return -1;
                 }
                 cfg_ = std::move(validated_config);
@@ -175,7 +182,7 @@ namespace dni {
                         node->PrepareForRun(current_input_side_data_);
                 }
 
-                for (const auto& graph_output : graph_output_streams_)
+                for (auto& graph_output : graph_output_streams_)
                 {
                         graph_output->PrepareForRun();
                 }
@@ -207,12 +214,13 @@ namespace dni {
                 task_map.clear();
 
                 // Process, step1
+                // TODO: consider changing control flow based on return value.
                 for (auto& node : nodes_)
                 {
                         tf::Task tf_node = taskflow_.emplace([&]() { node->Process(); })
                                                .name(fmt::format(
                                                    "{}({})", node->Config().NodeName(),
-                                                   node->GetState().TaskType()));
+                                                   node->State().TaskType()));
 
                         task_map.emplace(node->Config().NodeName(), tf_node);
                 }
@@ -295,10 +303,10 @@ namespace dni {
 
         void Graph::ClearResult()
         {
-                // for (auto& graph_output : graph_output_streams_)
-                // {
-                //         graph_output->PopAfterGet();
-                // }
+                for (auto& graph_output : graph_output_streams_)
+                {
+                        graph_output->Clear();
+                }
         }
 
         int Graph::Finish()
@@ -327,14 +335,16 @@ namespace dni {
                 int idx = cfg_->OutputStreamIndex(name);
                 if (idx < 0)
                 {
-                        spdlog::error("invalid GraphOutputStream name {}", name);
+                        SPDLOG_ERROR("invalid GraphOutputStream name {}", name);
                         return -1;
                 }
                 auto ostream = std::make_unique<GraphOutputStream>();
                 ostream->Initialize(name, &output_stream_managers_[idx]);
                 graph_output_streams_.push_back(std::move(ostream));
 
-                SPDLOG_DEBUG("nodes updated.\n{:}", fmt::join(nodes_, "\n"));
+                SPDLOG_DEBUG(
+                    "nodes updated by ObserveOutputStream {}:\n{:}", name,
+                    fmt::join(nodes_, "\n"));
         }
 
         int Graph::AddDatumToInputStream(const std::string& name, const Datum& datum)
@@ -348,15 +358,14 @@ namespace dni {
         template <typename T>
         int Graph::addDatumToInputStream(const std::string& name, T&& datum)
         {
-                const std::unique_ptr<GraphInputStream>& stream =
-                    graph_input_streams_[name];
+                auto& stream = graph_input_streams_[name];
                 stream->AddDatum(std::forward<T>(datum));
                 stream->Propagate();
         }
 
         int Graph::CloseInputStream(const std::string& name)
         {
-                GraphInputStream* stream = graph_input_streams_[name].get();
+                auto& stream = graph_input_streams_[name];
                 if (stream->Closed())
                 {
                         return 0;
@@ -379,6 +388,29 @@ namespace dni {
         // TODO: not fully implemented.
         Datum* Graph::OutputSideData(const std::string& name) { return nullptr; }
 
+        void Graph::GraphInputStream::Propagate()
+        {
+                int nmirrors = manager_->Mirrors().size();
+                for (int i = 0; i < nmirrors; ++i)
+                {
+                        auto& m = manager_->Mirrors()[i];
+                        std::list<Datum>* data = input_.OutputQueue();
+                        SPDLOG_DEBUG(
+                            "GraphInputStream {}: propagate data (size:{}) to mirror({})",
+                            input_.Name(), data->size(), m);
+                        if (i == nmirrors - 1)
+                        {
+                                m.ish->MoveData(m.id, data);
+                        }
+                        else
+                        {
+                                m.ish->AddData(m.id, *data);
+                        }
+                        // clear cache in graph input queue
+                        data->clear();
+                }
+        }
+
         std::optional<GraphConfig> ParsePbtxtToGraphConfig(const std::string& pbtxt)
         {
                 std::ifstream fin(pbtxt);
@@ -394,10 +426,9 @@ namespace dni {
                 GraphConfig config;
                 if (!google::protobuf::TextFormat::ParseFromString(text, &config))
                 {
-                        spdlog::error("failed to parse text proto {}", text);
+                        SPDLOG_ERROR("failed to parse text proto {}", text);
                         return std::nullopt;
                 }
-                SPDLOG_DEBUG("{}, node size: {}", config.type(), config.node_size());
                 return config;
         }
 

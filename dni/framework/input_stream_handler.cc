@@ -5,11 +5,9 @@
 #include <list>
 #include <memory>
 
-#include "dni/framework/context_manager.h"
 #include "dni/framework/datum.h"
-#include "dni/framework/default_input_stream_handler.h"
 #include "dni/framework/input_stream_manager.h"
-#include "dni/framework/node.h"
+#include "dni/framework/task_context_manager.h"
 #include "dni/framework/utils/tags.h"
 #include "spdlog/spdlog.h"
 
@@ -22,7 +20,7 @@ namespace dni {
         }
 
         InputStreamHandler::InputStreamHandler(
-            std::shared_ptr<utils::TagMap> tag_map, ContextManager* context_manager,
+            std::shared_ptr<utils::TagMap> tag_map, TaskContextManager* context_manager,
             bool in_parallel)
             : tag_map_(tag_map), context_manager_(context_manager),
               in_parallel_(in_parallel)
@@ -98,7 +96,7 @@ namespace dni {
                 }
                 // TODO: proceed to task body
                 case DataReadiness::kReadyForProcess: {
-                        Context* ctx = context_manager_->DefaultContext();
+                        TaskContext* ctx = context_manager_->DefaultContext();
                         ctx->PushTimestamp(min_ts);
                         break;
                 }
@@ -109,17 +107,12 @@ namespace dni {
                 return true;
         }
 
-        void InputStreamHandler::PostProcess(Context* context)
+        void InputStreamHandler::PostProcess(TaskContext* context)
         {
                 context->PopTimestamp();
-                // for (auto& input : context->Inputs())
-                // {
-                //         input.Clear();
-                // }
-
-                for (size_t i = 0; i < context->Inputs().size(); i++)
+                for (auto& input : context->Inputs())
                 {
-                        context->Inputs()[i].Clear();
+                        input.Clear();
                 }
         }
 
@@ -129,15 +122,6 @@ namespace dni {
                 {
                         manager->Close();
                 }
-        }
-
-        // TODO: return input stream handler by name.
-        std::unique_ptr<InputStreamHandler> GetInputStreamHandlerByName(
-            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
-            ContextManager* ctx_mngr)
-        {
-                return std::move(std::make_unique<DefaultInputStreamHandler>(
-                    tag_map, ctx_mngr, false));
         }
 
         void InputStreamHandler::SyncSet::PrepareForRun() { last_processed_ = kCtimeMin; }
@@ -199,13 +183,17 @@ namespace dni {
                         auto& manager = input_stream_handler_->input_stream_managers_[i];
                         std::time_t ts = manager->NextTimestampOrBound();
                         bool done = false;
-                        Datum d = manager->Pop(&done);
-                        if (done)
+                        while (!manager->IsEmpty())
                         {
-                                SPDLOG_DEBUG("InputStream is done or not empty");
+                                Datum d = manager->Pop(&done);
+                                if (done)
+                                {
+                                        SPDLOG_DEBUG("InputStream is done or not empty");
+                                        break;
+                                }
+                                input_stream_handler_->marshal(
+                                    &input_dataset->at(i), d.At(ts - 1), done);
                         }
-                        input_stream_handler_->marshal(
-                            &input_dataset->at(i), d.At(ts - 1), done);
                 }
         }
 

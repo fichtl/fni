@@ -16,9 +16,9 @@
 
 namespace dni {
 
-        class Context {
+        class TaskContext {
         public:
-                Context(
+                TaskContext(
                     TaskState* state, std::shared_ptr<utils::TagMap> input_tags,
                     std::shared_ptr<utils::TagMap> output_tags)
                     : state_(state)
@@ -61,18 +61,14 @@ namespace dni {
         private:
                 TaskState* state_;
 
-                // TODO: merge into Input/OutputStreamSet
-                std::shared_ptr<utils::TagMap> input_tag_map_;
-                std::shared_ptr<utils::TagMap> output_tag_map_;
-
                 InputStreamSet inputs_;
                 OutputStreamSet outputs_;
 
                 std::queue<std::time_t> timestamps_;
 
-                friend class ContextManager;
-                friend class fmt::formatter<dni::Context>;
-                friend class fmt::formatter<std::unique_ptr<dni::Context>>;
+                friend class TaskContextManager;
+                friend class fmt::formatter<dni::TaskContext>;
+                friend class fmt::formatter<std::unique_ptr<dni::TaskContext>>;
         };
 
 }   // namespace dni
@@ -80,22 +76,22 @@ namespace dni {
 namespace fmt {
 
         template <>
-        struct formatter<std::unique_ptr<dni::Context>>: formatter<std::string_view> {
-                auto format(
-                    const std::unique_ptr<dni::Context>& c, format_context& ctx) const
-                {
-                        return format_to(
-                            ctx.out(), "in({})/out({})", c->inputs_.size(),
-                            c->outputs_.size());
-                }
-        };
-        template <>
-        struct formatter<dni::Context>: formatter<std::string_view> {
-                auto format(const dni::Context& c, format_context& ctx) const
+        struct formatter<dni::TaskContext>: formatter<std::string_view> {
+                auto format(const dni::TaskContext& c, format_context& ctx) const
                 {
                         return format_to(
                             ctx.out(), "in({})/out({})", c.inputs_.size(),
                             c.outputs_.size());
+                }
+        };
+        template <>
+        struct formatter<std::unique_ptr<dni::TaskContext>>: formatter<std::string_view> {
+                auto format(
+                    const std::unique_ptr<dni::TaskContext>& c, format_context& ctx) const
+                {
+                        return format_to(
+                            ctx.out(), "in({})/out({})", c->inputs_.size(),
+                            c->outputs_.size());
                 }
         };
 

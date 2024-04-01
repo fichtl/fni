@@ -10,8 +10,15 @@ namespace dni {
 
         class InputStream {
         public:
+                InputStream(const InputStream&) = delete;
+                InputStream& operator=(const InputStream&) = delete;
+
                 virtual const Datum& Value() const = 0;
                 virtual bool Done() const = 0;
+
+        protected:
+                InputStream() = default;
+                ~InputStream() = default;
         };
 
         class InputStreamImpl: public InputStream {

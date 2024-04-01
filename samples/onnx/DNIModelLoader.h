@@ -1,44 +1,36 @@
-#ifndef _DNIMODELLOADER_H
-#define _DNIMODELLOADER_H
+#pragma once
 
+#include <memory>
 #include <onnx/onnxruntime_cxx_api.h>
 #include <string>
 #include <vector>
 
-class DNIModelLoader {
-public:
-    DNIModelLoader(const std::string& model, int threads, GraphOptimizationLevel optimize_level,
-                    OrtLoggingLevel logging_level, const std::string& logid);
+namespace dni {
 
-    ~DNIModelLoader();
+        class DNIModelLoader {
+        public:
+                DNIModelLoader(
+                    const std::string& model, int threads,
+                    GraphOptimizationLevel optimize_level, OrtLoggingLevel logging_level,
+                    const std::string& logid);
 
-    void Load();
-    int Inference(std::vector<std::vector<float>*>& input_data);
+                ~DNIModelLoader();
 
-    const std::vector<float*>& GetInferenceRet();
-    const std::vector<size_t>& GetOutputNodesTensorSize();
-    const std::vector<std::vector<int64_t>>& GetOutputNodeDims();
-    size_t GetOutputNodesNum();
+                virtual void Load() = 0;
+                virtual std::vector<Ort::Value> Inference(
+                    std::vector<std::vector<float>*>& input_data) = 0;
 
+                size_t GetOutputNodesNum() { return this->output_nodes_num_; }
 
-private:
+        protected:
+                std::string modelPath_;
+                std::unique_ptr<Ort::Session> session_;
+                std::unique_ptr<Ort::Env> env_;
+                std::unique_ptr<Ort::SessionOptions> session_options_;
 
-    std::string modelPath;
-    Ort::Session* session;
-    Ort::Env* env;
-    Ort::SessionOptions* session_options;
+                size_t input_nodes_num_;
 
-    size_t input_nodes_num;
-    std::vector<const char*> input_node_names;
-    std::vector<std::vector<int64_t>> input_node_dims;
-    std::vector<size_t> input_nodes_tensor_size;
+                size_t output_nodes_num_;
+        };
 
-    size_t output_nodes_num;
-    std::vector<const char*> output_node_names;
-    std::vector<std::vector<int64_t>> output_node_dims;
-    std::vector<size_t> output_nodes_tensor_size;
-
-    std::vector<float*> inference_ret;
-};
-
-#endif
+}   // namespace dni

@@ -7,12 +7,10 @@ common --experimental_repo_remote_exec
 build --jobs 8
 build --define='absl=1'  # for gtest
 
-build --cxxopt=-std=c++17
-build --host_cxxopt=-std=c++17
-build --copt=-w
-# build --enable_platform_specific_config
+build --enable_platform_specific_config
 
-build:debug --copt=-g --copt='-D DNI_DEBUG' --strip=never --subcommands --verbose_failures
+build:debug --strip=never --subcommands --verbose_failures
+build:debug --copt=-g --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG'
 
 # Enable stack traces
 test --test_env="GTEST_INSTALL_FAILURE_SIGNAL_HANDLER=1"

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <ctime>
+#include <iostream>
 #include <list>
 #include <memory>
 
-#include "dni/framework/context.h"
-#include "dni/framework/context_manager.h"
 #include "dni/framework/datum.h"
 #include "dni/framework/input_stream_manager.h"
+#include "dni/framework/task_context.h"
+#include "dni/framework/task_context_manager.h"
 #include "dni/framework/utils/tags.h"
 #include "fmt/format.h"
 
@@ -25,7 +26,7 @@ namespace dni {
 
                 InputStreamHandler(
                     std::shared_ptr<utils::TagMap> tag_map,
-                    ContextManager* context_manager, bool in_parallel);
+                    TaskContextManager* context_manager, bool in_parallel);
 
                 int InitializeInputStreamManagers(InputStreamManager* managers_arr);
 
@@ -50,7 +51,7 @@ namespace dni {
                 // to kCtimeMin, otherwise it's set to a valid timestamp.
                 bool Process(std::time_t* bound);
 
-                void PostProcess(Context* context);
+                void PostProcess(TaskContext* context);
 
                 void Close();
 
@@ -101,15 +102,14 @@ namespace dni {
         private:
                 InputStreamManagerSet input_stream_managers_;
                 std::shared_ptr<utils::TagMap> tag_map_;
-                ContextManager* const context_manager_;
+                // TODO: consider remove this.
+                // OperatorContextManager is only used when checking data readiness, which
+                // is not necessary in this architecture.
+                TaskContextManager* const context_manager_;
                 const bool in_parallel_;
 
                 friend class fmt::formatter<dni::InputStreamHandler>;
         };
-
-        std::unique_ptr<InputStreamHandler> GetInputStreamHandlerByName(
-            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
-            ContextManager*);
 
 }   // namespace dni
 

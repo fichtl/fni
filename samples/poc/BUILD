@@ -6,11 +6,11 @@ cc_library(
 )
 
 cc_binary(
-    name = "simple",
-    srcs = ["simple.cc"],
+    name = "nop",
+    srcs = ["nop.cc"],
     deps = [
         ":pipeline",
-        "//third_party:taskflow",
+        "@taskflow",
     ],
 )
 
@@ -19,6 +19,6 @@ cc_binary(
     srcs = ["counter.cc"],
     deps = [
         ":pipeline",
-        "//third_party:taskflow",
+        "@taskflow",
     ],
 )

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "dni/framework/datum.h"
+#include "spdlog/spdlog.h"
 
 namespace dni {
 

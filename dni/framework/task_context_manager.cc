@@ -1,4 +1,4 @@
-#include "dni/framework/context_manager.h"
+#include "dni/framework/task_context_manager.h"
 
 #include <memory>
 
@@ -7,7 +7,7 @@
 
 namespace dni {
 
-        void ContextManager::Initialize(
+        void TaskContextManager::Initialize(
             TaskState* state, std::shared_ptr<utils::TagMap> input_tag_map,
             std::shared_ptr<utils::TagMap> output_tag_map, bool in_parallel)
         {
@@ -17,13 +17,13 @@ namespace dni {
                 in_parallel_ = in_parallel;
         }
 
-        int ContextManager::PrepareForRun()
+        int TaskContextManager::PrepareForRun()
         {
-                default_ctx_ =
-                    std::make_unique<Context>(state_, input_tag_map_, output_tag_map_);
+                default_ctx_ = std::make_unique<TaskContext>(
+                    state_, input_tag_map_, output_tag_map_);
                 return 0;
         }
 
-        void ContextManager::Finish() { default_ctx_ = nullptr; }
+        void TaskContextManager::Finish() { default_ctx_ = nullptr; }
 
 }   // namespace dni

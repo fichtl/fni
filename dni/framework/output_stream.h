@@ -38,6 +38,8 @@ namespace dni {
                         output_stream_spec_ = output_stream_spec;
                 }
 
+                const std::string& Name() const { return output_stream_spec_->name; }
+
                 void AddDatum(const Datum& datum);
                 void AddDatum(Datum&& datum);
 

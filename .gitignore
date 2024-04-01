@@ -1,13 +1,17 @@
 .vscode
 
 bazel-*
+target/
 
 *.pb.*
 
 third_party/*
 !third_party/BUILD
 !third_party/fmtlib.BUILD
+!third_party/onnxruntime*.BUILD
 !third_party/spdlog.BUILD
+!third_party/taskflow.BUILD
 !third_party/zlib.BUILD
 
 *.onnx
+!samples/onnx/*.onnx

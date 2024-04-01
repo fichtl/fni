@@ -3,11 +3,10 @@
 #include <memory>
 #include <mutex>
 
-#include "dni/framework/context.h"
-#include "dni/framework/dtype.h"
 #include "dni/framework/datum.h"
 #include "dni/framework/default_input_stream_handler.h"
 #include "dni/framework/dni.pb.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/graph_config.h"
 #include "dni/framework/input_stream_handler.h"
 #include "dni/framework/input_stream_manager.h"
@@ -15,6 +14,7 @@
 #include "dni/framework/output_stream_handler.h"
 #include "dni/framework/output_stream_manager.h"
 #include "dni/framework/task.h"
+#include "dni/framework/task_context.h"
 #include "dni/framework/task_state.h"
 #include "dni/framework/utils/names.h"
 #include "spdlog/spdlog.h"
@@ -38,8 +38,7 @@ namespace dni {
         }
 
         int Node::initializeOutputSideData(
-            const DtypeSet& output_side_data_types,
-            OutputSideDatumImpl* output_side_data)
+            const DtypeSet& output_side_data_types, OutputSideDatumImpl* output_side_data)
         {
                 output_side_data_ =
                     std::make_unique<OutputSideData>(output_side_data_types.size());
@@ -224,39 +223,32 @@ namespace dni {
                 if (input_side_data_handler_.PrepareForRun(
                         input_side_data_types_.get(), all_side_data))
                 {
-                        spdlog::error("failed to initialize input side data handler");
+                        SPDLOG_ERROR("failed to initialize input side data handler");
                         return -1;
                 }
+
+                // Prepare task context
+                SPDLOG_DEBUG("node {}: preparing task context", name_);
                 task_state_->input_side_data = &input_side_data_handler_.Data();
                 task_state_->output_side_data = output_side_data_.get();
-
-                // Prepare context manager
-
-                // std::cout << "[" << __FILE__ << " - " << __FUNCTION__ << ": " <<
-                // __LINE__
-                //           << "], in size: " << input_stream_handler_->Inputs()->size()
-                //           << ", out size: " <<
-                //           output_stream_handler_->Outputs()->size()
-                //           << std::endl;
-
-                SPDLOG_DEBUG("node {}: preparing task context", name_);
                 context_manager_.PrepareForRun();
-                SPDLOG_DEBUG("node {}: context manager {}", name_, context_manager_);
-                Context* ctx = context_manager_.DefaultContext();
+                SPDLOG_DEBUG(
+                    "node {}: task context manager: {}", name_, context_manager_);
+                TaskContext* ctx = context_manager_.DefaultContext();
                 if (!ctx)
                 {
-                        spdlog::error("node {}: failed to get default context");
+                        SPDLOG_ERROR("node {}: failed to get default context");
                         return -1;
                 }
-                SPDLOG_DEBUG("node {}: current context {}", name_, *ctx);
+                SPDLOG_DEBUG("node {}: current context: {}", name_, *ctx);
 
                 SPDLOG_DEBUG("node {}: setup input/output streams", name_);
                 input_stream_handler_->SetupInputStreams(&ctx->Inputs());
                 output_stream_handler_->SetupOutputStreams(&ctx->Outputs());
 
                 // Prepare task
+                SPDLOG_DEBUG("node {}: setup task {}", name_, task_state_->TaskType());
                 task_ = GetTaskByName(task_state_->TaskType());
-                // task_ = GetTaskByName(task_state_->NodeName());
 
                 {
                         const std::lock_guard<std::mutex> l(status_mu_);
@@ -269,7 +261,7 @@ namespace dni {
 
         int Node::Open()
         {
-                Context* ctx = context_manager_.DefaultContext();
+                TaskContext* ctx = context_manager_.DefaultContext();
 
                 InputStreamSet& inputs = ctx->Inputs();
                 input_stream_handler_->Open(&inputs);
@@ -292,7 +284,7 @@ namespace dni {
 
         int Node::Process()
         {
-                Context* context = context_manager_.DefaultContext();
+                TaskContext* context = context_manager_.DefaultContext();
                 // If any input stream is closed (indicated by a timestamp with max value
                 // of time_t), this node needs to be closed.
                 std::time_t ts = context->NextTimestamp();
@@ -345,7 +337,7 @@ namespace dni {
 
                 closeInputStreams();
 
-                Context* ctx = context_manager_.DefaultContext();
+                TaskContext* ctx = context_manager_.DefaultContext();
                 OutputStreamSet& outputs = ctx->Outputs();
 
                 output_stream_handler_->ResetOutputs(&outputs);
@@ -372,6 +364,24 @@ namespace dni {
                         status_ = kStateUninitialized;
                 }
                 return 0;
+        }
+
+        // TODO: block by implementation of registry
+        std::unique_ptr<InputStreamHandler> GetInputStreamHandlerByName(
+            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
+            TaskContextManager* ctx_mngr)
+        {
+                return std::move(std::make_unique<DefaultInputStreamHandler>(
+                    tag_map, ctx_mngr, false));
+        }
+
+        // TODO: block by implementation of registry
+        std::unique_ptr<OutputStreamHandler> GetOutputStreamHandlerByName(
+            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
+            TaskContextManager* ctx_mngr)
+        {
+                return std::move(
+                    std::make_unique<OutputStreamHandler>(tag_map, ctx_mngr, false));
         }
 
 }   // namespace dni

@@ -7,16 +7,40 @@ using Datum = int;
 
 class CountTask: public TaskBase {
 public:
-        CountTask();
-        ~CountTask() override;
+        CountTask()
+        {
+                ++num_constructed_;
+                SetupInput();
+        }
+        ~CountTask() override { ++num_destroyed_; }
 
         void SetupInput() { input_handler_ = new Datum(); };
         void SetupOutput(Datum* input_handler) { output_handler_ = input_handler; }
         int Open() override { return 0; }
 
         Datum GetInput() { return *input_handler_; }
-        void Propagate();
-        int Process() override;
+        void Propagate() { *output_handler_ = data_; }
+        int Process() override
+        {
+                ++num_called_;
+
+                // Check if input is ready
+                while (!GetInput()) continue;
+
+                // Handle inputs
+                data_ = *input_handler_ + 1;
+
+                // Clear processed input
+                *input_handler_ = 0;
+
+                // Check if output exists
+                if (!output_handler_)
+                        return 0;
+
+                Propagate();
+
+                return 0;
+        }
 
         int Close() override { return 0; }
 
@@ -29,34 +53,7 @@ public:
         static int num_constructed_;
         static int num_destroyed_;
 };
-CountTask::CountTask()
-{
-        ++num_constructed_;
-        SetupInput();
-}
-CountTask::~CountTask() { ++num_destroyed_; }
-void CountTask::Propagate() { *output_handler_ = data_; }
-int CountTask::Process()
-{
-        ++num_called_;
 
-        // Check if input is ready
-        while (!GetInput()) continue;
-
-        // Handle inputs
-        data_ = *input_handler_ + 1;
-
-        // Clear processed input
-        *input_handler_ = 0;
-
-        // Check if output exists
-        if (!output_handler_)
-                goto end;
-        Propagate();
-
-end:
-        return 0;
-}
 int CountTask::num_constructed_ = 0;
 int CountTask::num_destroyed_ = 0;
 
@@ -90,8 +87,6 @@ int main(int argc, char** argv)
 
         Graph graph(nodes);
         graph.Compose();
-        // graph.Run();
-        // graph.Wait();
 
         tf::Executor executor;
         tf::Taskflow taskflow;

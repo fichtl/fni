@@ -14,7 +14,7 @@ namespace dni {
         {}
 
         DefaultInputStreamHandler::DefaultInputStreamHandler(
-            std::shared_ptr<utils::TagMap> tag_map, ContextManager* context_manager,
+            std::shared_ptr<utils::TagMap> tag_map, TaskContextManager* context_manager,
             bool in_parallel)
             : InputStreamHandler(std::move(tag_map), context_manager, in_parallel),
               sync_set_(this, GetIds(GetTagMap()))

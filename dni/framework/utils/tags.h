@@ -10,7 +10,8 @@
 namespace dni {
 
         namespace utils {
-
+                // A TagMap stores streams' indexes by tag and index, as well as their
+                // names in a vector.
                 class TagMap {
                 public:
                         TagMap() {}
@@ -41,13 +42,12 @@ namespace dni {
                         int FindByTagIndex(const std::string& tag, int index);
 
                 private:
-                        // TagMap() {}
-
                         // Map of tag - stream base/count info.
                         std::unordered_map<std::string, TagData> data_;
 
                         // Vector of stream names (indexed by id).
                         std::vector<std::string> names_;
+
                         int total_names_;
                 };
 

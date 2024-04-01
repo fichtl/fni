@@ -30,9 +30,10 @@ namespace dni {
                 int Initialize(
                     GraphConfig config, const std::map<std::string, Datum>& side_data);
 
+                // Build and store a tf::Taskflow based on ParsedGraphConfig.
                 int PrepareForRun();
 
-                virtual int Run();
+                int Run();
 
                 int RunOnce();
 
@@ -50,26 +51,21 @@ namespace dni {
 
                 int Finish();
 
-                int AddDatumToInputStream(const std::string& stream_name, Datum&& datum);
-                int AddDatumToInputStream(
-                    const std::string& stream_name, const Datum& datum);
+                int AddDatumToInputStream(const std::string& name, Datum&& datum);
+                int AddDatumToInputStream(const std::string& name, const Datum& datum);
 
-                int CloseInputStream(const std::string& stream_name);
+                int CloseInputStream(const std::string& stream);
 
                 int CloseAllInputStreams();
 
                 Datum* OutputSideData(const std::string& datum_name);
 
+                // Add an observer output stream to current graph. Must be called before
+                // PrepareForRun.
                 int ObserveOutputStream(const std::string& name);
 
-                // TODO: remove this after re-inspecting the implementation of
-                // ParsedGraphConfig::InitializeStreams and Node::initializeOutputStream.
-                // It's supposed to be included by the last node's output streams
-                // naturally.
-                // InputStreamHandler* GetGraphOutputStreamHandler(int index);
-
                 template <typename T>
-                T GetResult(const std::string& graph_output_name) const;
+                const T& GetResult(const std::string& graph_output_name);
 
                 void ClearResult();
 
@@ -84,14 +80,7 @@ namespace dni {
 
                         void AddDatum(const Datum& datum) { input_.AddDatum(datum); }
 
-                        void Propagate()
-                        {
-                                for (auto& m : manager_->Mirrors())
-                                {
-                                        SPDLOG_DEBUG("propagate inputs to mirror {}", m);
-                                        m.ish->AddData(m.id, *input_.OutputQueue());
-                                }
-                        }
+                        void Propagate();
 
                         void Close() { closed_ = true; }
                         bool Closed() { return closed_; }
@@ -142,13 +131,15 @@ namespace dni {
         };
 
         template <typename T>
-        inline T Graph::GetResult(const std::string& name) const
+        const T& Graph::GetResult(const std::string& name)
         {
                 for (auto graph_output_stream : graph_output_streams_)
                 {
-                        if (name == graph_output_stream->GetInputStreamManager()->Name())
+                        if (name == graph_output_stream->Name())
                         {
-                                return graph_output_stream->Value<T>();
+                                Datum d = std::move(graph_output_stream->Head());
+                                T v = std::move(d.Value<T>());
+                                return v;
                         }
                 }
                 return T();

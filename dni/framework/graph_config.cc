@@ -1,5 +1,7 @@
 #include "dni/framework/graph_config.h"
 
+#include <fmt/ranges.h>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
@@ -8,8 +10,6 @@
 #include "dni/framework/node_config.h"
 #include "dni/framework/utils/names.h"
 #include "dni/framework/utils/tags.h"
-#include "fmt/ranges.h"
-#include "spdlog/spdlog.h"
 
 namespace dni {
 
@@ -28,7 +28,7 @@ namespace dni {
                 SPDLOG_DEBUG("node {}: initializing config", cfg_.NodeName());
                 if (cfg_.Initialize(node))
                 {
-                        spdlog::error(
+                        SPDLOG_ERROR(
                             "node {}: failed to initiate config", cfg_.NodeName());
                         return -1;
                 }
@@ -40,22 +40,33 @@ namespace dni {
                         for (const auto& input_stream_info : node.input_stream_info())
                         {
                                 std::string tag;
-                                int index;
+                                int index = 0;
                                 utils::ParseTagIndex(
                                     input_stream_info.tag(), &tag, &index);
                                 SPDLOG_DEBUG(
-                                    "node {}: input:{}, tag:{}, index:{}",
+                                    "node {}: InputStreamInfo:{}, tag:{}, index:{}",
                                     cfg_.NodeName(),
                                     input_stream_info.tag(),
                                     tag,
                                     index);
                                 int id = cfg_.Inputs().FindByTagIndex(tag, index);
-                                if (id_used[id])
+                                if (id < 0)
                                 {
-                                        spdlog::error(
-                                            "node {}: invalid tag-index: {}",
+                                        SPDLOG_ERROR(
+                                            "node {}: cannot find input stream with "
+                                            "InputStreamInfo:{}",
                                             cfg_.NodeName(),
                                             input_stream_info.tag());
+                                        return -1;
+                                }
+                                if (id_used[id])
+                                {
+                                        SPDLOG_ERROR(
+                                            "node {}: more than one input stream with "
+                                            "InputStreamInfo:{} specified",
+                                            cfg_.NodeName(),
+                                            input_stream_info.tag());
+                                        return -1;
                                 }
                                 id_used[id] = true;
                         }
@@ -85,7 +96,7 @@ namespace dni {
                         nodes_.emplace_back();
                         if (nodes_.back().Initialize(proto_, node, i))
                         {
-                                spdlog::error(
+                                SPDLOG_ERROR(
                                     "failed to initialize NodeInfo of {}", node.name());
                                 return -1;
                         };
@@ -108,16 +119,15 @@ namespace dni {
                         input_side_data_.emplace_back(
                             EdgeInfo{name, nullptr, node->Node()});
                         auto& edge = input_side_data_.back();
-                        auto it = output_side_data_name_to_producer_.find(name);
-                        if (it != output_side_data_name_to_producer_.end())
+                        auto it = output_side_data_to_index_.find(name);
+                        if (it != output_side_data_to_index_.end())
                         {
                                 edge.upstream_id = it->second;
 
                                 // this output_side_data may import from graph-level input
                                 // side data, not corresponding to a node
-                                auto nodeIt =
-                                    output_side_data_name_to_node_name_.find(name);
-                                if (nodeIt != output_side_data_name_to_node_name_.end())
+                                auto nodeIt = output_side_data_to_node_.find(name);
+                                if (nodeIt != output_side_data_to_node_.end())
                                 {
                                         node->AddPredecessor(nodeIt->second);
                                 }
@@ -130,11 +140,9 @@ namespace dni {
                 {
                         output_side_data_.emplace_back(
                             EdgeInfo{name, nullptr, node->Node()});
-                        output_side_data_name_to_producer_[name] =
-                            output_side_data_.size() - 1;
+                        output_side_data_to_index_[name] = output_side_data_.size() - 1;
 
-                        output_side_data_name_to_node_name_[name] =
-                            node->Config().NodeName();
+                        output_side_data_to_node_[name] = node->Config().NodeName();
                 }
 
                 return 0;
@@ -168,10 +176,9 @@ namespace dni {
                             "node {}: output_stream:{}", node->Config().NodeName(), name);
                         output_streams_.emplace_back(
                             EdgeInfo{name, nullptr, node->Node()});
-                        stream_name_to_producer_[name] = output_streams_.size() - 1;
+                        output_stream_to_index_[name] = output_streams_.size() - 1;
 
-                        output_stream_name_to_node_name_[name] =
-                            node->Config().NodeName();
+                        output_stream_to_node_[name] = node->Config().NodeName();
 
                         idx++;
                 }
@@ -185,15 +192,15 @@ namespace dni {
                         input_streams_.emplace_back(
                             EdgeInfo{name, nullptr, node->Node()});
                         auto& edge = input_streams_.back();
-                        auto it = stream_name_to_producer_.find(name);
-                        if (it != stream_name_to_producer_.end())
+                        auto it = output_stream_to_index_.find(name);
+                        if (it != output_stream_to_index_.end())
                         {
                                 edge.upstream_id = it->second;
 
                                 // this output_stream may import from graph-level input
                                 // stream, not corresponding to a node
-                                auto nodeIt = output_stream_name_to_node_name_.find(name);
-                                if (nodeIt != output_stream_name_to_node_name_.end())
+                                auto nodeIt = output_stream_to_node_.find(name);
+                                if (nodeIt != output_stream_to_node_.end())
                                 {
                                         node->AddPredecessor(nodeIt->second);
                                 }
@@ -209,6 +216,12 @@ namespace dni {
                 SPDLOG_DEBUG("graph input streams: {:}", proto_.input_stream());
                 std::shared_ptr<utils::TagMap> graph_input_streams =
                     utils::NewTagMap(proto_.input_stream());
+                if (!graph_input_streams)
+                {
+                        SPDLOG_ERROR(
+                            "invalid GraphInputStream: {}", proto_.input_stream());
+                        return -1;
+                }
                 auto& names = graph_input_streams->Names();
                 for (int i = 0; i < names.size(); ++i)
                 {
@@ -218,17 +231,8 @@ namespace dni {
                             i + proto_.node_size()};
                         // Add graph input stream to the virtual node.
                         output_streams_.emplace_back(EdgeInfo{name, nullptr, ref});
-                        stream_name_to_producer_[name] = output_streams_.size() - 1;
+                        output_stream_to_index_[name] = output_streams_.size() - 1;
                 }
-
-                // graph output
-                // std::shared_ptr<utils::TagMap> graph_output_streams =
-                //     utils::NewTagMap(config_.output_stream());
-                // graph_output_names_ = graph_output_streams->Names();
-                // SPDLOG_DEBUG(
-                //     "node {}: graph output names:{;}",
-                //     node.Config().NodeName(),
-                //     graph_output_names_);
 
                 // nodes
                 for (NodeInfo& node : nodes_)
@@ -248,6 +252,13 @@ namespace dni {
                             node.Predecessors());
                 }
 
+                SPDLOG_DEBUG("graph output streams: {:}", proto_.output_stream());
+                if (!utils::NewTagMap(proto_.output_stream()))
+                {
+                        SPDLOG_ERROR(
+                            "invalid GraphOutputStream: {:}", proto_.output_stream());
+                        return -1;
+                }
                 return 0;
         }
 
@@ -278,11 +289,11 @@ namespace dni {
                         input_streams_.clear();
                         input_side_data_.clear();
                         output_streams_.clear();
-                        stream_name_to_producer_.clear();
+                        output_stream_to_index_.clear();
                         output_side_data_.clear();
-                        output_side_data_name_to_producer_.clear();
-                        output_stream_name_to_node_name_.clear();
-                        output_side_data_name_to_node_name_.clear();
+                        output_side_data_to_index_.clear();
+                        output_stream_to_node_.clear();
+                        output_side_data_to_node_.clear();
                         if (topologicalSorting())
                         {
                                 return -1;

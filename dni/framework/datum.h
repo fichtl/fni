@@ -7,30 +7,35 @@
 #include <optional>
 #include <vector>
 
+#include "fmt/format.h"
+#include "fmt/ostream.h"
+#include "spdlog/spdlog.h"
+
 namespace dni {
 
         class Datum {
         public:
                 Datum() = default;
 
-                // TODO: use fmtlib to handle this.
-                using printfn = void (*)(std::ostream&, const std::any&);
+                using printfn = void (*)(std::ostream&, const std::any&, std::time_t);
                 printfn repr_;
 
                 template <typename T>
                 Datum(T&& v): val_(std::forward<T>(v))
                 {
-                        repr_ = [](std::ostream& os, const std::any& val) {
-                                os << val.type().name() << "("
-                                   << std::any_cast<std::decay_t<T>>(val) << ")";
+                        repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
+                                os << val.type().name()   //
+                                   << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
+                                   << "AT" << t;
                         };
                 }
                 template <typename T>
                 Datum(T&& v, std::time_t ts): val_(std::forward<T>(v)), ts_(ts)
                 {
-                        repr_ = [](std::ostream& os, const std::any& val) {
-                                os << val.type().name() << "("
-                                   << std::any_cast<std::decay_t<T>>(val) << ")";
+                        repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
+                                os << val.type().name()   //
+                                   << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
+                                   << "AT" << t;
                         };
                 }
 
@@ -57,13 +62,19 @@ namespace dni {
 
                 friend std::ostream& operator<<(std::ostream& out, const Datum& p)
                 {
-                        p.repr_(out, p.val_);
+                        if (!p.val_.has_value())
+                        {
+                                return out << "NIL";
+                        }
+                        p.repr_(out, p.val_, p.ts_);
                         return out;
                 }
 
         private:
                 std::any val_;
                 std::time_t ts_;
+
+                friend class fmt::formatter<dni::Datum>;
         };
 
         inline Datum::Datum(const Datum& d): val_(d.val_), ts_(d.ts_), repr_(d.repr_) {}
@@ -95,7 +106,7 @@ namespace dni {
         template <typename T>
         inline const T& Datum::Value() const
         {
-                return std::any_cast<T&>(val_);
+                return std::any_cast<std::decay_t<T>>(val_);
         }
 
         inline std::time_t Datum::Timestamp() const { return ts_; }
@@ -103,17 +114,31 @@ namespace dni {
         template <typename T>
         inline std::optional<std::unique_ptr<T>> Datum::Consume()
         {
-                if (val_.has_value())
+                if (!val_.has_value())
                 {
-                        // TODO: maybe not a good implementation
-                        std::unique_ptr<T> v =
-                            std::make_unique<T>(std::any_cast<T>(val_));
-                        val_.reset();
-                        return v;
+                        return std::nullopt;
                 }
-                return std::nullopt;
+                std::optional<std::unique_ptr<T>> v;
+                try
+                {
+                        v = std::make_unique<T>(std::any_cast<T&>(val_));
+                }
+                catch (const std::bad_any_cast& e)
+                {
+                        SPDLOG_CRITICAL("{}", e.what());
+                        v = std::nullopt;
+                }
+                val_.reset();
+                return v;
         }
 
         inline const std::type_info& Datum::TypeInfo() const { return val_.type(); }
 
 }   // namespace dni
+
+namespace fmt {
+
+        template <>
+        struct formatter<dni::Datum>: ostream_formatter {};
+
+}   // namespace fmt

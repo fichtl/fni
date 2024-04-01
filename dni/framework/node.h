@@ -3,7 +3,6 @@
 #include <memory>
 #include <mutex>
 
-#include "dni/framework/context.h"
 #include "dni/framework/datum.h"
 #include "dni/framework/dni.pb.h"
 #include "dni/framework/dtype.h"
@@ -14,6 +13,7 @@
 #include "dni/framework/output_stream_handler.h"
 #include "dni/framework/output_stream_manager.h"
 #include "dni/framework/task.h"
+#include "dni/framework/task_context.h"
 #include "dni/framework/task_state.h"
 #include "fmt/format.h"
 
@@ -60,8 +60,8 @@ namespace dni {
 
                 bool IsSource() const;
 
-                const TaskState& GetState() const { return *task_state_; }
-                Context* GetContext() const { return context_manager_.DefaultContext(); }
+                const TaskState& State() const { return *task_state_; }
+                TaskContext* Context() const { return context_manager_.DefaultContext(); }
 
         private:
                 int initializeInputSideData(OutputSideDatumImpl* output_side_data);
@@ -99,7 +99,7 @@ namespace dni {
                 std::unique_ptr<TaskBase> task_;
                 std::unique_ptr<TaskState> task_state_;
 
-                ContextManager context_manager_;
+                TaskContextManager context_manager_;
 
                 std::unique_ptr<DtypeSet> input_side_data_types_;
                 InputSideDataHandler input_side_data_handler_;
@@ -118,6 +118,14 @@ namespace dni {
                 friend class fmt::formatter<dni::Node>;
                 friend class fmt::formatter<std::unique_ptr<dni::Node>>;
         };
+
+        // TODO: block by implementation of registry
+        std::unique_ptr<InputStreamHandler> GetInputStreamHandlerByName(
+            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
+            TaskContextManager*);
+        std::unique_ptr<OutputStreamHandler> GetOutputStreamHandlerByName(
+            std::string_view name, std::shared_ptr<utils::TagMap> tag_map,
+            TaskContextManager* ctx_mngr);
 
 }   // namespace dni
 

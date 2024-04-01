@@ -1,6 +1,6 @@
 #include "dni/framework/task.h"
 
-#include "dni/framework/register.h"
+#include "dni/framework/task_register.h"
 
 namespace dni {
 

@@ -3,8 +3,8 @@
 #include <memory>
 #include <mutex>
 
-#include "dni/framework/dtype.h"
 #include "dni/framework/dni.pb.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/utils/tags.h"
 #include "fmt/format.h"
 #include "spdlog/spdlog.h"

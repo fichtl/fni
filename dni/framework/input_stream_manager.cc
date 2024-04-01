@@ -7,8 +7,8 @@
 #include <mutex>
 #include <string>
 
-#include "dni/framework/dtype.h"
 #include "dni/framework/datum.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/input_stream.h"
 #include "dni/framework/timestamp.h"
 
@@ -61,6 +61,7 @@ namespace dni {
                 closed_ = true;
         }
 
+        // TODO: filter datum by watermark (Timestamp)
         Datum InputStreamManager::Pop(bool* done)
         {
                 Datum ret;
@@ -73,6 +74,7 @@ namespace dni {
                 return ret;
         }
 
+        // TODO: filter datum by watermark (Timestamp)
         Datum InputStreamManager::PopAt(std::time_t ts, int* num_dropped, bool* done)
         {
                 Datum ret;
@@ -107,6 +109,12 @@ namespace dni {
         {
                 std::lock_guard<std::mutex> l(mu_);
                 return queue_.empty();
+        }
+
+        void InputStreamManager::Clear()
+        {
+                std::lock_guard<std::mutex> l(mu_);
+                while (!queue_.empty()) queue_.pop_front();
         }
 
         int InputStreamManager::Size() const

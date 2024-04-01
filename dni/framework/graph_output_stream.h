@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "dni/framework/default_input_stream_handler.h"
 #include "dni/framework/input_stream_handler.h"
 #include "dni/framework/input_stream_manager.h"
 #include "dni/framework/output_stream_manager.h"
@@ -11,38 +10,32 @@ namespace dni {
 
         class GraphOutputStream {
         public:
-                GraphOutputStream()
-                {
-                        input_stream_handler_ =
-                            std::make_unique<DefaultInputStreamHandler>(1);
-                        input_stream_manager_ = std::make_unique<InputStreamManager>();
-                        input_stream_handler_->InitializeInputStreamManagers(
-                            input_stream_manager_.get());
-                }
+                int Initialize(const std::string& name, OutputStreamManager* osm);
 
-                void Initialize(const std::string& name, OutputStreamManager* osm)
-                {
-                        input_stream_manager_->Initialize(name, nullptr);
-                        osm->AddMirror(input_stream_handler_.get(), 0);
-                }
+                void PrepareForRun();
 
-                template <typename T>
-                inline const T& Value() const
-                {
-                        return input_stream_manager_->Head().Value<T>();
-                }
+                void Close();
 
-                // TODO: don't understand the purpose of this func.
-                // void PopAfterGet() { input_stream_manager_->Pop(); }
+                const std::string& Name() { return input_stream_manager_->Name(); }
 
-                InputStreamManager* GetInputStreamManager()
-                {
-                        return input_stream_manager_.get();
-                }
+                Datum Head() const { return input_stream_manager_->Head(); }
 
-                void PrepareForRun() { input_stream_handler_->PrepareForRun(); }
+                void Clear() { input_stream_manager_->Clear(); }
 
-                void Close() { input_stream_manager_->Close(); }
+        protected:
+                class GraphOutputStreamHandler: public InputStreamHandler {
+                public:
+                        GraphOutputStreamHandler(
+                            std::shared_ptr<utils::TagMap> tag_map,
+                            TaskContextManager* context_manager, bool in_parallel)
+                            : InputStreamHandler(
+                                  std::move(tag_map), context_manager, in_parallel)
+                        {}
+
+                        DataReadiness GetReadiness(std::time_t* ts) override {}
+
+                        void Marshal(InputStreamSet* inputs) override {}
+                };
 
         private:
                 std::unique_ptr<InputStreamHandler> input_stream_handler_;

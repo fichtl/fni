@@ -23,10 +23,10 @@ namespace dni {
                         for (const auto& tag_index_name : tag_index_names)
                         {
                                 std::string tag, name;
-                                int idx;
+                                int idx = 0;
                                 if (ParseTagIndexName(tag_index_name, &tag, &idx, &name))
                                 {
-                                        spdlog::error("failed to parse tag_index_name");
+                                        SPDLOG_ERROR("failed to parse tag_index_name");
                                         return -1;
                                 }
                                 SPDLOG_DEBUG(
@@ -55,7 +55,7 @@ namespace dni {
                                     tag_to_names[item.first];
                                 if (tag_data.count != names.size())
                                 {
-                                        spdlog::error(
+                                        SPDLOG_ERROR(
                                             "tag_data.count({}) != names.size({})",
                                             tag_data.count, names.size());
                                         return -1;
@@ -97,7 +97,8 @@ namespace dni {
                     const google::protobuf::RepeatedPtrField<std::string>& tag_names)
                 {
                         std::shared_ptr<TagMap> ret = std::make_shared<TagMap>();
-                        ret->Initialize(tag_names);
+                        if (ret->Initialize(tag_names))
+                                return nullptr;
                         return std::move(ret);
                 }
 

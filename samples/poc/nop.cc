@@ -5,28 +5,26 @@
 
 class NopTask: public TaskBase {
 public:
-        NopTask();
-        ~NopTask() override;
+        NopTask() { ++num_constructed_; }
+        ~NopTask() override { ++num_destroyed_; }
 
-        int Open() override;
-        int Process() override;
-        int Close() override;
+        int Open() override { return 0; }
+
+        int Process() override
+        {
+                ++num_called_;
+                std::cout << name << ": processing data" << std::endl;
+                return 0;
+        }
+
+        int Close() override { return 0; }
 
         int num_called_;
 
         static int num_constructed_;
         static int num_destroyed_;
 };
-NopTask::NopTask() { ++num_constructed_; }
-NopTask::~NopTask() { ++num_destroyed_; }
-int NopTask::Open() { return 0; }
-int NopTask::Process()
-{
-        ++num_called_;
-        std::cout << name << ": processing data" << std::endl;
-        return 0;
-}
-int NopTask::Close() { return 0; }
+
 int NopTask::num_constructed_ = 0;
 int NopTask::num_destroyed_ = 0;
 
