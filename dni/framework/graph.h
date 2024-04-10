@@ -64,6 +64,9 @@ namespace dni {
                 // PrepareForRun.
                 int ObserveOutputStream(const std::string& name);
 
+                // int AddDatumToInputSideData(const std::string& name, Datum&& datum);
+                int AddDatumToInputSideData(const std::string& name, const Datum& datum);
+
                 template <typename T>
                 const T& GetResult(const std::string& graph_output_name);
 
@@ -97,6 +100,9 @@ namespace dni {
 
                 template <typename T>
                 int addDatumToInputStream(const std::string& name, T&& datum);
+
+                template <typename T>
+                int addDatumToInputSideData(const std::string& name, const T& datum);
 
                 bool initialized_ = false;
 

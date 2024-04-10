@@ -6,16 +6,18 @@
 
 int main()
 {
-        std::string path = "/your/path/to/pbtxt2taskflow.pbtxt";
+        std::string path = "samples/pbtxt2taskflow/testdata/pbtxt2taskflow.pbtxt";
 
         auto gc = dni::ParsePbtxtToGraphConfig(path);
         if (!gc.has_value())
         {
-                std::cout << "invalid pbtxt path: " << path << std::endl;
+                std::cout << "invalid pbtxt format, pbtxt path: " << path << std::endl;
                 return -1;
         }
 
         dni::Graph* g = new dni::Graph(gc.value());
+
+        std::cout << "parse success!" << std::endl;
 
         return 0;
 }

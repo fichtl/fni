@@ -103,6 +103,8 @@ namespace dni {
                                     "ParsedGraphConfig idx({}) != calculated idx({})",
                                     edge.parent.index,
                                     node_idx);
+
+                                return -1;   // need return -1 here ??
                         }
 
                         // Only initialize `GraphInputStream`s here, since its manager is
@@ -121,6 +123,21 @@ namespace dni {
 
         int Graph::InitializeNodes()
         {
+                auto nstreams = cfg_->OutputSideData().size();
+                SPDLOG_DEBUG(
+                    "initializing OutputSideData: [{:}]", cfg_->OutputSideData());
+                output_side_data_ = std::make_unique<OutputSideDatumImpl[]>(nstreams);
+                for (int i = 0; i < nstreams; ++i)
+                {
+                        const EdgeInfo& edge_info = cfg_->OutputSideData()[i];
+                        output_side_data_[i].Initialize(
+                            edge_info.name, edge_info.datum_type);
+
+                        SPDLOG_DEBUG(
+                            "initializing OutputSideDatumImpl: {}",
+                            output_side_data_[i].Name());
+                }
+
                 int nnodes = cfg_->Nodes().size();
                 nodes_.reserve(nnodes);
 
@@ -175,6 +192,14 @@ namespace dni {
         int Graph::PrepareForRun()
         {
                 std::unordered_map<std::string, tf::Task> task_map;
+
+                // init current_input_side_data_
+                SPDLOG_DEBUG("Preparing current_input_side_data_");
+                for (const auto& edge : cfg_->OutputSideData())
+                {
+                        SPDLOG_DEBUG("current side data name {}", edge.name);
+                        current_input_side_data_[edge.name] = Datum();
+                }
 
                 SPDLOG_DEBUG("Preparing nodes");
                 for (auto& node : nodes_)
@@ -328,6 +353,8 @@ namespace dni {
 
                 // Process, step4
                 taskflow_.clear();
+
+                return 0;
         }
 
         int Graph::ObserveOutputStream(const std::string& name)
@@ -345,6 +372,8 @@ namespace dni {
                 SPDLOG_DEBUG(
                     "nodes updated by ObserveOutputStream {}:\n{:}", name,
                     fmt::join(nodes_, "\n"));
+
+                return 0;
         }
 
         int Graph::AddDatumToInputStream(const std::string& name, const Datum& datum)
@@ -361,6 +390,8 @@ namespace dni {
                 auto& stream = graph_input_streams_[name];
                 stream->AddDatum(std::forward<T>(datum));
                 stream->Propagate();
+
+                return 0;
         }
 
         int Graph::CloseInputStream(const std::string& name)
@@ -391,10 +422,10 @@ namespace dni {
         void Graph::GraphInputStream::Propagate()
         {
                 int nmirrors = manager_->Mirrors().size();
+                std::list<Datum>* data = input_.OutputQueue();
                 for (int i = 0; i < nmirrors; ++i)
                 {
                         auto& m = manager_->Mirrors()[i];
-                        std::list<Datum>* data = input_.OutputQueue();
                         SPDLOG_DEBUG(
                             "GraphInputStream {}: propagate data (size:{}) to mirror({})",
                             input_.Name(), data->size(), m);
@@ -406,9 +437,39 @@ namespace dni {
                         {
                                 m.ish->AddData(m.id, *data);
                         }
-                        // clear cache in graph input queue
-                        data->clear();
                 }
+                // clear cache in graph input queue
+                data->clear();
+        }
+
+        int Graph::AddDatumToInputSideData(const std::string& name, const Datum& datum)
+        {
+                return addDatumToInputSideData(name, datum);
+        }
+        // int Graph::AddDatumToInputSideData(const std::string& name, Datum&& datum)
+        // {
+        //         return addDatumToInputSideData(name, std::move(datum));
+        // }
+
+        template <typename T>
+        int Graph::addDatumToInputSideData(const std::string& name, const T& datum)
+        {
+                auto nstreams = cfg_->OutputSideData().size();
+                for (int i = 0; i < nstreams; ++i)
+                {
+                        if (name == output_side_data_[i].Name())
+                        {
+                                SPDLOG_DEBUG(
+                                    "find graph OutputSideDatumImpl, name is: {}",
+                                    output_side_data_[i].Name());
+
+                                output_side_data_[i].Set(datum);
+
+                                break;
+                        }
+                }
+
+                return 0;
         }
 
         std::optional<GraphConfig> ParsePbtxtToGraphConfig(const std::string& pbtxt)

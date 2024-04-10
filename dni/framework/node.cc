@@ -33,6 +33,10 @@ namespace dni {
                         OutputSideDatumImpl* origin =
                             &output_side_data[output_side_data_idx];
                         origin->AddMirror(&input_side_data_handler_, i);
+
+                        SPDLOG_DEBUG(
+                            "OutputSideDatumImpl* origin {}, mirror size: {}",
+                            origin->Name(), origin->MirrorSize());
                 }
                 return 0;
         }
@@ -40,13 +44,22 @@ namespace dni {
         int Node::initializeOutputSideData(
             const DtypeSet& output_side_data_types, OutputSideDatumImpl* output_side_data)
         {
-                output_side_data_ =
-                    std::make_unique<OutputSideData>(output_side_data_types.size());
-                int base = node_info_->output_stream_base_index;
+                output_side_data_ = std::make_unique<OutputSideData>();
+                int base = node_info_->output_side_data_base_index;
                 for (int i = 0; i < node_info_->Config().OutputSideData().size(); ++i)
                 {
-                        output_side_data_->emplace_back(output_side_data[base + i]);
+                        output_side_data_->emplace_back(&output_side_data[base + i]);
                 }
+
+                // debug
+                for (int i = 0; i < node_info_->Config().OutputSideData().size(); ++i)
+                {
+                        auto osd = (OutputSideDatumImpl*) output_side_data_->at(i);
+                        SPDLOG_DEBUG(
+                            "outside name: {}-----------mirror size: {}", osd->Name(),
+                            osd->MirrorSize());
+                }
+
                 return 0;
         }
 

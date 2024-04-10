@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "dni/framework/datum.h"
 #include "dni/framework/dtype.h"
@@ -19,7 +20,8 @@ namespace dni {
                     const DtypeSet* input_side_data_types,
                     const std::map<std::string, Datum>& all_side_data);
 
-                void Set(int i, const Datum& d);
+                // Set `i`-th input side datum to `d`.
+                int Set(int i, const Datum& d);
 
                 const InputSideData& Data() const { return *input_side_data_; }
 

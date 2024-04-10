@@ -152,8 +152,7 @@ void PrintInferenceRet(
 
 int main()
 {
-        std::string modelPath = "/home/zhouxu/works/2024/50_dni/0325/dni/samples/onnx/"
-                                "model_2_5_x_5_3_x_3_2_v19.onnx";
+        std::string modelPath = "samples/onnx/testdata/model_2_5_x_5_3_x_3_2_v19.onnx";
 
         std::shared_ptr<dni::DNIModelLoader> loader =
             std::make_shared<dni::DNIFixedModelLoader>(

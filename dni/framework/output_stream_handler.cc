@@ -36,6 +36,7 @@ namespace dni {
                 {
                         outputs->at(i).SetSpec(output_stream_managers_[i]->Spec());
                 }
+                return 0;
         }
 
         void OutputStreamHandler::PrepareForRun()

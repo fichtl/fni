@@ -8,3 +8,12 @@ config_setting(
     ],
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "macos_x86_64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)

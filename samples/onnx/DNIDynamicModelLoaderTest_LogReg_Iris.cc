@@ -206,8 +206,7 @@ void PrintInferenceRet(
 int main()
 {
         // print model info
-        std::string modelPath =
-            "/home/zhouxu/works/2024/50_dni/0325/dni/samples/onnx/logreg_iris.onnx";
+        std::string modelPath = "samples/onnx/testdata/logreg_iris.onnx";
 
         std::shared_ptr<dni::DNIModelLoader> loader =
             std::make_shared<dni::DNIDynamicModelLoader>(

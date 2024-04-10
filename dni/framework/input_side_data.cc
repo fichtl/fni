@@ -5,6 +5,7 @@
 
 #include "dni/framework/datum.h"
 #include "dni/framework/dtype.h"
+#include "spdlog/spdlog.h"
 
 namespace dni {
 
@@ -14,6 +15,7 @@ namespace dni {
         {
                 auto ret = std::make_unique<InputSideData>();
                 const auto& names = input_side_data_types.TagMap()->Names();
+                ret->resize(names.size());
                 for (int i = 0; i < names.size(); i++)
                 {
                         const auto& name = names[i];
@@ -22,7 +24,7 @@ namespace dni {
                         {
                                 return std::nullopt;
                         }
-                        ret->at(i) = it->second;
+                        ret->at(i) = it->second; // where to define the size of ret ?
                 }
                 return std::move(ret);
         }
@@ -41,9 +43,21 @@ namespace dni {
                 return 0;
         }
 
-        void InputSideDataHandler::Set(int i, const Datum& d)
+        int InputSideDataHandler::Set(int i, const Datum& d)
         {
-                input_side_data_->at(i) = d;
+                Datum& d_ = input_side_data_->at(i);
+                if (!d_.IsEmpty())
+                {
+                        SPDLOG_ERROR("input side datum at {} exists.", i);
+                        return -1;
+                }
+                if (input_side_data_types_->at(i).Validate(d))
+                {
+                        SPDLOG_ERROR("invalid input side datum {}.", d);
+                        return -1;
+                }
+                d_ = d;
+                return 0;
         }
 
 }   // namespace dni

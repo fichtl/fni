@@ -150,6 +150,35 @@ namespace dni {
 
         int ParsedGraphConfig::InitializeSideData(bool* need_sorting)
         {
+                // graph level input side data
+                if (proto_.input_side_data().size() != 0)
+                {
+                        SPDLOG_DEBUG(
+                            "graph input side data: {:}", proto_.input_side_data());
+                        std::shared_ptr<utils::TagMap> graph_input_sidedata =
+                            utils::NewTagMap(proto_.input_side_data());
+                        if (!graph_input_sidedata)
+                        {
+                                SPDLOG_ERROR(
+                                    "invalid graph input side data: {}",
+                                    proto_.input_side_data());
+                                return -1;
+                        }
+
+                        auto& names = graph_input_sidedata->Names();
+                        for (int i = 0; i < names.size(); ++i)
+                        {
+                                std::string name = names[i];
+
+                                output_side_data_.emplace_back(
+                                    EdgeInfo{name, nullptr, NodeInfo::NodeRef{}});
+
+                                output_side_data_to_index_[name] =
+                                    output_side_data_.size() - 1;
+                        }
+                }
+
+                // node side data
                 for (NodeInfo& node : nodes_)
                 {
                         if (node.Node().type != NodeInfo::NodeType::TASK)

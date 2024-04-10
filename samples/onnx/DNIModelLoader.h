@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <onnx/onnxruntime_cxx_api.h>
+#include <onnxruntime_cxx_api.h>
 #include <string>
 #include <vector>
 

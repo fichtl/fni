@@ -28,6 +28,8 @@ namespace dni {
                     input_stream_manager_.get());
                 input_stream_manager_->Initialize(name, nullptr);
                 osm->AddMirror(input_stream_handler_.get(), 0);
+
+                return 0;
         }
 
         void GraphOutputStream::PrepareForRun()

@@ -109,6 +109,14 @@ http_archive(
 )
 
 http_archive(
+    name = "onnxruntime_macos_x86_64",
+    build_file = "@//third_party:onnxruntime_macos.BUILD",
+    sha256 = "86c6b6896434084ff5086eebc4e9ea90be1ed4d46743f92864f46ee43e7b5059",
+    strip_prefix = "onnxruntime-osx-x86_64-1.17.1",
+    url = "https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-osx-x86_64-1.17.1.tgz",
+)
+
+http_archive(
     name = "onnxruntime_linux_x64",
     build_file = "@//third_party:onnxruntime_linux.BUILD",
     sha256 = "89b153af88746665909c758a06797175ae366280cbf25502c41eb5955f9a555e",

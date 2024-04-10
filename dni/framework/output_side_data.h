@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "dni/framework/dtype.h"
 #include "dni/framework/datum.h"
+#include "dni/framework/dtype.h"
 #include "dni/framework/input_side_data.h"
 
 namespace dni {
@@ -12,6 +12,8 @@ namespace dni {
         public:
                 OutputSideDatum() = default;
                 virtual ~OutputSideDatum() = default;
+
+                virtual void Set(const Datum& datum) = 0;
         };
 
         class OutputSideDatumImpl: public OutputSideDatum {
@@ -19,19 +21,26 @@ namespace dni {
                 OutputSideDatumImpl() = default;
                 ~OutputSideDatumImpl() override = default;
 
-                int Intialize(const std::string& name, const Dtype* type)
+                int Initialize(const std::string& name, const Dtype* type)
                 {
                         name_ = name;
                         datum_type_ = type;
                         return 0;
                 }
 
+                std::string Name() { return name_; }
+
                 // TODO:
                 void PrepareForRun() {}
 
                 Datum Data() const { return datum_; }
 
-                void AddMirror(InputSideDataHandler* input_side_data_handler, int id) {}
+                void AddMirror(InputSideDataHandler* input_side_data_handler, int id);
+
+                // propagate side data to succeed node
+                void Set(const Datum& datum);
+
+                size_t MirrorSize() { return mirrors_.size(); }
 
         private:
                 struct Mirror {
@@ -51,6 +60,6 @@ namespace dni {
                 std::vector<Mirror> mirrors_;
         };
 
-        using OutputSideData = std::vector<OutputSideDatum>;
+        using OutputSideData = std::vector<OutputSideDatum*>;
 
 }   // namespace dni

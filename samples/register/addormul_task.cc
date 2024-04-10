@@ -49,6 +49,8 @@ __WAIT:
 
                                 ctx->Outputs()[i].AddDatum(Datum(val));
                         }
+
+                        return 0;
                 }
 
                 int Close(TaskContext* ctx) override

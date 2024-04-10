@@ -201,12 +201,13 @@ cc_library(
     deps = [
         ":datum",
         ":dtype",
+        "@spdlog",
     ],
 )
 
 cc_library(
     name = "output_side_data",
-    # srcs = ["output_side_data.cc"],
+    srcs = ["output_side_data.cc"],
     hdrs = ["output_side_data.h"],
     deps = [
         ":datum",
@@ -332,6 +333,7 @@ cc_library(
     name = "dtype",
     hdrs = ["dtype.h"],
     deps = [
+        ":datum",
         "//dni/framework/utils:tags",
     ],
 )
