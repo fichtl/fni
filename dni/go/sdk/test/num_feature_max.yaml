@@ -1,0 +1,58 @@
+input_stream:
+  - name: "Filepath"
+output_stream:
+  - name: "MaxScore"
+
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"
+
+  - runner: "PacketFeatureRunner"
+    input_stream:
+    - "PcapParseResult"
+    output_stream:
+    - "SPortStat"
+    - "DPortStat"
+    options:
+      featurenames:
+      - "SPort"
+      - "DPort"
+    
+  - runner: "NumberStatisticRunner"
+    input_stream:
+    - "SPortStat"
+    output_stream:
+    - "SPortScore"
+    options:
+      ratiomin: 0.1
+      ratiomax: 0.6
+      scores:
+       - 0.4
+       - 1
+       - 0.6
+       - 0
+
+  - runner: "NumberStatisticRunner"
+    input_stream:
+    - "DPortStat"
+    output_stream:
+    - "DPortScore"
+    options:
+      ratiomin: 0.1
+      ratiomax: 0.6
+      scores:
+       - 0.4
+       - 1
+       - 0.6
+       - 0
+
+  - runner: "MaxRunner"
+    input_stream:
+    - "SPortScore"
+    - "DPortScore"
+    output_stream:
+    - "MaxScore"

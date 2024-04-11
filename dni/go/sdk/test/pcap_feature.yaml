@@ -1,0 +1,35 @@
+input_stream:
+  - name: "Filepath"
+output_stream:
+  - name: "SIPStats"
+  - name: "DIPStats"
+  - name: "SPortStats"
+  - name: "DPortStats"
+  - name: "ProtoStats"
+  - name: "LengthStats"
+
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"
+
+  - runner: "PacketFeatureRunner"
+    input_stream:
+    - "PcapParseResult"
+    output_stream:
+    - "SIPStats"
+    - "DIPStats"
+    - "SPortStats"
+    - "DPortStats"
+    - "ProtoStats"
+    options:
+      featurenames:
+      - "SIP"
+      - "DIP"
+      - "SPort"
+      - "DPort"
+      - "Proto"
+      - "Length"

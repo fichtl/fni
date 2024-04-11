@@ -1,0 +1,11 @@
+input_stream:
+  - name: "Filepath"
+output_stream:
+  - name: "PcapParseResult"
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"

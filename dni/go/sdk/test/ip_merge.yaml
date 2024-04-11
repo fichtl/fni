@@ -1,0 +1,40 @@
+input_stream:
+  - name: "Filepath"
+  - name: "NormalIPs"
+output_stream:
+  - name: "AttackIPNets"
+  - name: "IS_RAND"
+  - name: "RandIPs"
+
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"
+
+  - runner: "PacketFeatureRunner"
+    input_stream:
+    - "PcapParseResult"
+    output_stream:
+    - "SIPStats"
+    options:
+      featurenames:
+      - "SIP"
+    
+  - runner: "AttackIPMergeRunner"
+    input_stream:
+    - "SIPStats"
+    - "NormalIPs"
+    output_stream:
+    - "AttackIPNets"
+    - "IS_RAND"
+    - "RandIPs"
+    options:
+      ipFw4CountRatio: 0.1
+      ipFw3CountRatio: 0.2
+      ipFw2CountRatio: 0.4
+      ipRandCountRatio: 0.5
+      ipSegCoverThreshold: 100
+      ipRandCountThreshold: 2

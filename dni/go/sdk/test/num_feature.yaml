@@ -1,0 +1,35 @@
+input_stream:
+  - name: "Filepath"
+output_stream:
+  - name: "SIPScore"
+
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"
+
+  - runner: "PacketFeatureRunner"
+    input_stream:
+    - "PcapParseResult"
+    output_stream:
+    - "SIPStats"
+    options:
+      featurenames:
+      - "SIP"
+    
+  - runner: "NumberStatisticRunner"
+    input_stream:
+    - "SIPStats"
+    output_stream:
+    - "SIPScore"
+    options:
+      ratiomin: 0.1
+      ratiomax: 0.5
+      scores:
+       - 0.6
+       - 1
+       - 0.8
+       - 0

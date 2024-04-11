@@ -1,0 +1,16 @@
+input_stream:
+  - name: "A"
+  - name: "B"
+output_stream:
+  - name: "C"
+
+nodes:
+  - runner: "SumRunner"
+    input_stream:
+    - "A"
+    - "B"
+    output_stream:
+    - "C"
+
+
+

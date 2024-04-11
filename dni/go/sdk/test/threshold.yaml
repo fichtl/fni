@@ -1,0 +1,19 @@
+input_stream:
+  - name: "A"
+output_stream:
+  - name: "B"
+
+nodes:
+  - runner: "ThresholdRunner"
+    input_stream:
+    - "A"
+    output_stream:
+    - "B"
+    options:
+      thresholds:
+      - 10.0
+      - 20.0
+      scores:
+      - 1.0
+      - 2.0
+      - 3.0

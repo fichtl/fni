@@ -1,0 +1,15 @@
+input_stream:
+  - name: "Pscore"
+  - name: "Nscore"
+  - name: "Rscore"
+output_stream:
+  - name: "Abnormal"
+
+nodes:
+  - runner: "AbnormalJudgeRunner"
+    input_stream:
+    - "Pscore"
+    - "Nscore"
+    - "Rscore"
+    output_stream:
+    - "Abnormal"

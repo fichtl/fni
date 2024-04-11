@@ -1,0 +1,22 @@
+input_stream:
+  - name: "PACKETSAMPLINGINPUT"
+    netifs:
+      manage: "eno1"
+      protected:
+      - "eno1"
+      - "eno2"
+output_stream:
+  - name: "DBOUTPUT"
+    db_url: "172.17.17.27:8086"
+    db_name: "dni"
+    db_table: "packet"
+
+nodes:
+  - runner: "PacketSamplingRunner"
+    input_stream:
+    - "PACKETSAMPLINGINPUT"
+    input_side_stream:
+      model:
+      paras:
+    output_stream:
+    - "DBOUTPUT"

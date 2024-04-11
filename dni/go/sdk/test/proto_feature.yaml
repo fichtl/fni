@@ -1,0 +1,34 @@
+input_stream:
+  - name: "Filepath"
+output_stream:
+  - name: "ProtoScoreMap"
+
+
+nodes:
+  - runner: "PcapParseExecutor"
+    input_stream:
+    - "Filepath"
+    output_stream:
+    - "PcapParseResult"
+
+  - runner: "PacketFeatureRunner"
+    input_stream:
+    - "PcapParseResult"
+    output_stream:
+    - "ProtoStats"
+    options:
+      featurenames:
+      - "Proto"
+    
+  - runner: "ProtoStatisticRunner"
+    input_stream:
+    - "ProtoStats"
+    output_stream:
+    - "ProtoScoreMap"
+    options:
+      ratiomin: 0.1
+      ratiomax: 0.6
+      scores:
+       - 0.8
+       - 0.6
+       - 0
