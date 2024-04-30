@@ -123,3 +123,11 @@ http_archive(
     strip_prefix = "onnxruntime-linux-x64-1.17.1",
     url = "https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-linux-x64-1.17.1.tgz",
 )
+
+http_archive(
+    name = "jsoncpp",
+    build_file = "@//third_party:jsoncpp.BUILD",
+    sha256 = "f409856e5920c18d0c2fb85276e24ee607d2a09b5e7d5f0a371368903c275da2",
+    strip_prefix = "jsoncpp-1.9.5",
+    url = "https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.5.tar.gz",
+)

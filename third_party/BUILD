@@ -12,3 +12,18 @@ alias(
         },
     ),
 )
+
+# The following build rule assumes that libpcap is installed.
+cc_library(
+    name = "libpcap",
+    hdrs = glob([
+        "include/**/*.h*",
+    ]),
+    includes = [
+        "pcap.h",
+    ],
+    linkopts = [
+        "-l:libpcap.so",
+    ],
+    visibility = ["//visibility:public"],
+)

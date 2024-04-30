@@ -1,4 +1,5 @@
 .vscode
+*.DS_Store*
 
 bazel-*
 target/
@@ -12,5 +13,6 @@ third_party/*
 !third_party/spdlog.BUILD
 !third_party/taskflow.BUILD
 !third_party/zlib.BUILD
+!third_party/jsoncpp.BUILD
 
 !**/testdata/*
