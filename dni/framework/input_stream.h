@@ -58,6 +58,7 @@ namespace dni {
                 friend class InputStreamHandler;
         };
 
+        // TODO: should be indexed by tag and index.
         using InputStreamSet = std::vector<InputStreamImpl>;
 
         InputStreamSet MakeInputStreamSetFromTagMap(

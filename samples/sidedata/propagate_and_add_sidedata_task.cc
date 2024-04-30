@@ -3,15 +3,20 @@
 
 namespace dni {
 
-        class AddInputSideDataTask: public TaskBase {
+        class PropagateAndAddSideDataTask: public TaskBase {
         public:
-                AddInputSideDataTask(): name_("AddInputSideDataTask") {}
-                ~AddInputSideDataTask() override {}
+                PropagateAndAddSideDataTask(): name_("PropagateAndAddSideDataTask") {}
+                ~PropagateAndAddSideDataTask() override {}
 
                 int Open(TaskContext* ctx) override
                 {
                         name_ += " " + ctx->Name();
                         SPDLOG_DEBUG("Task {}: open task ...", name_);
+
+                        int environment = 9527;
+                        auto& osd = ctx->GetOutputSideData()[0];
+                        osd->Set(dni::Datum(environment));
+
                         return 0;
                 }
 
@@ -60,6 +65,6 @@ namespace dni {
                 std::string name_;
         };
 
-        REGISTER(AddInputSideDataTask);
+        REGISTER(PropagateAndAddSideDataTask);
 
 }   // namespace dni

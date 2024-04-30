@@ -6,8 +6,8 @@ licenses(["notice"])
 ###### test1 ######
 
 cc_library(
-    name = "add_input_sidedata_task",
-    srcs = ["add_input_sidedata_task.cc"],
+    name = "add_sidedata_task",
+    srcs = ["add_sidedata_task.cc"],
     deps = [
         "//dni/framework",
         "@spdlog",
@@ -16,10 +16,10 @@ cc_library(
 )
 
 cc_binary(
-    name = "input_sidedata",
-    srcs = ["input_sidedata.cc"],
+    name = "sidedata_test1",
+    srcs = ["sidedata_test1.cc"],
     deps = [
-        ":add_input_sidedata_task",
+        ":add_sidedata_task",
         "//dni/framework",
         "@fmtlib",
         "@spdlog",
@@ -29,8 +29,8 @@ cc_binary(
 ###### test2 ######
 
 cc_library(
-    name = "process_sidedata_task",
-    srcs = ["process_sidedata_task.cc"],
+    name = "addormul_sidedata_task",
+    srcs = ["addormul_sidedata_task.cc"],
     deps = [
         "//dni/framework",
         "@spdlog",
@@ -39,8 +39,8 @@ cc_library(
 )
 
 cc_library(
-    name = "sidedata_output_task",
-    srcs = ["sidedata_output_task.cc"],
+    name = "propagate_and_add_sidedata_task",
+    srcs = ["propagate_and_add_sidedata_task.cc"],
     deps = [
         "//dni/framework",
         "@spdlog",
@@ -49,15 +49,13 @@ cc_library(
 )
 
 cc_binary(
-    name = "process_sidedata",
-    srcs = ["process_sidedata.cc"],
+    name = "sidedata_test2",
+    srcs = ["sidedata_test2.cc"],
     deps = [
-        ":process_sidedata_task",
-        ":sidedata_output_task",
+        ":addormul_sidedata_task",
+        ":propagate_and_add_sidedata_task",
         "//dni/framework",
         "@fmtlib",
         "@spdlog",
     ],
 )
-
-

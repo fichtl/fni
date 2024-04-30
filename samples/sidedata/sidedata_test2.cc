@@ -31,41 +31,39 @@ int main()
                 input_stream: "GIn:0:GInSSS"
                 output_stream: "GOut:0:GOutSSS"
 
-
-
                 node {
                   name: "A"
-                  task: "AddInputSideDataTask"
+                  task: "PropagateAndAddSideDataTask"
                   input_stream: "GIn:0:GInSSS"
                   input_side_data: "GSDIn:0:extra_number"
                   output_stream: "AOut0:0:AOut0"
-                  #output_side_data: "ASDOut0:0:environment"
+                  output_side_data: "ASDOut0:0:environment"
                 }
 
                 node {
                   name: "B"
-                  task: "AddInputSideDataTask"
+                  task: "AddOrMulSideDataTask"
                   input_stream: "AOut0:0:AOut0"
                   input_side_data: "GSDIn:0:extra_number"
-                  #input_side_data: "ASDOut0:0:environment"
+                  input_side_data: "ASDOut0:0:environment"
                   output_stream: "BOut:0:BOut"
                 }
 
                 node {
                   name: "C"
-                  task: "AddInputSideDataTask"
+                  task: "AddOrMulSideDataTask"
                   input_stream: "BOut:0:BOut"
                   input_side_data: "GSDIn:0:extra_number"
-                  #input_side_data: "ASDOut0:0:environment"
+                  input_side_data: "ASDOut0:0:environment"
                   output_stream: "COut:0:COut"
                 }
 
                 node {
                   name: "D"
-                  task: "AddInputSideDataTask"
+                  task: "AddOrMulSideDataTask"
                   input_stream: "COut:0:COut"
                   input_side_data: "GSDIn:0:extra_number"
-                  #input_side_data: "ASDOut0:0:environment"
+                  input_side_data: "ASDOut0:0:environment"
                   output_stream: "GOut:0:GOutSSS"
                 }
         )pb";
@@ -88,14 +86,14 @@ int main()
 
         g->PrepareForRun();
 
-        inject_after(g, dni::Datum(10), dni::Datum(1000), 0, 1, 0);
+        inject_after(g, dni::Datum(10), dni::Datum(100), 0, 1, 0);
 
         g->RunOnce();
 
         g->Wait();
 
         int ret = g->GetResult<int>(out);
-        spdlog::info("Gout result is: {:d}", ret); // 4014
+        spdlog::info("Gout result is: {:d}", ret);   // 207232227
 
         g->Finish();
 

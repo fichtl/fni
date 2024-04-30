@@ -33,37 +33,37 @@ int main()
 
                 node {
                   name: "A"
-                  task: "SideDataOutputTask"
+                  task: "AddSideDataTask"
                   input_stream: "GIn:0:GInSSS"
                   input_side_data: "GSDIn:0:extra_number"
                   output_stream: "AOut0:0:AOut0"
-                  output_side_data: "ASDOut0:0:environment"
+                  #output_side_data: "ASDOut0:0:environment"
                 }
 
                 node {
                   name: "B"
-                  task: "ProcessSideDataTask"
+                  task: "AddSideDataTask"
                   input_stream: "AOut0:0:AOut0"
                   input_side_data: "GSDIn:0:extra_number"
-                  input_side_data: "ASDOut0:0:environment"
+                  #input_side_data: "ASDOut0:0:environment"
                   output_stream: "BOut:0:BOut"
                 }
 
                 node {
                   name: "C"
-                  task: "ProcessSideDataTask"
+                  task: "AddSideDataTask"
                   input_stream: "BOut:0:BOut"
                   input_side_data: "GSDIn:0:extra_number"
-                  input_side_data: "ASDOut0:0:environment"
+                  #input_side_data: "ASDOut0:0:environment"
                   output_stream: "COut:0:COut"
                 }
 
                 node {
                   name: "D"
-                  task: "ProcessSideDataTask"
+                  task: "AddSideDataTask"
                   input_stream: "COut:0:COut"
                   input_side_data: "GSDIn:0:extra_number"
-                  input_side_data: "ASDOut0:0:environment"
+                  #input_side_data: "ASDOut0:0:environment"
                   output_stream: "GOut:0:GOutSSS"
                 }
         )pb";
@@ -86,14 +86,14 @@ int main()
 
         g->PrepareForRun();
 
-        inject_after(g, dni::Datum(10), dni::Datum(100), 0, 1, 0);
+        inject_after(g, dni::Datum(10), dni::Datum(1000), 0, 1, 0);
 
         g->RunOnce();
 
         g->Wait();
 
         int ret = g->GetResult<int>(out);
-        spdlog::info("Gout result is: {:d}", ret);   // 207232227
+        spdlog::info("Gout result is: {:d}", ret);   // 4014
 
         g->Finish();
 

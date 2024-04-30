@@ -1,9 +1,5 @@
 #include "dni/framework/framework.h"
 
-// for read_from_pbtxt_nocopy
-// #include <fcntl.h>
-// #include <google/protobuf/io/zero_copy_stream_impl.h>
-
 int main()
 {
         std::string path = "samples/pbtxt2taskflow/testdata/pbtxt2taskflow.pbtxt";

@@ -3,10 +3,10 @@
 
 namespace dni {
 
-        class ProcessSideDataTask: public TaskBase {
+        class AddOrMulSideDataTask: public TaskBase {
         public:
-                ProcessSideDataTask(): name_("ProcessSideDataTask") {}
-                ~ProcessSideDataTask() override {}
+                AddOrMulSideDataTask(): name_("AddOrMulSideDataTask") {}
+                ~AddOrMulSideDataTask() override {}
 
                 int Open(TaskContext* ctx) override
                 {
@@ -104,6 +104,6 @@ namespace dni {
                 std::string name_;
         };
 
-        REGISTER(ProcessSideDataTask);
+        REGISTER(AddOrMulSideDataTask);
 
 }   // namespace dni

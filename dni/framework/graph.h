@@ -14,6 +14,7 @@
 #include "dni/framework/node.h"
 #include "dni/framework/output_side_data.h"
 #include "dni/framework/output_stream_manager.h"
+#include "spdlog/spdlog.h"
 #include "taskflow/taskflow.hpp"
 
 namespace dni {
@@ -64,11 +65,11 @@ namespace dni {
                 // PrepareForRun.
                 int ObserveOutputStream(const std::string& name);
 
-                // int AddDatumToInputSideData(const std::string& name, Datum&& datum);
+                int AddDatumToInputSideData(const std::string& name, Datum&& datum);
                 int AddDatumToInputSideData(const std::string& name, const Datum& datum);
 
                 template <typename T>
-                const T& GetResult(const std::string& graph_output_name);
+                T GetResult(const std::string& graph_output_name);
 
                 void ClearResult();
 
@@ -102,7 +103,7 @@ namespace dni {
                 int addDatumToInputStream(const std::string& name, T&& datum);
 
                 template <typename T>
-                int addDatumToInputSideData(const std::string& name, const T& datum);
+                int addDatumToInputSideData(const std::string& name, T&& datum);
 
                 bool initialized_ = false;
 
@@ -137,16 +138,23 @@ namespace dni {
         };
 
         template <typename T>
-        const T& Graph::GetResult(const std::string& name)
+        T Graph::GetResult(const std::string& name)
         {
                 for (auto graph_output_stream : graph_output_streams_)
                 {
-                        if (name == graph_output_stream->Name())
+                        if (name != graph_output_stream->Name())
+                                continue;
+
+                        Datum d = std::move(graph_output_stream->Head());
+
+                        SPDLOG_DEBUG("Consume Datum: {}", d);
+                        auto d_opt = d.Consume<T>();
+                        if (!d_opt)
                         {
-                                Datum d = std::move(graph_output_stream->Head());
-                                T v = std::move(d.Value<T>());
-                                return v;
+                                SPDLOG_WARN("Consume() returns NULL");
+                                return T();
                         }
+                        return std::move(*(d_opt.value()));
                 }
                 return T();
         }

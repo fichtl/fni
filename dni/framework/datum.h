@@ -25,7 +25,7 @@ namespace dni {
                 {
                         repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
                                 os << val.type().name()   //
-                                   << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
+                                   // << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
                                    << "AT" << t;
                         };
                 }
@@ -34,7 +34,7 @@ namespace dni {
                 {
                         repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
                                 os << val.type().name()   //
-                                   << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
+                                   // << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
                                    << "AT" << t;
                         };
                 }

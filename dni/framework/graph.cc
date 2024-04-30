@@ -446,13 +446,13 @@ namespace dni {
         {
                 return addDatumToInputSideData(name, datum);
         }
-        // int Graph::AddDatumToInputSideData(const std::string& name, Datum&& datum)
-        // {
-        //         return addDatumToInputSideData(name, std::move(datum));
-        // }
+        int Graph::AddDatumToInputSideData(const std::string& name, Datum&& datum)
+        {
+                return addDatumToInputSideData(name, std::move(datum));
+        }
 
         template <typename T>
-        int Graph::addDatumToInputSideData(const std::string& name, const T& datum)
+        int Graph::addDatumToInputSideData(const std::string& name, T&& datum)
         {
                 auto nstreams = cfg_->OutputSideData().size();
                 for (int i = 0; i < nstreams; ++i)
