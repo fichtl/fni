@@ -18,6 +18,7 @@ namespace dni {
                     const google::protobuf::RepeatedPtrField<std::string>&
                         tag_index_names)
                 {
+                        std::vector<std::string> tags_backup;
                         std::unordered_map<std::string, std::vector<std::string>>
                             tag_to_names;
                         for (const auto& tag_index_name : tag_index_names)
@@ -33,6 +34,7 @@ namespace dni {
                                     "tag_index_name: {}, tag:{}, index:{}, name:{}",
                                     tag_index_name, tag, idx, name);
 
+                                tags_backup.emplace_back(tag);
                                 TagData& tag_data = data_[tag];
                                 std::vector<std::string>& names = tag_to_names[tag];
                                 if (idx == -1)
@@ -67,13 +69,13 @@ namespace dni {
                         total_names_ = curr;
 
                         names_.reserve(total_names_);
-                        for (const auto& item : tag_to_names)
+
+                        for (const auto& item : tags_backup)
                         {
                                 names_.insert(
-                                    names_.end(), item.second.begin(), item.second.end());
+                                    names_.end(), tag_to_names[item].begin(),
+                                    tag_to_names[item].end());
                         }
-
-                        std::reverse(names_.begin(), names_.end());
 
                         return 0;
                 }
