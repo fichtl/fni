@@ -14,9 +14,9 @@ void inject_after(dni::Graph* g, int after, int n, int interval)
         count[17] = 1998;
 
         int ___protoCountSum = 10000;
-        float_t ___ratioMin = 0.1;
-        float_t ___ratioMax = 0.6;
-        std::vector<float_t> ___score_thresholds = {0.8, 0.6, 0};
+        double_t ___ratioMin = 0.1;
+        double_t ___ratioMax = 0.6;
+        std::vector<double_t> ___score_thresholds = {0.8, 0.6, 0};
 
         for (int i = 0; i < n; i++)
         {
@@ -43,9 +43,9 @@ void inject_after1(dni::Graph* g, int after, int n, int interval)
         count[17] = 4000;
 
         int ___protoCountSum = 10000;
-        float_t ___ratioMin = 0.1;
-        float_t ___ratioMax = 0.6;
-        std::vector<float_t> ___score_thresholds = {0.8, 0.6, 0};
+        double_t ___ratioMin = 0.1;
+        double_t ___ratioMax = 0.6;
+        std::vector<double_t> ___score_thresholds = {0.8, 0.6, 0};
 
         for (int i = 0; i < n; i++)
         {
@@ -67,7 +67,7 @@ int main()
         spdlog::set_level(spdlog::level::trace);
 
         const std::string& proto = R"pb(
-                type: "ProtocolStats"
+                type: "SndProtocolStats"
 
                 input_side_data: "GSD_ProtoCountSum:0:protoCountSum"
                 input_side_data: "GSD_RatioMin:0:ratioMin"
@@ -78,7 +78,7 @@ int main()
 
                 node {
                   name: "A"
-                  task: "ProtocolStatsTask"
+                  task: "SndProtocolStatsTask"
                   input_side_data: "GSD_ProtoCountSum:0:protoCountSum"
                   input_side_data: "GSD_RatioMin:0:ratioMin"
                   input_side_data: "GSD_RatioMax:0:ratioMax"
@@ -112,7 +112,7 @@ int main()
 
         g->Wait();
 
-        auto ret = g->GetResult<float_t>(out);
+        auto ret = g->GetResult<double_t>(out);
         spdlog::info("Gout result is: {}", ret);
 
         g->Finish();

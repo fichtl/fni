@@ -131,3 +131,15 @@ http_archive(
     strip_prefix = "jsoncpp-1.9.5",
     url = "https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.5.tar.gz",
 )
+
+new_local_repository(
+    name = "linux_libpcap",
+    build_file = "@//third_party:libpcap_linux.BUILD",
+    path = "/usr",
+)
+
+new_local_repository(
+    name = "macos_libpcap",
+    build_file = "@//third_party:libpcap_macos.BUILD",
+    path = "/usr/local",
+)

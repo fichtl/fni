@@ -315,7 +315,9 @@ namespace dni {
                 int ret = task_->Process(context);
 
                 input_stream_handler_->PostProcess(context);
+                input_side_data_handler_.PostProcess();
                 output_stream_handler_->PostProcess(context);
+                // TODO need implement output_side_data_handler_.PostProcess?
 
                 return ret;
         }

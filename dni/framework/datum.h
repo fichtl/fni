@@ -23,8 +23,9 @@ namespace dni {
                 template <typename T>
                 Datum(T&& v): val_(std::forward<T>(v))
                 {
+                        // TODO: fixme. Type T may not have built-in std::ostream support.
                         repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
-                                os << val.type().name()   //
+                                os << val.type().name()
                                    // << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
                                    << "AT" << t;
                         };
@@ -32,8 +33,9 @@ namespace dni {
                 template <typename T>
                 Datum(T&& v, std::time_t ts): val_(std::forward<T>(v)), ts_(ts)
                 {
+                        // TODO: fixme. Type T may not have built-in std::ostream support.
                         repr_ = [](std::ostream& os, const std::any& val, std::time_t t) {
-                                os << val.type().name()   //
+                                os << val.type().name()
                                    // << "(" << std::any_cast<std::decay_t<T>>(val) << ")"
                                    << "AT" << t;
                         };
@@ -49,6 +51,7 @@ namespace dni {
                 Datum At(std::time_t ts) &&;
 
                 bool IsEmpty() const;
+                void Reset();
 
                 template <typename T>
                 const T& Value() const;
@@ -102,6 +105,8 @@ namespace dni {
         }
 
         inline bool Datum::IsEmpty() const { return !val_.has_value(); }
+
+        inline void Datum::Reset() { val_.reset(); }
 
         template <typename T>
         inline const T& Datum::Value() const

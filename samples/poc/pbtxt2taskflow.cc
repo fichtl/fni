@@ -1,0 +1,19 @@
+#include "dni/framework/framework.h"
+
+int main()
+{
+        std::string path = "samples/poc/testdata/pbtxt2taskflow.pbtxt";
+
+        auto gc = dni::ParsePbtxtToGraphConfig(path);
+        if (!gc.has_value())
+        {
+                std::cout << "invalid pbtxt format, pbtxt path: " << path << std::endl;
+                return -1;
+        }
+
+        dni::Graph* g = new dni::Graph(gc.value());
+
+        std::cout << "parse success!" << std::endl;
+
+        return 0;
+}

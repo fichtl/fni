@@ -60,4 +60,12 @@ namespace dni {
                 return 0;
         }
 
+        void InputSideDataHandler::PostProcess()
+        {
+                for (size_t i = 0; i < input_side_data_->size(); i++)
+                {
+                        input_side_data_->at(i).Reset();
+                }
+        }
+
 }   // namespace dni

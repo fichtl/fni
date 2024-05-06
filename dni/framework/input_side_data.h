@@ -25,6 +25,8 @@ namespace dni {
 
                 const InputSideData& Data() const { return *input_side_data_; }
 
+                void PostProcess();
+
         private:
                 const DtypeSet* input_side_data_types_;
 
