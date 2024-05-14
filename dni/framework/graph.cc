@@ -22,7 +22,6 @@
 #include "dni/framework/output_stream_manager.h"
 #include "dni/framework/utils/tags.h"
 #include "fmt/ranges.h"
-#include "google/protobuf/text_format.h"
 #include "spdlog/spdlog.h"
 #include "taskflow/algorithm/data_pipeline.hpp"
 #include "taskflow/taskflow.hpp"
@@ -470,27 +469,6 @@ namespace dni {
                 }
 
                 return 0;
-        }
-
-        std::optional<GraphConfig> ParsePbtxtToGraphConfig(const std::string& pbtxt)
-        {
-                std::ifstream fin(pbtxt);
-                if (!fin.is_open())
-                        return std::nullopt;
-                std::stringstream ss;
-                ss << fin.rdbuf();
-                return ParseStringToGraphConfig(ss.str());
-        }
-
-        std::optional<GraphConfig> ParseStringToGraphConfig(const std::string& text)
-        {
-                GraphConfig config;
-                if (!google::protobuf::TextFormat::ParseFromString(text, &config))
-                {
-                        SPDLOG_ERROR("failed to parse text proto {}", text);
-                        return std::nullopt;
-                }
-                return config;
         }
 
 }   // namespace dni

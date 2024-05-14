@@ -159,7 +159,4 @@ namespace dni {
                 return T();
         }
 
-        std::optional<GraphConfig> ParseStringToGraphConfig(const std::string& input);
-        std::optional<GraphConfig> ParsePbtxtToGraphConfig(const std::string& pbtxt);
-
 }   // namespace dni

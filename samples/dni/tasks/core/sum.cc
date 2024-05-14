@@ -12,7 +12,8 @@ void inject_after(dni::Graph* g, int after, int n, int interval)
 
         for (int i = 0; i < scores.size(); i++)
         {
-                g->AddDatumToInputStream("score_"+ std::to_string(i+1), dni::Datum(scores[i]));
+                g->AddDatumToInputStream(
+                    "score_" + std::to_string(i + 1), dni::Datum(scores[i]));
         }
 }
 

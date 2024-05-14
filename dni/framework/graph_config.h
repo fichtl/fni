@@ -170,6 +170,10 @@ namespace dni {
                 std::unordered_map<std::string, std::string> output_side_data_to_node_;
         };
 
+        std::optional<GraphConfig> ParseTextprotoToGraphConfig(const std::string& input);
+        std::optional<GraphConfig> ParseStringToGraphConfig(const std::string& input);
+        std::optional<GraphConfig> LoadTextprotoFile(const std::string& fpath);
+
 }   // namespace dni
 
 namespace fmt {

@@ -2,9 +2,9 @@
 
 int main()
 {
-        std::string path = "samples/poc/testdata/pbtxt2taskflow.pbtxt";
+        std::string path = "samples/dni/serdes/testdata/graph1.pbtxt";
 
-        auto gc = dni::ParsePbtxtToGraphConfig(path);
+        auto gc = dni::LoadTextprotoFile(path);
         if (!gc.has_value())
         {
                 std::cout << "invalid pbtxt format, pbtxt path: " << path << std::endl;

@@ -10,6 +10,7 @@
 #include "dni/framework/node_config.h"
 #include "dni/framework/utils/names.h"
 #include "dni/framework/utils/tags.h"
+#include "google/protobuf/text_format.h"
 
 namespace dni {
 
@@ -334,6 +335,31 @@ namespace dni {
                 }
 
                 return 0;
+        }
+
+        std::optional<GraphConfig> ParseTextprotoToGraphConfig(const std::string& text)
+        {
+                GraphConfig config;
+                if (!google::protobuf::TextFormat::ParseFromString(text, &config))
+                {
+                        SPDLOG_ERROR("failed to parse text proto {}", text);
+                        return std::nullopt;
+                }
+                return config;
+        }
+        std::optional<GraphConfig> ParseStringToGraphConfig(const std::string& text)
+        {
+                return ParseTextprotoToGraphConfig(text);
+        }
+
+        std::optional<GraphConfig> LoadTextprotoFile(const std::string& fpath)
+        {
+                std::ifstream fin(fpath);
+                if (!fin.is_open())
+                        return std::nullopt;
+                std::stringstream ss;
+                ss << fin.rdbuf();
+                return ParseTextprotoToGraphConfig(ss.str());
         }
 
 }   // namespace dni

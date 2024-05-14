@@ -44,17 +44,6 @@ cc_binary(
     ],
 )
 
-############
-
-cc_binary(
-    name = "jsoncpp_test",
-    srcs = ["jsoncpp_test.cc"],
-    data = ["testdata/ceni-40nodes-topology.json"],
-    deps = [
-        "@jsoncpp",
-    ],
-)
-
 ##################
 
 cc_binary(
@@ -95,8 +84,8 @@ cc_binary(
 #####
 
 cc_binary(
-    name = "dms_rules_2",
-    srcs = ["dms_rules_2.cc"],
+    name = "dms_rules_1",
+    srcs = ["dms_rules_1.cc"],
     deps = [
         "//dni/framework",
         "//dni/tasks/snding:dms_rules_task",
@@ -107,8 +96,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "dms_rules_1",
-    srcs = ["dms_rules_1.cc"],
+    name = "dms_rules_2",
+    srcs = ["dms_rules_2.cc"],
     deps = [
         "//dni/framework",
         "//dni/tasks/snding:dms_rules_task",

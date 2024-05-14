@@ -295,6 +295,10 @@ namespace dni {
                 return 0;
         }
 
+        // TODO: rework data pipeline for `taskflow`-based scheduler.
+        //
+        // Since `taskflow` handles execution sequence among nodes, there is no need to
+        // copy/move cache between nodes as MediaPipe does.
         int Node::Process()
         {
                 TaskContext* context = context_manager_.DefaultContext();

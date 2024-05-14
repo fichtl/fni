@@ -1,0 +1,1351 @@
+{
+  "network_id": "ceni",
+  "network_name": "ceni Network",
+  "topology": [
+    {
+      "node_name": "聊城市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.4628,
+          "longitude": 115.9916
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "德州市",
+      "location": {
+        "coordinates": {
+          "latitude": 37.4413,
+          "longitude": 116.3656
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "滨州市",
+      "location": {
+        "coordinates": {
+          "latitude": 37.3882,
+          "longitude": 117.9774
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "东营市",
+      "location": {
+        "coordinates": {
+          "latitude": 37.4549,
+          "longitude": 118.5885
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "青岛市"
+      ]
+    },
+    {
+      "node_name": "烟台市",
+      "location": {
+        "coordinates": {
+          "latitude": 37.47,
+          "longitude": 121.4544
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFIT-YT-VPE-DX-1",
+            "SDFIT-YT-VPE-YD-1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-YT-VPE-DX-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-YT-VPE-YD-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "青岛市"
+      ]
+    },
+    {
+      "node_name": "威海市",
+      "location": {
+        "coordinates": {
+          "latitude": 37.5164,
+          "longitude": 122.1275
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "青岛市",
+        "济南市"
+      ]
+    },
+    {
+      "node_name": "日照市",
+      "location": {
+        "coordinates": {
+          "latitude": 35.4228,
+          "longitude": 119.5334
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "青岛市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "淄博市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.8191,
+          "longitude": 118.0615
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "company-a-appliance",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "appliance",
+          "internal_linked": [
+            "switch1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "company-b-appliance",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "appliance",
+          "internal_linked": [
+            "switch1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "switch1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [],
+          "external_linked": []
+        },
+        {
+          "node_name": "switch1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "泰安市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.2059,
+          "longitude": 117.0945
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "枣庄市",
+      "location": {
+        "coordinates": {
+          "latitude": 34.816,
+          "longitude": 117.3305
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "临沂市",
+        "济南市"
+      ]
+    },
+    {
+      "node_name": "济宁市",
+      "location": {
+        "coordinates": {
+          "latitude": 35.4202,
+          "longitude": 116.5936
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFIT-JiNing-VPE-DX-1",
+            "SDFIT-JiNing-VPE-YD-1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-JiNing-VPE-DX-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-JiNing-VPE-YD-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "临沂市",
+        "济南市"
+      ]
+    },
+    {
+      "node_name": "菏泽市",
+      "location": {
+        "coordinates": {
+          "latitude": 35.2394,
+          "longitude": 115.4876
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "济南市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.6566,
+          "longitude": 117.1264
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "leaf1/leaf2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFG-Controller-1",
+            "SDFG-Controller-2",
+            "SDFG-Controller-3",
+            "SDFG_SD-Core-1",
+            "SDFG_SD-Core-2",
+            "SDFG_SD-Core-3",
+            "SDFG_SD-Cloud-1",
+            "SDFG_SD-Cloud-2",
+            "SDFG_SD-Cloud-3",
+            "SDFG_Jumpserver"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "leaf3/leaf4",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFG_DataShare-1",
+            "SDFG_DataShare-2",
+            "SDFG_DataShare-3",
+            "SDFG_DataShare-4",
+            "SDFG_DataShare-5",
+            "SDFG_DataShare-6",
+            "SDFG_DataShare-7",
+            "SDFG_DataShare-8",
+            "SDFG_DataShare-9"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "leaf5/leaf6",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFG_DataShare-10",
+            "SDFG_NetMagr-1",
+            "SDFG_NetMagr-2",
+            "SDFG_NetMagr-3",
+            "SDFG_NetMagr-4",
+            "SDFG_NetMagr-5",
+            "SDFG_NetMagr-6",
+            "SDFGBoss-1",
+            "SDFGBoss-2",
+            "SDFG_wlxn-1",
+            "SDFG_wlxn-2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "vpe1-jn-dx-lt",
+            "vpe2-jn-yd-gd",
+            "node1",
+            "node2",
+            "node3"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG-Controller-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG-Controller-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG-Controller-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Core-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Core-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Core-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Cloud-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Cloud-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_SD-Cloud-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_Jumpserver",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf1/leaf2"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-4",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-5",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-6",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-7",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-8",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-9",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf3/leaf4"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_DataShare-10",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-4",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-5",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_NetMagr-6",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFGBoss-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFGBoss-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_wlxn-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFG_wlxn-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "leaf5/leaf6"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "vpe1-jn-dx-lt",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "vpe2-jn-yd-gd",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "node1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "node2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "node3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "attacker-appliance",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "appliance",
+          "internal_linked": [
+            "switch1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "switch1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "server1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "server1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch1"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "青岛市",
+        "临沂市"
+      ]
+    },
+    {
+      "node_name": "临沂市",
+      "location": {
+        "coordinates": {
+          "latitude": 35.1107,
+          "longitude": 118.3635
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFIT-LY-VPE-DX-1",
+            "SDFIT-LY-VPE-YD-1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-LY-VPE-DX-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-LY-VPE-YD-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "青岛市",
+        "济南市"
+      ]
+    },
+    {
+      "node_name": "潍坊市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.7126,
+          "longitude": 119.1684
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFIT-WF-VPE-DX-1",
+            "SDFIT-WF-VPE-YD-1"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-WF-VPE-DX-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-WF-VPE-YD-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "济南市",
+        "青岛市"
+      ]
+    },
+    {
+      "node_name": "青岛市",
+      "location": {
+        "coordinates": {
+          "latitude": 36.0722,
+          "longitude": 120.3895
+        },
+        "address": ""
+      },
+      "label": "CORE",
+      "nodeType": "networkNode",
+      "sub_nodes": [
+        {
+          "node_name": "switch",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "CORE",
+          "nodeType": "switch",
+          "internal_linked": [
+            "SDFIT-QD-VPE-DX-1",
+            "SDFIT-QD-VPE-YD-1",
+            "qd-sd-core-1",
+            "qd-sd-core-2",
+            "qd-sd-core-3"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-QD-VPE-DX-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "SDFIT-QD-VPE-YD-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "qd-sd-core-1",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "qd-sd-core-2",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        },
+        {
+          "node_name": "qd-sd-core-3",
+          "location": {
+            "coordinates": {
+              "latitude": 0,
+              "longitude": 0
+            },
+            "address": ""
+          },
+          "label": "SECONDARY",
+          "nodeType": "server",
+          "internal_linked": [
+            "switch"
+          ],
+          "external_linked": []
+        }
+      ],
+      "internal_linked": [],
+      "external_linked": [
+        "临沂市",
+        "济南市"
+      ]
+    }
+  ]
+}

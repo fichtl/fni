@@ -1,4 +1,4 @@
-type: "Parse2Taskflow"
+type: "Dummy"
 
 input_stream: "GIn:0:GIn"
 output_stream: "GOut:0:GOut"
