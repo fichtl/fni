@@ -51,7 +51,6 @@ int main()
         const std::string& proto = R"pb(
                 type: "FeatureCounter"
 
-                input_side_data: "Features:0:features"
                 input_stream: "GIn:0:pcap_packets"
                 output_stream: "SIP_COUNT:0:sip_count"
                 output_stream: "SPort_COUNT:0:sport_count"
@@ -63,12 +62,21 @@ int main()
                   name: "A"
                   task: "FeatureCounterTask"
                   input_stream: "GIn:0:pcap_packets"
-                  input_side_data: "Features:0:features"
                   output_stream: "SIP_COUNT:0:sip_count"
                   output_stream: "SPort_COUNT:0:sport_count"
                   output_stream: "DPort_COUNT:0:dport_count"
                   output_stream: "Protocol_COUNT:0:protocol_count"
                   output_stream: "Length_COUNT:0:length_count"
+
+                  options {
+                    [type.asnapis.io/dni.FeatureCounterTaskOptions] {
+                      feature: "SIP"
+                      feature: "SPort"
+                      feature: "DPort"
+                      feature: "Protocol"
+                      feature: "Length"
+                    }
+                  }
                 }
         )pb";
 

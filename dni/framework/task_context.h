@@ -46,6 +46,9 @@ namespace dni {
                 OutputStreamSet& Outputs() { return outputs_; }
                 const OutputStreamSet& Outputs() const { return outputs_; }
 
+                template <class T>
+                const T& Options() const { return state_->Options<T>(); }
+
                 void PushTimestamp(std::time_t ts) { timestamps_.push(ts); }
                 void PopTimestamp()
                 {

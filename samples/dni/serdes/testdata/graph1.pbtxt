@@ -4,7 +4,7 @@ input_stream: "GIn:0:GIn"
 output_stream: "GOut:0:GOut"
 
 options {
-  [type.googleapis.com/dni.InputStreamHandlerConfig] {input_stream_handler: "input_stream_handler"}
+  [type.asnapis.io/dni.InputStreamHandlerConfig] {input_stream_handler: "input_stream_handler"}
 }
 
 
@@ -16,11 +16,11 @@ node {
 
 
   options {
-    [type.googleapis.com/dni.InputStreamInfo] {tag: "a tag"}
+    [type.asnapis.io/dni.InputStreamInfo] {tag: "a tag"}
   }
 
   options {
-    [type.googleapis.com/dni.OutputStreamHandlerConfig] {output_stream_handler: "output_stream_handler"}
+    [type.asnapis.io/dni.OutputStreamHandlerConfig] {output_stream_handler: "output_stream_handler"}
   }
 }
 

@@ -1,7 +1,9 @@
 #include "dni/framework/graph_config.h"
 
 #include <fmt/ranges.h>
+#include <fstream>
 #include <spdlog/spdlog.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -9,8 +11,8 @@
 #include "dni/framework/dtype.h"
 #include "dni/framework/node_config.h"
 #include "dni/framework/utils/names.h"
+#include "dni/framework/utils/proto.h"
 #include "dni/framework/utils/tags.h"
-#include "google/protobuf/text_format.h"
 
 namespace dni {
 
@@ -340,13 +342,16 @@ namespace dni {
         std::optional<GraphConfig> ParseTextprotoToGraphConfig(const std::string& text)
         {
                 GraphConfig config;
-                if (!google::protobuf::TextFormat::ParseFromString(text, &config))
+                auto parser = TextProto::Parser();
+                parser.SetFinder(new CustomizedAnyFinder());
+                if (!parser.ParseFromString(text, &config))
                 {
-                        SPDLOG_ERROR("failed to parse text proto {}", text);
+                        SPDLOG_ERROR("failed to parse text proto");
                         return std::nullopt;
                 }
                 return config;
         }
+
         std::optional<GraphConfig> ParseStringToGraphConfig(const std::string& text)
         {
                 return ParseTextprotoToGraphConfig(text);

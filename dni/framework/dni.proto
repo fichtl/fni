@@ -5,13 +5,10 @@ package dni;
 import "google/protobuf/any.proto";
 import "dni/framework/stream_handler.proto";
 
-message InputStreamInfo {
-    string tag = 1;
-}
+message InputStreamInfo { string tag = 1; }
 
 message GraphConfig {
     message Node {
-
         string name = 1;
 
         string task = 2;

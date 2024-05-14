@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package dni;
+
+message SndAttackerIPMergeTaskOptions {
+    optional double ipFw4CountRatio = 1;
+    optional double ipFw3CountRatio = 2;
+    optional double ipSegCoverThreshold = 3;
+    optional double ipFw2CountRatio = 4;
+    optional int32 ipRandCountThreshold = 5;
+    optional double ipRandCountRatio = 6;
+}

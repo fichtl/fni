@@ -59,6 +59,18 @@ cc_binary(
 ##################
 
 cc_binary(
+    name = "sip_base_merge_dedup",
+    srcs = ["sip_base_merge_dedup.cc"],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "@spdlog",
+    ],
+)
+
+##################
+
+cc_binary(
     name = "net_record_merge",
     srcs = ["net_record_merge.cc"],
     deps = [
@@ -102,6 +114,56 @@ cc_binary(
         "//dni/framework",
         "//dni/tasks/snding:dms_rules_task",
         "//dni/tasks/snding:sip_base_merge_task",
+        "@fmtlib",
+        "@spdlog",
+    ],
+)
+
+cc_binary(
+    name = "dms_rules_3",
+    srcs = ["dms_rules_3.cc"],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:dms_rules_task",
+        "//dni/tasks/snding:sip_base_merge_task",
+        "@fmtlib",
+        "@spdlog",
+    ],
+)
+
+##################
+
+cc_binary(
+    name = "dms_rules_dedup_1",
+    srcs = ["dms_rules_dedup_1.cc"],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "@fmtlib",
+        "@spdlog",
+    ],
+)
+
+cc_binary(
+    name = "dms_rules_dedup_2",
+    srcs = ["dms_rules_dedup_2.cc"],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "@fmtlib",
+        "@spdlog",
+    ],
+)
+
+cc_binary(
+    name = "dms_rules_dedup_3",
+    srcs = ["dms_rules_dedup_3.cc"],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
         "@fmtlib",
         "@spdlog",
     ],

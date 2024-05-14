@@ -9,10 +9,10 @@
 
 namespace dni {
 
-class SndSIPBaseMergeTask: public TaskBase {
+class SndSIPBaseMergeDeDupTask: public TaskBase {
 public:
-        SndSIPBaseMergeTask(): name_("SndSIPBaseMergeTask") {}
-        ~SndSIPBaseMergeTask() override {}
+        SndSIPBaseMergeDeDupTask(): name_("SndSIPBaseMergeDeDupTask") {}
+        ~SndSIPBaseMergeDeDupTask() override {}
 
         int Open(TaskContext* ctx) override;
 
@@ -50,7 +50,7 @@ private:
         double proto_ratioMax_;
 };
 
-int SndSIPBaseMergeTask::Open(TaskContext* ctx)
+int SndSIPBaseMergeDeDupTask::Open(TaskContext* ctx)
 {
         name_ += "(" + ctx->Name() + ")";
         SPDLOG_DEBUG("{}: open task ...", name_);
@@ -85,7 +85,7 @@ int SndSIPBaseMergeTask::Open(TaskContext* ctx)
         return 0;
 }
 
-int SndSIPBaseMergeTask::Process(TaskContext* ctx)
+int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 {
         // input0, packets
         Datum packets_d = ctx->Inputs()[0].Value();
@@ -145,9 +145,15 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
         // ip_positions is for optimize in random ip merge
         // key: ip, value: positions of this ip
         std::unordered_map<uint32_t, std::vector<int>> ip_positions;
+        // cidr_include_positions is for optimize in ...
+        // key: same as all_merge_ret, string is "uint32/len"
+        // value: positions of this ip
+        std::unordered_map<std::string, std::vector<int>> cidr_include_positions;
         int index = 0;
+        bool is_belong = false;
         for (auto&& packet : packets)
         {
+                is_belong = false;
                 for (size_t i = 0; i < attacker_ip_merge.attackerIPs.size(); ++i)
                 {
                         if (belongs(attacker_ip_merge.attackerIPs[i], packet["SIP"]))
@@ -164,12 +170,25 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
 
                                 ret.dstIP.insert(packet["DIP"]);
 
+                                auto& positions =
+                                    cidr_include_positions[cidr_string_vec[i]];
+                                positions.push_back(index);
+
+                                is_belong = true;
+
                                 break;
                         }
                 }
 
                 auto& pos_vec = ip_positions[packet["SIP"]];
                 pos_vec.push_back(index);
+
+                if (!is_belong)
+                {
+                        auto& positions = cidr_include_positions["RANDOM"];
+                        positions.push_back(index);
+                }
+
                 index++;
         }
 
@@ -199,11 +218,13 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
                 }
         }
 
-        // key will be CIDR, tmp use string now, string is "uint32/len". if contain
-        // random, the key is "RANDOM". analyze the situation of
-        // sport/dport/length/protocol. no need to calc sip stat, because from upstream
-        // node, all packet ip split two part: (a) cidr merge ip/32, or ip/(<32), it is
-        // abs CENTRALIZED (b) random ip, it is abs RANDOM, so not calc
+        // key will be CIDR, tmp use string now, string is "uint32/len".
+        // if contain random, the key is "RANDOM".
+        // analyze the situation of sport/dport/length/protocol.
+        // no need to calc sip stat, because from upstream node,
+        // all packet ip split two part:
+        // (a) cidr merge ip/32, or ip/(<32), it is abs CENTRALIZED
+        // (b) random ip, it is abs RANDOM, so not calc
         std::unordered_map<std::string, snding::SIPBaseMergeStats> all_stat;
         for (auto&& merge_ret : all_merge_ret)
         {
@@ -234,9 +255,10 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
                     num_ratioMax_,
                     options_.num_stat().label());
 
-                // for sport, dport, length, if the stat_type is CENTRALIZED, use
-                // merge_ret.second.sport/dport/length as the merge result for next step;
-                // otherwise, use the stat_type name shown in the next step.
+                // for sport, dport, length, if the stat_type is
+                // CENTRALIZED, use merge_ret.second.sport/dport/length as
+                // the merge result for next step; otherwise, use the
+                // stat_type name shown in the next step.
                 stat.srcPort.stat_type = sport_stat_type;
                 if (sport_stat_type == options_.num_stat().label()[0])
                 {
@@ -277,9 +299,73 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
                 }
         }
 
-        SPDLOG_DEBUG("{}: after calculation: {}", name_, all_stat);
+        std::string rule_elements = "";
+
+        // std::unordered_map<std::string, std::unordered_set<int>> length_set;
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+            rules;
+        for (auto&& stat : all_stat)
+        {
+                // use stat to replace each packet in packets,
+                // the packet ip belongs to the stat.first,
+                // or it is RANDOM ip
+
+                auto& positions = cidr_include_positions[stat.first];
+
+                for (auto&& index : positions)
+                {
+                        rule_elements = "";
+                        std::unordered_map<std::string, std::string> rule_stat;
+
+                        // this is original packet
+                        auto& p = packets[index];
+                        rule_elements += (stat.first + "--");
+                        rule_stat["SIP"] = stat.first;
+
+                        rule_elements += (std::to_string(p["DIP"]) + "--");
+                        rule_stat["DIP"] = std::to_string(p["DIP"]);
+
+                        if (stat.second.srcPort.stat_type == "centralize")
+                        {
+                                rule_elements += (std::to_string(p["SPort"]) + "--");
+                                rule_stat["SPort"] = std::to_string(p["SPort"]);
+                        }
+                        else
+                        {
+                                rule_elements += (stat.second.srcPort.stat_type + "--");
+                                rule_stat["SPort"] = "-1";
+                        }
+
+                        if (stat.second.dstPort.stat_type == "centralize")
+                        {
+                                rule_elements += (std::to_string(p["DPort"]) + "--");
+                                rule_stat["DPort"] = std::to_string(p["DPort"]);
+                        }
+                        else
+                        {
+                                rule_elements += (stat.second.dstPort.stat_type + "--");
+                                rule_stat["DPort"] = "-1";
+                        }
+
+                        rule_elements += (std::to_string(p["Protocol"]));
+                        rule_stat["Protocol"] = std::to_string(p["Protocol"]);
+
+                        rule_stat["hostNicSign"] = stat.second.hostNicSign;
+
+                        // collect length if need
+                        // in stat.second.length.stat_type,
+                        // stat.second.length.value
+
+                        // add to ...
+                        rules[rule_elements] = rule_stat;
+                }
+        }
+
+        SPDLOG_DEBUG("{}: after calculation, all_stat: {}", name_, all_stat);
+        SPDLOG_DEBUG("{}: after calculation, rules: {}", name_, rules);
 
         ctx->Outputs()[0].AddDatum(Datum(std::move(all_stat)));
+        ctx->Outputs()[1].AddDatum(Datum(std::move(rules)));
 
         return 0;
 }
@@ -287,7 +373,7 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
 // 2nd arg `ip` actually is CIDR{ip, 32}
 // `ip`为`cidr`的匹配集的子集等价于:
 // `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
-bool SndSIPBaseMergeTask::belongs(CIDR cidr, uint32_t ip)
+bool SndSIPBaseMergeDeDupTask::belongs(CIDR cidr, uint32_t ip)
 {
         if (cidr.len > 32)
                 return false;
@@ -296,7 +382,7 @@ bool SndSIPBaseMergeTask::belongs(CIDR cidr, uint32_t ip)
         return true;
 }
 
-std::string SndSIPBaseMergeTask::calc_number_stat_type(
+std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
     const std::unordered_set<uint32_t>& uset,
     int numValueSum,
     double_t num_ratioMin,
@@ -354,7 +440,7 @@ std::string SndSIPBaseMergeTask::calc_number_stat_type(
         return stat_type;
 }
 
-std::unordered_map<int, std::string> SndSIPBaseMergeTask::calc_proto_stat_type(
+std::unordered_map<int, std::string> SndSIPBaseMergeDeDupTask::calc_proto_stat_type(
     const std::unordered_map<int, int>& proto_map,
     int numValueSum,
     double_t proto_ratioMin,
@@ -395,6 +481,6 @@ std::unordered_map<int, std::string> SndSIPBaseMergeTask::calc_proto_stat_type(
         return std::move(stats);
 }
 
-REGISTER(SndSIPBaseMergeTask);
+REGISTER(SndSIPBaseMergeDeDupTask);
 
 }   // namespace dni

@@ -10,8 +10,8 @@ namespace dni {
 
                 int Open(TaskContext* ctx) override
                 {
-                        name_ += " " + ctx->Name();
-                        SPDLOG_DEBUG("Task {}: open task ...", name_);
+                        name_ += "(" + ctx->Name() + ")";
+                        SPDLOG_DEBUG("{}: open task ...", name_);
                         return 0;
                 }
 
@@ -26,7 +26,7 @@ __WAIT:
                                 if (opt == std::nullopt)
                                 {
                                         SPDLOG_WARN(
-                                            "Task {}: Consume() returns NULL, wait for "
+                                            "{}: Consume() returns NULL, wait for "
                                             "input ...",
                                             name_);
                                         std::this_thread::sleep_for(
@@ -44,7 +44,7 @@ __WAIT:
                                         val /= 10;
                                 }
                                 SPDLOG_DEBUG(
-                                    "Task {}: after calculation: {}", name_, val);
+                                    "{}: after calculation: {}", name_, val);
 
                                 ctx->Outputs()[i].AddDatum(Datum(val));
                         }
@@ -54,7 +54,7 @@ __WAIT:
 
                 int Close(TaskContext* ctx) override
                 {
-                        SPDLOG_DEBUG("Task {}: closing ...", name_);
+                        SPDLOG_DEBUG("{}: closing ...", name_);
                         return 0;
                 }
 

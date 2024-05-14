@@ -11,7 +11,7 @@ std::vector<dni::snding::DMSRule> generate_dms_rules(const dni::snding::SIPBaseM
         // if (stat.srcIP.stat_type != "centralize" && stat.srcPort.stat_type !=
         // "centralize" && stat.dstPort.stat_type != "centralize")
         // {
-        //         SPDLOG_DEBUG("Task {}: dms action will be 'limit'", name_);
+        //         SPDLOG_DEBUG("{}: dms action will be 'limit'", name_);
         //         action = "limit";
         // }
 

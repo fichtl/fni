@@ -100,7 +100,6 @@ void inject_after2(dni::Graph* g, int after, int n, int interval)
         }
 }
 
-
 int main()
 {
         spdlog::set_level(spdlog::level::trace);
@@ -113,19 +112,21 @@ int main()
                 input_stream: "GIN_HostNicName:0:host_nic_name"
 
                 output_stream: "GOut_SIPCidrBasedPacketsMerge:0:sip_cidr_based_packets_merge"
+                output_stream: "GOut_SIPDMSRulesPrepare:0:sip_dms_rules_prepare"
 
                 node {
                   name: "A"
-                  task: "SndSIPBaseMergeTask"
+                  task: "SndSIPBaseMergeDeDupTask"
 
                   input_stream: "GIN_ParsedPackets:0:parsed_packets"
                   input_stream: "GIN_CidrMergedSIP:0:cidr_merged_sip"
                   input_stream: "GIN_HostNicName:0:host_nic_name"
 
                   output_stream: "GOut_SIPCidrBasedPacketsMerge:0:sip_cidr_based_packets_merge"
+                  output_stream: "GOut_SIPDMSRulesPrepare:0:sip_dms_rules_prepare"
 
                   options {
-                    [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+                    [type.asnapis.io/dni.SndSIPBaseMergeDeDupTaskOptions] {
                       num_stat {
                         ratioMin: 0.1
                         ratioMax: 0.6
@@ -162,9 +163,14 @@ int main()
         spdlog::debug("Create ObserveOutputStream: {}", out);
         g->ObserveOutputStream(out);
 
+        std::string out2 = "sip_dms_rules_prepare";
+
+        spdlog::debug("Create ObserveOutputStream: {}", out2);
+        g->ObserveOutputStream(out2);
+
         g->PrepareForRun();
 
-        inject_after2(g, 0, 1, 0);
+        inject_after1(g, 0, 1, 0);
 
         g->RunOnce();
 
@@ -181,9 +187,21 @@ int main()
                     stat.second);
         }
 
+        auto ret2 =
+            g->GetResult<std::unordered_map<std::string, std::unordered_map<std::string, std::string>>>(
+                out2);
+        spdlog::info("Gout {} result size is: {}", out2, ret2.size());
+        for (auto&& rule_stat : ret2)
+        {
+                spdlog::info(
+                    "Gout {} result is:\n cidr-ip:{}\n  {}\n\n", out2, rule_stat.first,
+                    rule_stat.second);
+        }
+
         g->Finish();
 
         spdlog::info("main over");
 
         return 0;
 }
+

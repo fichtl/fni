@@ -88,6 +88,7 @@ cc_library(
         ":dtype",
         ":node_config",
         "//dni/framework/utils:names",
+        "//dni/framework/utils:proto",
         "//dni/framework/utils:tags",
         "@fmtlib",
     ],

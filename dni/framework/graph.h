@@ -146,6 +146,7 @@ namespace dni {
                                 continue;
 
                         Datum d = std::move(graph_output_stream->Head());
+                        graph_output_stream->Clear();
 
                         SPDLOG_DEBUG("Consume Datum: {}", d);
                         auto d_opt = d.Consume<T>();

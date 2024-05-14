@@ -3,61 +3,58 @@
 
 namespace dni {
 
-        class SumTask: public TaskBase {
-        public:
-                SumTask(): name_("SumTask") {}
-                ~SumTask() override {}
+class SumTask: public TaskBase {
+public:
+        SumTask(): name_("SumTask") {}
+        ~SumTask() override {}
 
-                int Open(TaskContext* ctx) override
+        int Open(TaskContext* ctx) override
+        {
+                name_ += "(" + ctx->Name() + ")";
+                SPDLOG_DEBUG("{}: open task ...", name_);
+
+                return 0;
+        }
+
+        int Process(TaskContext* ctx) override
+        {
+                SPDLOG_DEBUG("{}: Datum size: {}", name_, ctx->Inputs().size());
+
+                double_t sum = 0.0;
+                for (int i = 0; i < ctx->Inputs().size(); i++)
                 {
-                        SPDLOG_DEBUG("Task {}: open task ...", name_);
+                        Datum d = ctx->Inputs()[i].Value();
 
-                        return 0;
-                }
-
-                int Process(TaskContext* ctx) override
-                {
-                        // input
-                        SPDLOG_DEBUG(
-                            "Task {}: Datum size: {}", name_, ctx->Inputs().size());
-
-                        double_t sum = 0.0;
-                        for (int i = 0; i < ctx->Inputs().size(); i++)
+                        auto opt = d.Consume<double_t>();
+                        if (!opt)
                         {
-                                Datum score_d = ctx->Inputs()[i].Value();
-
-                                auto score_opt = score_d.Consume<double_t>();
-                                if (!score_opt)
-                                {
-                                        SPDLOG_WARN(
-                                            "Task {}: Consume() Datum returns NULL, wait "
-                                            "for input ...",
-                                            name_);
-                                }
-                                auto score = *(score_opt.value());
-                                SPDLOG_DEBUG("Task {}: scores: {}", name_, score);
-
-                                sum += score;
+                                SPDLOG_CRITICAL("{}: invalid input", name_);
+                                return -1;
                         }
+                        auto number = *(opt.value());
+                        SPDLOG_DEBUG("{}: number: {}", name_, number);
 
-                        SPDLOG_DEBUG("Task {}: after calculation: {}", name_, sum);
-
-                        ctx->Outputs()[0].AddDatum(Datum(sum));
-
-                        return 0;
+                        sum += number;
                 }
 
-                int Close(TaskContext* ctx) override
-                {
-                        SPDLOG_DEBUG("Task {}: closing ...", name_);
+                SPDLOG_DEBUG("{}: after calculation: {}", name_, sum);
 
-                        return 0;
-                }
+                ctx->Outputs()[0].AddDatum(Datum(sum));
 
-        private:
-                std::string name_;
-        };
+                return 0;
+        }
 
-        REGISTER(SumTask);
+        int Close(TaskContext* ctx) override
+        {
+                SPDLOG_DEBUG("{}: closing ...", name_);
+
+                return 0;
+        }
+
+private:
+        std::string name_;
+};
+
+REGISTER(SumTask);
 
 }   // namespace dni

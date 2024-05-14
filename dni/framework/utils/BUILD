@@ -18,3 +18,9 @@ cc_library(
         "@spdlog",
     ],
 )
+
+cc_library(
+    name = "proto",
+    hdrs = ["proto.h"],
+    deps = ["@com_google_protobuf//:protobuf"],
+)

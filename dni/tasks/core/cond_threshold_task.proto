@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package dni;
+
+message CondThresholdTaskOptions {
+    message ThreshScore {
+        double threshold = 1;
+        double score = 2;
+    }
+
+    repeated double conditions = 1;
+
+    repeated ThreshScore thresh_scores = 2;
+}

@@ -13,21 +13,10 @@ void inject_after(dni::Graph* g, int after, int n, int interval)
         count[6] = 2001;
         count[17] = 1998;
 
-        int ___protoCountSum = 10000;
-        double_t ___ratioMin = 0.1;
-        double_t ___ratioMax = 0.6;
-        std::vector<double_t> ___score_thresholds = {0.8, 0.6, 0};
-
         for (int i = 0; i < n; i++)
         {
                 // SPDLOG_DEBUG("send Datum({}) to graph g({:p})", d, fmt::ptr(g));
                 g->AddDatumToInputStream("count", dni::Datum(count));
-
-                g->AddDatumToInputSideData("protoCountSum", dni::Datum(___protoCountSum));
-                g->AddDatumToInputSideData("ratioMin", dni::Datum(___ratioMin));
-                g->AddDatumToInputSideData("ratioMax", dni::Datum(___ratioMax));
-                g->AddDatumToInputSideData(
-                    "score_thresholds", dni::Datum(___score_thresholds));
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         }
@@ -42,21 +31,10 @@ void inject_after1(dni::Graph* g, int after, int n, int interval)
         count[6] = 3000;
         count[17] = 4000;
 
-        int ___protoCountSum = 10000;
-        double_t ___ratioMin = 0.1;
-        double_t ___ratioMax = 0.6;
-        std::vector<double_t> ___score_thresholds = {0.8, 0.6, 0};
-
         for (int i = 0; i < n; i++)
         {
                 // SPDLOG_DEBUG("send Datum({}) to graph g({:p})", d, fmt::ptr(g));
                 g->AddDatumToInputStream("count", dni::Datum(count));
-
-                g->AddDatumToInputSideData("protoCountSum", dni::Datum(___protoCountSum));
-                g->AddDatumToInputSideData("ratioMin", dni::Datum(___ratioMin));
-                g->AddDatumToInputSideData("ratioMax", dni::Datum(___ratioMax));
-                g->AddDatumToInputSideData(
-                    "score_thresholds", dni::Datum(___score_thresholds));
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         }
@@ -69,22 +47,25 @@ int main()
         const std::string& proto = R"pb(
                 type: "SndProtocolStats"
 
-                input_side_data: "GSD_ProtoCountSum:0:protoCountSum"
-                input_side_data: "GSD_RatioMin:0:ratioMin"
-                input_side_data: "GSD_RatioMax:0:ratioMax"
-                input_side_data: "GSD_ScoreThresholds:0:score_thresholds"
                 input_stream: "COUNT:0:count"
                 output_stream: "G_Score:0:score"
 
                 node {
                   name: "A"
                   task: "SndProtocolStatsTask"
-                  input_side_data: "GSD_ProtoCountSum:0:protoCountSum"
-                  input_side_data: "GSD_RatioMin:0:ratioMin"
-                  input_side_data: "GSD_RatioMax:0:ratioMax"
-                  input_side_data: "GSD_ScoreThresholds:0:score_thresholds"
                   input_stream: "COUNT:0:count"
                   output_stream: "G_Score:0:score"
+
+                  options {
+                    [type.asnapis.io/dni.SndProtocolStatsTaskOptions] {
+                      protoCountSum: 10000
+                      ratioMin: 0.1
+                      ratioMax: 0.6
+                      score_thresholds: 0.8
+                      score_thresholds: 0.6
+                      score_thresholds: 0
+                    }
+                  }
                 }
         )pb";
 

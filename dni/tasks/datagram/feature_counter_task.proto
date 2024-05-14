@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+package dni;
+
+message FeatureCounterTaskOptions { repeated string feature = 1; }

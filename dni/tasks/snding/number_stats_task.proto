@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package dni;
+
+message SndNumberStatsTaskOptions {
+    int32 numValueSum = 1;
+    double ratioMin = 2;
+    double ratioMax = 3;
+    repeated double score_thresholds = 4;
+}

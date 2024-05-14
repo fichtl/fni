@@ -9,10 +9,6 @@ void inject_after(dni::Graph* g, int after, int n, int interval)
         std::this_thread::sleep_for(std::chrono::milliseconds(after));
 
         std::vector<double_t> sums = {0, 1, 1};
-        double_t ___specified_number = 1;
-
-        g->AddDatumToInputSideData(
-                    "specified_number", dni::Datum(___specified_number));
 
         for (int i = 0; i < sums.size(); i++)
         {
@@ -27,8 +23,6 @@ int main()
         const std::string& proto = R"pb(
                 type: "Counter"
 
-                input_side_data: "SPECIFIED_NUMBER:0:specified_number"
-
                 input_stream: "GIn_1:0:sums_1"
                 input_stream: "GIn_2:0:sums_2"
                 input_stream: "GIn_3:0:sums_3"
@@ -42,8 +36,13 @@ int main()
                   input_stream: "GIn_2:0:sums_2"
                   input_stream: "GIn_3:0:sums_3"
 
-                  input_side_data: "SPECIFIED_NUMBER:0:specified_number"
                   output_stream: "GOut:0:count"
+
+                  options {
+                    [type.asnapis.io/dni.CounterTaskOptions] {
+                      feature: 1
+                    }
+                  }
                 }
         )pb";
 
