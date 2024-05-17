@@ -75,14 +75,14 @@ public:
                                 }
                         }
 
+                        score_max = (score > score_max ? score : score_max);
+
                         SPDLOG_DEBUG(
                             "{}: after calculation: protocol: {}, "
                             "score: {}",
                             name_,
                             proto_stat.first,
                             score_max);
-
-                        score_max = (score > score_max ? score : score_max);
                 }
                 SPDLOG_DEBUG("{}: after calculation: {}", name_, score_max);
 

@@ -60,7 +60,7 @@ int main()
         netdevs.push_back(1.00);
 
         std::vector<std::map<std::string, dni::Datum>> inputs;
-        for (int i = 3; i < 9; i++)
+        for (int i = 1; i < 9; i++)
         {
                 std::string fpath = fmt::format(PCAP_DUMP_FILE_PATH, i);
                 inputs.push_back(

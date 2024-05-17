@@ -59,6 +59,22 @@ cc_binary(
 ##################
 
 cc_binary(
+    name = "attacker_ip_merge",
+    srcs = ["attacker_ip_merge.cc"],
+    data = glob(["testdata/*.pcap"]),
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/snding:attacker_ip_merge_task",
+        "//dni/tasks/datagram:pcap_parse_task",
+        "//dni/tasks/datagram:feature_counter_task",
+
+        "@spdlog",
+    ],
+)
+
+##################
+
+cc_binary(
     name = "sip_base_merge_dedup",
     srcs = ["sip_base_merge_dedup.cc"],
     deps = [
@@ -168,3 +184,4 @@ cc_binary(
         "@spdlog",
     ],
 )
+

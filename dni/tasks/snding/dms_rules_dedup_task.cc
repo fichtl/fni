@@ -114,8 +114,8 @@ snding::DMSRule SndGenDeDupDMSRulesTask::generate_dms_rule(
         SPDLOG_DEBUG("{}: {}-{}-{}", name_, stat["SIP"], stat["SPort"], stat["DPort"]);
 
         // quick action judge
-        if ((stat["SIP"] != "RANDOM") || (stat["SPort"] == "centralize") ||
-            (stat["DPort"] == "centralize"))
+        if ((stat["SIP"] != "RANDOM") || (stat["SPort"] != "-1") ||
+            (stat["DPort"] != "-1"))
         {
                 SPDLOG_DEBUG("{}: action is 'drop'", name_);
                 action = "drop";
@@ -131,16 +131,39 @@ snding::DMSRule SndGenDeDupDMSRulesTask::generate_dms_rule(
 
         gen_rule.hostNicSign = std::move(stat["hostNicSign"]);
 
-        int idx = stat["SIP"].find("/");
-        auto ip = std::stoul(stat["SIP"].substr(0, idx));
-        auto len = std::stoi(stat["SIP"].substr(idx + 1));
-        gen_rule.srcIP = {static_cast<uint32_t>(ip), len};
+        if (stat["SIP"] == "RANDOM")
+        {
+                gen_rule.srcIP = {0, -1};
+        }
+        else
+        {
+                int idx = stat["SIP"].find("/");
+                auto ip = std::stoul(stat["SIP"].substr(0, idx));
+                auto len = std::stoi(stat["SIP"].substr(idx + 1));
+                gen_rule.srcIP = {static_cast<uint32_t>(ip), len};
+        }
 
-        ip = std::stoul(stat["DIP"]);
+        auto ip = std::stoul(stat["DIP"]);
         gen_rule.dstIP = {static_cast<uint32_t>(ip), 32};
 
-        gen_rule.sPort = std::stoi(stat["SPort"]);
-        gen_rule.dPort = std::stoi(stat["DPort"]);
+        if (stat["SPort"] != "-1")
+        {
+                gen_rule.sPort = std::stoi(stat["SPort"]);
+        }
+        else
+        {
+                gen_rule.sPort = -1;
+        }
+
+        if (stat["DPort"] != "-1")
+        {
+                gen_rule.dPort = std::stoi(stat["DPort"]);
+        }
+        else
+        {
+                gen_rule.dPort = -1;
+        }
+
         gen_rule.protocol = std::stoi(stat["Protocol"]);
 
         gen_rule.action = action;
