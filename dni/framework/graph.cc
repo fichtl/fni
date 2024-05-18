@@ -224,10 +224,20 @@ namespace dni {
                 SPDLOG_DEBUG("Opening nodes");
                 for (auto& node : nodes_)
                 {
-                        tf::Task tf_node =
-                            taskflow_.emplace([&]() { node->Open(); })
-                                .name(fmt::format(
-                                    "open node {}", node->Config().NodeName()));
+                        auto lambda = [&]() {
+                                int ret = node->Open();
+                                if (ret != 0)
+                                {
+                                        SPDLOG_CRITICAL(
+                                            "failed to open node {}",
+                                            node->Config().NodeName());
+                                        fu_.cancel();
+                                        fu_.get();
+                                        std::exit(-1);
+                                }
+                        };
+                        tf::Task tf_node = taskflow_.emplace(lambda).name(
+                            fmt::format("OpenNode {}", node->Config().NodeName()));
 
                         task_map.emplace(node->Config().NodeName(), tf_node);
                 }
@@ -251,10 +261,21 @@ namespace dni {
                 // TODO: break taskflow runtime if node->Process fails.
                 for (auto& node : nodes_)
                 {
-                        tf::Task tf_node = taskflow_.emplace([&]() { node->Process(); })
-                                               .name(fmt::format(
-                                                   "{}({})", node->Config().NodeName(),
-                                                   node->State().TaskType()));
+                        auto lambda = [&]() {
+                                int ret = node->Process();
+                                if (ret != 0)
+                                {
+                                        SPDLOG_CRITICAL(
+                                            "failed to process node {}",
+                                            node->Config().NodeName());
+                                        fu_.cancel();
+                                        // TODO: upload related info
+                                }
+                        };
+                        tf::Task tf_node = taskflow_.emplace(lambda);
+                        tf_node.name(fmt::format(
+                            "{}({})", node->Config().NodeName(),
+                            node->State().TaskType()));
 
                         task_map.emplace(node->Config().NodeName(), tf_node);
                 }

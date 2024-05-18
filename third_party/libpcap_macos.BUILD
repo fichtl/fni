@@ -4,9 +4,9 @@ licenses(["notice"])
 
 cc_library(
     name = "libpcap",
-    srcs = glob(["opt/libpcap/lib/libpcap.*.dylib"]),
-    hdrs = glob(["opt/libpcap/include/pcap/*.h*"]),
-    includes = ["opt/libpcap/include/"],
+    srcs = glob(["lib/libpcap.*.dylib"]),
+    hdrs = glob(["include/pcap/*.h"]),
+    includes = ["include/"],
     linkstatic = 1,
     visibility = ["//visibility:public"],
 )

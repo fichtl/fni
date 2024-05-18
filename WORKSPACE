@@ -145,13 +145,13 @@ new_local_repository(
 new_local_repository(
     name = "libpcap_macos_x86_64",
     build_file = "@//third_party:libpcap_macos.BUILD",
-    path = "/usr/local",
+    path = "/usr/local/opt/libpcap",
 )
 
 new_local_repository(
     name = "libpcap_macos_arm64",
     build_file = "@//third_party:libpcap_macos.BUILD",
-    path = "/opt/homebrew",
+    path = "/opt/homebrew/opt/libpcap",
 )
 
 # dependencies for dev
