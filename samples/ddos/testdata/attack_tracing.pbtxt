@@ -1,0 +1,56 @@
+type: "Attack Tracing and Defense"
+
+# abnormal nic pcap file path
+input_stream: "GIn_pcapPath:0:pcapPath"
+
+# attack_ip_merge
+input_stream: "GIn_All_Known_IPs:0:all_known_ips"
+
+# graph3 output
+output_stream: "attackerip_merge_result"
+
+node {
+    name: "abnormal_nic_pcap_parser"
+    task: "SndPcapParseTask"
+    input_stream: "PATH:pcapPath"
+    output_stream: "parsed_packets"
+}
+
+
+node {
+    name: "abnormal_pcap_feature_counter"
+    task: "FeatureCounterTask"
+    input_stream: ":parsed_packets"
+    output_stream: "SIP:sip_count"
+    output_stream: "SPort:sport_count"
+    output_stream: "DPort:dport_count"
+    output_stream: "Protocol:protocol_count"
+    output_stream: "Length:length_count"
+    options {
+        [type.asnapis.io/dni.FeatureCounterTaskOptions] {
+            feature: "SIP"
+            feature: "SPort"
+            feature: "DPort"
+            feature: "Protocol"
+            feature: "Length"
+        }
+    }
+}
+
+node {
+    name: "attack_ip_merge"
+    task: "SndAttackerIPMergeTask"
+    input_stream: "SIP:sip_count"
+    input_stream: "KNOWN_IPS:all_known_ips"
+    output_stream: "attackerip_merge_result"
+    options {
+        [type.asnapis.io/dni.SndAttackerIPMergeTaskOptions] {
+            ipFw4CountRatio: 0.1
+            ipFw3CountRatio: 0.2
+            ipSegCoverThreshold: 100
+            ipFw2CountRatio: 0.4
+            ipRandCountThreshold: 2
+            ipRandCountRatio: 0.5
+        }
+    }
+}

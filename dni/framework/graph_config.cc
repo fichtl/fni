@@ -52,7 +52,7 @@ namespace dni {
                                     input_stream_info.tag(),
                                     tag,
                                     index);
-                                int id = cfg_.Inputs().FindByTagIndex(tag, index);
+                                int id = cfg_.Inputs().Slot(tag, index);
                                 if (id < 0)
                                 {
                                         SPDLOG_ERROR(
@@ -95,15 +95,16 @@ namespace dni {
                 int i = 0;
                 for (const auto& node : proto_.node())
                 {
-                        SPDLOG_DEBUG("initializing NodeInfo of {}", node.name());
+                        SPDLOG_DEBUG("--- initializing NodeInfo of {} ---", node.name());
                         nodes_.emplace_back();
                         if (nodes_.back().Initialize(proto_, node, i))
                         {
                                 SPDLOG_ERROR(
-                                    "failed to initialize NodeInfo of {}", node.name());
+                                    "failed to initialize NodeInfo of node {}",
+                                    node.name());
                                 return -1;
                         };
-                        SPDLOG_DEBUG("NodeInfo: {}", nodes_.back());
+                        SPDLOG_DEBUG("--- NodeInfo: {} ---", nodes_.back());
 
                         ++i;
                 }
@@ -160,6 +161,7 @@ namespace dni {
                             "graph input side data: {:}", proto_.input_side_data());
                         std::shared_ptr<utils::TagMap> graph_input_sidedata =
                             utils::NewTagMap(proto_.input_side_data());
+                        SPDLOG_DEBUG("graph input side tags: {}", graph_input_sidedata);
                         if (!graph_input_sidedata)
                         {
                                 SPDLOG_ERROR(
@@ -248,6 +250,7 @@ namespace dni {
                 SPDLOG_DEBUG("graph input streams: {:}", proto_.input_stream());
                 std::shared_ptr<utils::TagMap> graph_input_streams =
                     utils::NewTagMap(proto_.input_stream());
+                SPDLOG_DEBUG("graph input tags: {}", graph_input_streams);
                 if (!graph_input_streams)
                 {
                         SPDLOG_ERROR(
@@ -285,12 +288,15 @@ namespace dni {
                 }
 
                 SPDLOG_DEBUG("graph output streams: {:}", proto_.output_stream());
-                if (!utils::NewTagMap(proto_.output_stream()))
+                std::shared_ptr<utils::TagMap> graph_output_streams =
+                    utils::NewTagMap(proto_.output_stream());
+                if (!graph_output_streams)
                 {
                         SPDLOG_ERROR(
                             "invalid GraphOutputStream: {:}", proto_.output_stream());
                         return -1;
                 }
+                SPDLOG_DEBUG("graph input tags: {}", graph_output_streams);
                 return 0;
         }
 

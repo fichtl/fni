@@ -1,3 +1,7 @@
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "dni/framework/framework.h"
 #include "snding_defines.h"
 #include "spdlog/spdlog.h"
@@ -33,10 +37,8 @@ public:
                             std::unordered_map<std::string, snding::SIPBaseMergeStats>>();
                         if (!sip_base_merge_stats_opt)
                         {
-                                SPDLOG_WARN(
-                                    "{}: Consume() sip_base_merge_stats "
-                                    "returns NULL, wait for input ...",
-                                    name_);
+                                SPDLOG_CRITICAL(
+                                    "{}: invalid sip_base_merge_stats ", name_);
                         }
                         auto sip_base_merge_stats = *(sip_base_merge_stats_opt.value());
                         SPDLOG_DEBUG("{}: val: {}", name_, sip_base_merge_stats);

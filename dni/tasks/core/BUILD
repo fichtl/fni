@@ -1,14 +1,23 @@
 # NOTE: Tasks are not directly used in framework,
 #       so it's required to always set `alwayslink` to 1 for tasks.
 
-licenses(["notice"])
-
 package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "transparent_task_proto",
+    srcs = ["transparent_task.proto"],
+)
+
+cc_proto_library(
+    name = "transparent_task_cc_proto",
+    deps = [":transparent_task_proto"],
+)
 
 cc_library(
     name = "transparent_task",
     srcs = ["transparent_task.cc"],
     deps = [
+        ":transparent_task_cc_proto",
         "//dni/framework",
         "@fmtlib",
         "@spdlog",

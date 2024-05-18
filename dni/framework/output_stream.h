@@ -2,8 +2,8 @@
 
 #include <ctime>
 #include <list>
-#include <vector>
 
+#include "dni/framework/collection.h"
 #include "dni/framework/datum.h"
 #include "dni/framework/dtype.h"
 #include "fmt/format.h"
@@ -46,7 +46,7 @@ namespace dni {
                 std::list<Datum>* OutputQueue() { return &queue_; }
                 const std::list<Datum>* OutputQueue() const { return &queue_; }
 
-                void Close();
+                void Close() { closed_ = true; }
 
         private:
                 template <typename T>
@@ -60,10 +60,7 @@ namespace dni {
                 friend class OutputStreamHandler;
         };
 
-        using OutputStreamSet = std::vector<OutputStreamImpl>;
-
-        OutputStreamSet MakeOutputStreamSetFromTagMap(
-            std::shared_ptr<utils::TagMap>&& tag_map);
+        using OutputStreamSet = Collection<OutputStreamImpl>;
 
 }   // namespace dni
 

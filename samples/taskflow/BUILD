@@ -1,5 +1,3 @@
-licenses(["notice"])
-
 cc_binary(
     name = "async",
     srcs = ["async.cc"],

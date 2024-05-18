@@ -1,0 +1,88 @@
+input_stream: "parsed_packets_1"
+input_stream: "cidr_merged_sip_1"
+input_stream: "host_nic_name1"
+input_stream: "netdevs_1"
+
+input_stream: "parsed_packets_2"
+input_stream: "cidr_merged_sip_2"
+input_stream: "host_nic_name2"
+input_stream: "netdevs_2"
+
+output_stream: "dms_rules"
+
+node {
+    name: "A"
+    task: "SndSIPBaseMergeDeDupTask"
+
+    input_stream: "PACKET:0:parsed_packets_1"
+    input_stream: "SIP:0:cidr_merged_sip_1"
+    input_stream: "NIC:0:host_nic_name1"
+
+    output_stream: "CIDR:0:sip_cidr_based_packets_merge1"
+    output_stream: "CIDR:1:sip_dms_rules_prepare1"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "B"
+    task: "SndSIPBaseMergeDeDupTask"
+
+    input_stream: "PACKET:0:parsed_packets_2"
+    input_stream: "SIP:0:cidr_merged_sip_2"
+    input_stream: "NIC:0:host_nic_name2"
+
+    output_stream: "CIDR:0:sip_cidr_based_packets_merge2"
+    output_stream: "CIDR:1:sip_dms_rules_prepare2"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "C"
+    task: "SndGenDeDupDMSRulesTask"
+
+    input_stream: "CIDR:0:sip_dms_rules_prepare1"
+    input_stream: "NETDEV:0:netdevs_1"
+
+    input_stream: "CIDR:1:sip_dms_rules_prepare2"
+    input_stream: "NETDEV:1:netdevs_2"
+
+    output_stream: "GOut_DMSRules:0:dms_rules"
+}

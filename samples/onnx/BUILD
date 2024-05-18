@@ -1,5 +1,3 @@
-licenses(["notice"])
-
 cc_library(
     name = "DNIModelLoader",
     srcs = [

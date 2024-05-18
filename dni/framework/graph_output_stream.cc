@@ -4,6 +4,7 @@
 
 #include "dni/framework/input_stream_manager.h"
 #include "dni/framework/output_stream_manager.h"
+#include "dni/framework/utils/proto.h"
 #include "dni/framework/utils/tags.h"
 #include "spdlog/spdlog.h"
 
@@ -12,7 +13,7 @@ namespace dni {
         int GraphOutputStream::Initialize(
             const std::string& name, OutputStreamManager* osm)
         {
-                google::protobuf::RepeatedPtrField<std::string> stream_name;
+                ProtoStrings stream_name;
                 stream_name.Add()->assign(name);
                 std::shared_ptr<utils::TagMap> input_tags = utils::NewTagMap(stream_name);
                 // should not happened

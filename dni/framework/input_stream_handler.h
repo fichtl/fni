@@ -66,7 +66,7 @@ namespace dni {
                             std::vector<int>
                                 ids)
                             : input_stream_handler_(input_stream_handler),
-                              ids_(std::move(ids)){};
+                              ids_(std::move(ids)) {};
 
                         void PrepareForRun();
 

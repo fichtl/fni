@@ -137,15 +137,21 @@ http_archive(
 # dependencies from local repositories
 
 new_local_repository(
-    name = "linux_libpcap",
+    name = "libpcap_linux",
     build_file = "@//third_party:libpcap_linux.BUILD",
     path = "/usr",
 )
 
 new_local_repository(
-    name = "macos_libpcap",
+    name = "libpcap_macos_x86_64",
     build_file = "@//third_party:libpcap_macos.BUILD",
     path = "/usr/local",
+)
+
+new_local_repository(
+    name = "libpcap_macos_arm64",
+    build_file = "@//third_party:libpcap_macos.BUILD",
+    path = "/opt/homebrew",
 )
 
 # dependencies for dev

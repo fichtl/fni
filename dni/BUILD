@@ -1,5 +1,3 @@
-licenses(["notice"])
-
 config_setting(
     name = "macos_arm64",
     constraint_values = [

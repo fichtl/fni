@@ -21,11 +21,9 @@ namespace dni {
                 TaskContext(
                     TaskState* state, std::shared_ptr<utils::TagMap> input_tags,
                     std::shared_ptr<utils::TagMap> output_tags)
-                    : state_(state)
-                {
-                        inputs_ = MakeInputStreamSetFromTagMap(std::move(input_tags));
-                        outputs_ = MakeOutputStreamSetFromTagMap(std::move(output_tags));
-                }
+                    : state_(state), inputs_(std::move(input_tags)),
+                      outputs_(std::move(output_tags))
+                {}
 
                 const std::string& Name() const { return state_->NodeName(); }
 
@@ -47,7 +45,10 @@ namespace dni {
                 const OutputStreamSet& Outputs() const { return outputs_; }
 
                 template <class T>
-                const T& Options() const { return state_->Options<T>(); }
+                const T& Options() const
+                {
+                        return state_->Options<T>();
+                }
 
                 void PushTimestamp(std::time_t ts) { timestamps_.push(ts); }
                 void PopTimestamp()

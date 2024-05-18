@@ -1,32 +1,32 @@
 type: "Attack Tracing and Defense"
 
 # abnormal nic pcap file path
-input_stream: "GIn_pcapPath:0:pcapPath"
+input_stream: "pcapPath"
 
 # attack_ip_merge
-input_stream: "GIn_All_Known_IPs:0:all_known_ips"
-input_stream: "GIN_HostNicName:0:host_nic_name" 
-input_stream: "GIN_Netdevs_1:0:netdevs_1"
+input_stream: "all_known_ips"
+input_stream: "host_nic_name"
+input_stream: "netdevs_1"
 
 # graph3 output
-output_stream: "GOut_DMSRules:0:dms_rules"
+output_stream: "dms_rules"
 
 node {
     name: "abnormal_nic_pcap_parser"
-    task: "PcapParseTask"
-    input_stream: "GIn_pcapPath:0:pcapPath"
-    output_stream: "GOut_parsed_packets:0:parsed_packets"
+    task: "SndPcapParseTask"
+    input_stream: "PATH:pcapPath"
+    output_stream: "parsed_packets"
 }
 
 node {
     name: "abnormal_pcap_feature_counter"
     task: "FeatureCounterTask"
-    input_stream: "GOut_parsed_packets:0:parsed_packets"
-    output_stream: "NOut_SIP_COUNT:0:sip_count"
-    output_stream: "NOut_SPort_COUNT:0:sport_count"
-    output_stream: "NOut_DPort_COUNT:0:dport_count"
-    output_stream: "NOut_Protocol_COUNT:0:protocol_count"
-    output_stream: "NOut_Length_COUNT:0:length_count"
+    input_stream: "PATH:parsed_packets"
+    output_stream: "SIP:sip_count"
+    output_stream: "SPort:sport_count"
+    output_stream: "DPort:dport_count"
+    output_stream: "Protocol:protocol_count"
+    output_stream: "Length:length_count"
     options {
         [type.asnapis.io/dni.FeatureCounterTaskOptions] {
             feature: "SIP"
@@ -35,15 +35,15 @@ node {
             feature: "Protocol"
             feature: "Length"
         }
-    } 
+    }
 }
 
 node {
     name: "attack_ip_merge"
     task: "SndAttackerIPMergeTask"
-    input_stream: "NOut_SIP_COUNT:0:sip_count"
-    input_stream: "GIn_All_Known_IPs:0:all_known_ips"
-    output_stream: "NOut_Attackerip_Merge_Result:0:attackerip_merge_result"
+    input_stream: "SIP:sip_count"
+    input_stream: "KNOWN_IPS:all_known_ips"
+    output_stream: "attackerip_merge_result"
     options {
         [type.asnapis.io/dni.SndAttackerIPMergeTaskOptions] {
             ipFw4CountRatio: 0.1
@@ -53,17 +53,17 @@ node {
             ipRandCountThreshold: 2
             ipRandCountRatio: 0.5
         }
-    }  
-} 
+    }
+}
 
 node {
     name: "sip_base_merge_dedup"
     task: "SndSIPBaseMergeDeDupTask"
-    input_stream: "GOut_parsed_packets:0:parsed_packets"
-    input_stream: "NOut_Attackerip_Merge_Result:0:attackerip_merge_result"
-    input_stream: "GIN_HostNicName:0:host_nic_name"
-    output_stream: "NOut_SIPCidrBasedPacketsMerge:0:sip_cidr_based_packets_merge"
-    output_stream: "NOut_SIPDMSRulesPrepare:0:sip_dms_rules_prepare"
+    input_stream: "PACKET:parsed_packets"
+    input_stream: "SIP:attackerip_merge_result"
+    input_stream: "NIC:host_nic_name"
+    output_stream: "CIDR:0:sip_cidr_based_packets_merge"
+    output_stream: "CIDR:1:sip_dms_rules_prepare"
     options {
         [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
             num_stat {
@@ -88,14 +88,14 @@ node {
 node {
     name: "net_record_merge_dedup"
     task: "SndNetRecordMergeTask"
-    input_stream: "NOut_SIPCidrBasedPacketsMerge:0:sip_cidr_based_packets_merge"
-    output_stream: "NOut_Attack_Link:0:attack_link"
-}     
+    input_stream: "CIDR:sip_cidr_based_packets_merge"
+    output_stream: "attack_link"
+}
 
 node {
     name: "dms_rules_dedup"
     task: "SndGenDeDupDMSRulesTask"
-    input_stream: "NOut_SIPDMSRulesPrepare:0:sip_dms_rules_prepare"
-    input_stream: "GIN_Netdevs_1:0:netdevs_1"
+    input_stream: "CIDR:sip_dms_rules_prepare"
+    input_stream: "NETDEV:netdevs_1"
     output_stream: "GOut_DMSRules:0:dms_rules"
 }

@@ -33,7 +33,7 @@
 #include <sys/socket.h>
 #include <vector>
 
-#include "dni/tasks/datagram/cidr.h"
+#include "dni/framework/formats/cidr.h"
 #include "spdlog/spdlog.h"
 
 int main()

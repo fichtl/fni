@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "dni/tasks/datagram/cidr.h"
+#include "dni/framework/formats/cidr.h"
 #include "fmt/format.h"
 
 namespace dni {
@@ -82,6 +82,8 @@ namespace snding {
                 std::string limitMode;
                 uint64_t limitMaxValue;
         };
+
+        using NICDMSRulesMap = std::unordered_map<std::string, std::vector<DMSRule>>;
 
 }   // namespace snding
 

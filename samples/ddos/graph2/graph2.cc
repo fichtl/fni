@@ -1,23 +1,11 @@
-#include <chrono>
-#include <thread>
+#include <string>
+#include <vector>
 
 #include "dni/framework/framework.h"
+#include "samples/tools/datumgen.h"
 #include "spdlog/spdlog.h"
 
-#define PCAP_DUMP_FILE_PATH "samples/ddos/graph2/testdata/test1.pcap"
-
-void inject_after(dni::Graph* g, int after, int n, int interval)
-{
-        std::this_thread::sleep_for(std::chrono::milliseconds(after));
-
-        for (int i = 0; i < n; i++)
-        {
-                g->AddDatumToInputStream(
-                    "pcapPath", dni::Datum(std::string(PCAP_DUMP_FILE_PATH)));
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-        }
-}
+using namespace std::string_literals;
 
 int main()
 {
@@ -31,24 +19,16 @@ int main()
                 return -1;
         }
 
-        spdlog::debug(
-            "GraphConfig: {}, node size: {}", gc.value().type(), gc.value().node_size());
-
         dni::Graph* g = new dni::Graph(gc.value());
+        DatumGen gen = DatumGen<double_t>(g);
 
+        std::vector<InputMap> inputs = {
+            {
+                {"pcapPath", dni::Datum("samples/ddos/graph2/testdata/test1.pcap"s)},
+            },
+        };
         std::string out = "attack_res";
-        spdlog::debug("Create ObserveOutputStream: {}", out);
-        g->ObserveOutputStream(out);
-
-        g->PrepareForRun();
-
-        inject_after(g, 0, 1, 0);
-
-        g->RunOnce();
-        g->Wait();
-
-        auto ret = g->GetResult<double_t>(out);
-        spdlog::info("Gout {} result is: {}", out, ret);
+        gen.Loop(inputs, out);
 
         g->Finish();
 

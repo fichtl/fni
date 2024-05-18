@@ -46,14 +46,17 @@ namespace dni {
                 input_stream_managers_ = std::make_unique<InputStreamManager[]>(nstreams);
                 for (int i = 0; i < nstreams; ++i)
                 {
-                        // SPDLOG_DEBUG(
-                        //     "initializing InputStreamManager: {}",
-                        //     input_stream_managers_[i].Name());
                         const EdgeInfo& edge_info = cfg_->InputStreams()[i];
                         input_stream_managers_[i].Initialize(
                             edge_info.name, edge_info.datum_type);
                         input_stream_manager_lookup_[&input_stream_managers_[i]] = i;
                 }
+                SPDLOG_DEBUG(
+                    "InputStreamManagers: [{}]",
+                    fmt::join(
+                        input_stream_managers_.get(),
+                        input_stream_managers_.get() + nstreams,
+                        ","));
 
                 // Initialize all output streams (GraphInputStreams included).
                 nstreams = cfg_->OutputStreams().size();
@@ -63,19 +66,21 @@ namespace dni {
                     std::make_unique<OutputStreamManager[]>(nstreams);
                 for (int i = 0; i < nstreams; ++i)
                 {
-                        // SPDLOG_DEBUG(
-                        //     "initializing OutputStreamManager: {}",
-                        //     output_stream_managers_[i].Name());
                         const EdgeInfo& edge_info = cfg_->OutputStreams()[i];
                         output_stream_managers_[i].Initialize(
                             edge_info.name, edge_info.datum_type);
                         output_stream_manager_lookup_[&output_stream_managers_[i]] = i;
                 }
+                SPDLOG_DEBUG(
+                    "OutputStreamManagers: [{}]",
+                    fmt::join(
+                        output_stream_managers_.get(),
+                        output_stream_managers_.get() + nstreams,
+                        ","));
 
                 // Initialize `GraphInputStream`s.
                 int graph_input_stream_count = 0;
-                std::shared_ptr<utils::TagMap> input_tag_map =
-                    utils::NewTagMap(cfg_->Proto().input_stream());
+                auto input_tag_map = utils::NewTagMap(cfg_->Proto().input_stream());
                 SPDLOG_DEBUG(
                     "initializing GraphInputStreams: [{:}]", input_tag_map->Names());
                 for (auto stream_name : input_tag_map->Names())
@@ -167,6 +172,9 @@ namespace dni {
                         return 0;
                 }
 
+                spdlog::set_pattern(
+                    "[%Y-%m-%d %H:%M:%S.%e] %^[%L] [%20!s:%-4#](%=16!!)%$ - %v");
+
                 SPDLOG_DEBUG("Initializing graph config");
                 auto validated_config = std::make_unique<ParsedGraphConfig>();
                 if (validated_config->Initialize(config))
@@ -212,6 +220,7 @@ namespace dni {
                 }
 
                 // Open
+                // TODO: break taskflow runtime if node->Open fails.
                 SPDLOG_DEBUG("Opening nodes");
                 for (auto& node : nodes_)
                 {
@@ -239,6 +248,7 @@ namespace dni {
 
                 // Process, step1
                 // TODO: consider changing control flow based on return value.
+                // TODO: break taskflow runtime if node->Process fails.
                 for (auto& node : nodes_)
                 {
                         tf::Task tf_node = taskflow_.emplace([&]() { node->Process(); })

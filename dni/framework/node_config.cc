@@ -15,12 +15,18 @@ namespace dni {
         {
                 std::shared_ptr<utils::TagMap> input_tags =
                     utils::NewTagMap(node.input_stream());
+                SPDLOG_DEBUG("node {}: input tags: {}", node.name(), input_tags);
                 std::shared_ptr<utils::TagMap> output_tags =
                     utils::NewTagMap(node.output_stream());
+                SPDLOG_DEBUG("node {}: output tags: {}", node.name(), output_tags);
                 std::shared_ptr<utils::TagMap> input_side_data_tags =
                     utils::NewTagMap(node.input_side_data());
+                SPDLOG_DEBUG(
+                    "node {}: input side tags: {}", node.name(), input_side_data_tags);
                 std::shared_ptr<utils::TagMap> output_side_data_tags =
                     utils::NewTagMap(node.output_side_data());
+                SPDLOG_DEBUG(
+                    "node {}: output side tags: {}", node.name(), output_side_data_tags);
 
                 inputs_ = std::make_unique<DtypeSet>(std::move(input_tags));
                 outputs_ = std::make_unique<DtypeSet>(std::move(output_tags));

@@ -1,0 +1,20 @@
+input_stream: "GIn:0:count"
+output_stream: "GOut:0:score"
+
+node {
+    name: "A"
+    task: "SndNumberStatsTask"
+    input_stream: "COUNT:0:count"
+    output_stream: "SCORE:0:score"
+    options {
+        [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
+            numValueSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.6
+            score_thresholds: 0.4
+            score_thresholds: 1.0
+            score_thresholds: 0.6
+            score_thresholds: 0
+        }
+    }
+}

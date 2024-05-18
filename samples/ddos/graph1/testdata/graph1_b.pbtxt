@@ -1,0 +1,47 @@
+# packet: countTotal
+input_stream: "countTotal"
+input_side_data: "countTotal_th"
+input_side_data: "countTotal_score"
+
+# packet: countType_length
+input_stream: "countType_length"
+input_stream: "cond_countType_length"
+input_side_data: "countType_length_th"
+input_side_data: "countType_length_score"
+input_side_data: "cond_countType_length_th"
+
+# Graph output
+output_stream: "packet_countTotal"
+output_stream: "packet_countType_length"
+
+node{
+    name: "packet_countTotal_score"
+    task: "ThresholdTask"
+    input_stream: "countTotal"
+    input_side_data: "countTotal_th"
+    input_side_data: "countTotal_score"
+    output_stream: "packet_countTotal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 4000 score: 0.4}
+            thresh_scores { threshold: 10000 score: 0.6}
+            thresh_scores { threshold: 100000 score: 0.8}
+            thresh_scores { threshold: 15000000 score: 1.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_length_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_length"
+    input_stream: "COND:cond_countType_length"
+    output_stream: "packet_countType_length"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.2}
+            thresh_scores { threshold: 500 score: 0.1}
+        }
+    }
+}

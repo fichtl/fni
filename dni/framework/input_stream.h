@@ -1,10 +1,11 @@
 #pragma once
 
 #include <queue>
-#include <vector>
+#include <string_view>
 
+#include "dni/framework/collection.h"
 #include "dni/framework/datum.h"
-#include "dni/framework/utils/tags.h"
+#include "fmt/format.h"
 
 namespace dni {
 
@@ -23,6 +24,8 @@ namespace dni {
 
         class InputStreamImpl: public InputStream {
         public:
+                const std::string& Name() { return *name_; }
+
                 const Datum& Value() const override
                 {
                         return !queue_.empty() ? queue_.front() : nil_;
@@ -52,16 +55,29 @@ namespace dni {
                 // A queue of data for batch processing.
                 std::queue<Datum> queue_;
 
+                const std::string* name_;
+
+                void SetName(const std::string* name) { name_ = name; }
+
                 void AddDatum(Datum&& datum, bool done);
                 // void AddDatum(const Datum& datum, bool done);
 
                 friend class InputStreamHandler;
+                friend class fmt::formatter<InputStreamImpl>;
         };
 
-        // TODO: should be indexed by tag and index.
-        using InputStreamSet = std::vector<InputStreamImpl>;
-
-        InputStreamSet MakeInputStreamSetFromTagMap(
-            std::shared_ptr<utils::TagMap>&& tag_map);
+        using InputStreamSet = Collection<InputStreamImpl>;
 
 }   // namespace dni
+
+namespace fmt {
+
+        template <>
+        struct formatter<dni::InputStreamImpl>: formatter<std::string_view> {
+                auto format(const dni::InputStreamImpl& is, format_context& ctx) const
+                {
+                        return format_to(ctx.out(), "IS({})", *is.name_);
+                }
+        };
+
+}   // namespace fmt

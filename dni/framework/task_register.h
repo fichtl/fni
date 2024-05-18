@@ -50,7 +50,7 @@ struct TaskFactory {
         }
 
 private:
-        TaskFactory(){};
+        TaskFactory() {};
         TaskFactory(const TaskFactory&) = delete;
         TaskFactory(TaskFactory&&) = delete;
 

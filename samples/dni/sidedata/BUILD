@@ -1,8 +1,3 @@
-# NOTE: Tasks are not directly used in framework,
-#       so it's required to always set `alwayslink` to 1 for tasks.
-
-licenses(["notice"])
-
 ###### test1 ######
 
 cc_library(

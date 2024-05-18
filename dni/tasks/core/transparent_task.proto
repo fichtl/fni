@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package dni;
+
+message TransparentTaskOptions {
+    message Observe {
+        string tag = 1;
+        int32 index = 2;
+    }
+    repeated Observe observe = 1;
+}

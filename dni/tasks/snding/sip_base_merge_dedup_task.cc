@@ -1,8 +1,10 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "dni/framework/framework.h"
+#include "dni/framework/utils/proto.h"
 #include "dni/tasks/snding/sip_base_merge_task.pb.h"
 #include "snding_defines.h"
 #include "spdlog/spdlog.h"
@@ -32,14 +34,14 @@ private:
             int numValueSum,
             double_t num_ratioMin,
             double_t num_ratioMax,
-            const google::protobuf::RepeatedPtrField<std::string>& num_stat_type);
+            const ProtoStrings& num_stat_type);
 
         std::unordered_map<int, std::string> calc_proto_stat_type(
             const std::unordered_map<int, int>& proto_map,
             int numValueSum,
             double_t proto_ratioMin,
             double_t proto_ratioMax,
-            const google::protobuf::RepeatedPtrField<std::string>& proto_stat_type);
+            const ProtoStrings& proto_stat_type);
 
         bool belongs(CIDR cidr, uint32_t ip);
 
@@ -88,7 +90,7 @@ int SndSIPBaseMergeDeDupTask::Open(TaskContext* ctx)
 int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 {
         // input0, packets
-        Datum packets_d = ctx->Inputs()[0].Value();
+        Datum packets_d = ctx->Inputs().Tag("PACKET").Value();
         SPDLOG_DEBUG("{}: Consume packets: {}", name_, packets_d);
         auto packets_opt =
             packets_d.Consume<std::vector<std::unordered_map<std::string, uint32_t>>>();
@@ -101,7 +103,7 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         // SPDLOG_DEBUG("{}: packets: {}", name_, packets);
 
         // input1, cidr merge result
-        Datum attacker_ip_merge_d = ctx->Inputs()[1].Value();
+        Datum attacker_ip_merge_d = ctx->Inputs().Tag("SIP").Value();
         SPDLOG_DEBUG("{}: Consume attacker_ip_merge: {}", name_, attacker_ip_merge_d);
         auto attacker_ip_merge_opt =
             attacker_ip_merge_d.Consume<snding::AttackerIPMergeResult>();
@@ -111,10 +113,10 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                 return -1;
         }
         auto attacker_ip_merge = *(attacker_ip_merge_opt.value());
-        SPDLOG_DEBUG("{}: attacker_ip_merge: {}", name_, attacker_ip_merge);
+        SPDLOG_TRACE("{}: attacker_ip_merge: {}", name_, attacker_ip_merge);
 
         // input 2, host nic name of the packets
-        Datum host_nic_name_d = ctx->Inputs()[2].Value();
+        Datum host_nic_name_d = ctx->Inputs().Tag("NIC").Value();
         SPDLOG_DEBUG("{}: Consume host_nic_name: {}", name_, host_nic_name_d);
         auto host_nic_name_opt = host_nic_name_d.Consume<std::string>();
         if (!host_nic_name_opt)
@@ -255,10 +257,9 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                     num_ratioMax_,
                     options_.num_stat().label());
 
-                // for sport, dport, length, if the stat_type is
-                // CENTRALIZED, use merge_ret.second.sport/dport/length as
-                // the merge result for next step; otherwise, use the
-                // stat_type name shown in the next step.
+                // for sport, dport, length, if the stat_type is CENTRALIZED, use
+                // merge_ret.second.sport/dport/length as the merge result for next step;
+                // otherwise, use the stat_type name shown in the next step.
                 stat.srcPort.stat_type = sport_stat_type;
                 if (sport_stat_type == options_.num_stat().label()[0])
                 {
@@ -306,9 +307,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
             rules;
         for (auto&& stat : all_stat)
         {
-                // use stat to replace each packet in packets,
-                // the packet ip belongs to the stat.first,
-                // or it is RANDOM ip
+                // use stat to replace each packet in packets, the packet ip belongs to
+                // the stat.first, or it is RANDOM ip
 
                 auto& positions = cidr_include_positions[stat.first];
 
@@ -352,8 +352,7 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 
                         rule_stat["hostNicSign"] = stat.second.hostNicSign;
 
-                        // collect length if need
-                        // in stat.second.length.stat_type,
+                        // collect length if need in stat.second.length.stat_type,
                         // stat.second.length.value
 
                         // add to ...
@@ -364,8 +363,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         SPDLOG_DEBUG("{}: after calculation, all_stat: {}", name_, all_stat);
         SPDLOG_DEBUG("{}: after calculation, rules: {}", name_, rules);
 
-        ctx->Outputs()[0].AddDatum(Datum(std::move(all_stat)));
-        ctx->Outputs()[1].AddDatum(Datum(std::move(rules)));
+        ctx->Outputs().Get("CIDR", 0).AddDatum(Datum(std::move(all_stat)));
+        ctx->Outputs().Get("CIDR", 1).AddDatum(Datum(std::move(rules)));
 
         return 0;
 }
@@ -387,7 +386,7 @@ std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
     int numValueSum,
     double_t num_ratioMin,
     double_t num_ratioMax,
-    const google::protobuf::RepeatedPtrField<std::string>& num_stat_type)
+    const ProtoStrings& num_stat_type)
 {
         // numKeyLen
         auto numKeyLen = uset.size();
@@ -445,7 +444,7 @@ std::unordered_map<int, std::string> SndSIPBaseMergeDeDupTask::calc_proto_stat_t
     int numValueSum,
     double_t proto_ratioMin,
     double_t proto_ratioMax,
-    const google::protobuf::RepeatedPtrField<std::string>& proto_stat_type)
+    const ProtoStrings& proto_stat_type)
 {
         SPDLOG_DEBUG("{}: numValueSum: {}", name_, numValueSum);
         std::unordered_map<int, std::string> stats;

@@ -1,3 +1,6 @@
+#pragma once
+
+#include <google/protobuf/repeated_ptr_field.h>
 #include <google/protobuf/text_format.h>
 
 namespace dni {
@@ -5,6 +8,7 @@ namespace dni {
         namespace proto = ::google::protobuf;
 
         using TextProto = proto::TextFormat;
+        using ProtoStrings = proto::RepeatedPtrField<std::string>;
 
         const char kASNApisPrefix[] = "type.asnapis.io/";
 

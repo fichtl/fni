@@ -3,6 +3,7 @@
 #include <unordered_set>
 
 #include "dni/framework/framework.h"
+#include "dni/framework/utils/proto.h"
 #include "dni/tasks/snding/sip_base_merge_task.pb.h"
 #include "snding_defines.h"
 #include "spdlog/spdlog.h"
@@ -32,14 +33,14 @@ private:
             int numValueSum,
             double_t num_ratioMin,
             double_t num_ratioMax,
-            const google::protobuf::RepeatedPtrField<std::string>& num_stat_type);
+            const ProtoStrings& num_stat_type);
 
         std::unordered_map<int, std::string> calc_proto_stat_type(
             const std::unordered_map<int, int>& proto_map,
             int numValueSum,
             double_t proto_ratioMin,
             double_t proto_ratioMax,
-            const google::protobuf::RepeatedPtrField<std::string>& proto_stat_type);
+            const ProtoStrings& proto_stat_type);
 
         bool belongs(CIDR cidr, uint32_t ip);
 
@@ -88,7 +89,7 @@ int SndSIPBaseMergeTask::Open(TaskContext* ctx)
 int SndSIPBaseMergeTask::Process(TaskContext* ctx)
 {
         // input0, packets
-        Datum packets_d = ctx->Inputs()[0].Value();
+        Datum packets_d = ctx->Inputs().Tag("PACKET").Value();
         SPDLOG_DEBUG("{}: Consume packets: {}", name_, packets_d);
         auto packets_opt =
             packets_d.Consume<std::vector<std::unordered_map<std::string, uint32_t>>>();
@@ -101,7 +102,7 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
         // SPDLOG_DEBUG("{}: packets: {}", name_, packets);
 
         // input1, cidr merge result
-        Datum attacker_ip_merge_d = ctx->Inputs()[1].Value();
+        Datum attacker_ip_merge_d = ctx->Inputs().Tag("SIP").Value();
         SPDLOG_DEBUG("{}: Consume attacker_ip_merge: {}", name_, attacker_ip_merge_d);
         auto attacker_ip_merge_opt =
             attacker_ip_merge_d.Consume<snding::AttackerIPMergeResult>();
@@ -114,7 +115,7 @@ int SndSIPBaseMergeTask::Process(TaskContext* ctx)
         SPDLOG_DEBUG("{}: attacker_ip_merge: {}", name_, attacker_ip_merge);
 
         // input 2, host nic name of the packets
-        Datum host_nic_name_d = ctx->Inputs()[2].Value();
+        Datum host_nic_name_d = ctx->Inputs().Tag("NIC").Value();
         SPDLOG_DEBUG("{}: Consume host_nic_name: {}", name_, host_nic_name_d);
         auto host_nic_name_opt = host_nic_name_d.Consume<std::string>();
         if (!host_nic_name_opt)
@@ -301,7 +302,7 @@ std::string SndSIPBaseMergeTask::calc_number_stat_type(
     int numValueSum,
     double_t num_ratioMin,
     double_t num_ratioMax,
-    const google::protobuf::RepeatedPtrField<std::string>& num_stat_type)
+    const ProtoStrings& num_stat_type)
 {
         // numKeyLen
         auto numKeyLen = uset.size();
@@ -359,7 +360,7 @@ std::unordered_map<int, std::string> SndSIPBaseMergeTask::calc_proto_stat_type(
     int numValueSum,
     double_t proto_ratioMin,
     double_t proto_ratioMax,
-    const google::protobuf::RepeatedPtrField<std::string>& proto_stat_type)
+    const ProtoStrings& proto_stat_type)
 {
         SPDLOG_DEBUG("{}: numValueSum: {}", name_, numValueSum);
         std::unordered_map<int, std::string> stats;

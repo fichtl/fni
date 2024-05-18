@@ -1,28 +1,28 @@
 type: "Lightweight Attack Detection Graph"
 
 # abnormal nic pcap file path
-input_stream: "GIn_pcapPath:0:pcapPath"
+input_stream: "pcapPath"
 
 
-# graph2 output 
-output_stream: "GOut_attack_res:0:attack_res"
+# graph2 output
+output_stream: "attack_res"
 
 node {
     name: "abnormal_nic_pcap_parser"
-    task: "PcapParseTask"
-    input_stream: "GIn_pcapPath:0:pcapPath"
-    output_stream: "GOut_parsed_packets:0:parsed_packets"
+    task: "SndPcapParseTask"
+    input_stream: "PATH:pcapPath"
+    output_stream: "parsed_packets"
 }
 
 node {
     name: "abnormal_pcap_feature_counter"
     task: "FeatureCounterTask"
-    input_stream: "GOut_parsed_packets:0:parsed_packets"
-    output_stream: "NOut_SIP_COUNT:0:sip_count"
-    output_stream: "NOut_SPort_COUNT:0:sport_count"
-    output_stream: "NOut_DPort_COUNT:0:dport_count"
-    output_stream: "NOut_Protocol_COUNT:0:protocol_count"
-    output_stream: "NOut_Length_COUNT:0:length_count"
+    input_stream: "parsed_packets"
+    output_stream: "SIP:sip_count"
+    output_stream: "SPort:sport_count"
+    output_stream: "DPort:dport_count"
+    output_stream: "Protocol:protocol_count"
+    output_stream: "Length:length_count"
     options {
         [type.asnapis.io/dni.FeatureCounterTaskOptions] {
             feature: "SIP"
@@ -32,15 +32,13 @@ node {
             feature: "Length"
         }
     }
-
-    
 }
 
 node {
     name: "sip_attack_score_calc"
     task: "SndNumberStatsTask"
-    input_stream: "NOut_SIP_COUNT:0:sip_count"
-    output_stream: "NOut_SIP_COUNT_Score:0:sip_count_score"
+    input_stream: "sip_count"
+    output_stream: "sip_count_score"
     options {
         [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
             numValueSum: 10000
@@ -51,14 +49,14 @@ node {
             score_thresholds: 0.8
             score_thresholds: 0
         }
-    }    
+    }
 }
 
 node {
     name: "sport_attack_score_calc"
     task: "SndNumberStatsTask"
-    input_stream: "NOut_SPort_COUNT:0:sport_count"
-    output_stream: "NOut_SPort_COUNT_Score:0:sport_count_score"
+    input_stream: "sport_count"
+    output_stream: "sport_count_score"
     options {
         [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
             numValueSum: 10000
@@ -75,8 +73,8 @@ node {
 node {
     name: "dport_attack_score_calc"
     task: "SndNumberStatsTask"
-    input_stream: "NOut_DPort_COUNT:0:dport_count"
-    output_stream: "NOut_DPort_COUNT_Score:0:dport_count_score"
+    input_stream: "dport_count"
+    output_stream: "dport_count_score"
     options {
         [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
             numValueSum: 10000
@@ -93,8 +91,8 @@ node {
 node {
     name: "length_attack_score_calc"
     task: "SndNumberStatsTask"
-    input_stream: "NOut_Length_COUNT:0:length_count"
-    output_stream: "NOut_Length_COUNT_Score:0:length_count_score"
+    input_stream: "length_count"
+    output_stream: "length_count_score"
     options {
         [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
             numValueSum: 10000
@@ -111,8 +109,8 @@ node {
 node {
     name: "protocol_attack_score_calc"
     task: "SndProtocolStatsTask"
-    input_stream: "NOut_Protocol_COUNT:0:protocol_count"
-    output_stream: "NOut_Protocol_COUNT_Score:0:protocol_count_score"
+    input_stream: "protocol_count"
+    output_stream: "protocol_count_score"
     options {
         [type.asnapis.io/dni.SndProtocolStatsTaskOptions] {
             protoCountSum: 10000
@@ -128,26 +126,26 @@ node {
 node {
     name: "max_number_attack_score_calc"
     task: "MaxTask"
-    input_stream: "NOut_SPort_COUNT_Score:0:sport_count_score"
-    input_stream: "NOut_DPort_COUNT_Score:0:dport_count_score"
-    input_stream: "NOut_Length_COUNT_Score:0:length_count_score"
-    output_stream: "NOut_Number_COUNT_Score:0:number_count_score"
+    input_stream: "sport_count_score"
+    input_stream: "dport_count_score"
+    input_stream: "length_count_score"
+    output_stream: "number_count_score"
 }
 
 node{
     name: "attack_total_score"
     task: "SumTask"
-    input_stream: "NOut_SIP_COUNT_Score:0:sip_count_score"
-    input_stream: "NOut_Number_COUNT_Score:0:number_count_score"
-    input_stream: "NOut_Protocol_COUNT_Score:0:protocol_count_score"
-    output_stream: "NOut_Attack_Scores_Sum:0:attack_scores_sum"
+    input_stream: "sip_count_score"
+    input_stream: "number_count_score"
+    input_stream: "protocol_count_score"
+    output_stream: "attack_scores_sum"
 }
 
 node{
     name: "attack_detection_judge"
     task: "ThresholdTask"
-    input_stream:  "NOut_Attack_Scores_Sum:0:attack_scores_sum"
-    output_stream: "GOut_attack_res:0:attack_res"
+    input_stream:  "attack_scores_sum"
+    output_stream: "attack_res"
     options {
         [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 0.22 score: 1}

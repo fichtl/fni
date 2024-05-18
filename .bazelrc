@@ -8,7 +8,7 @@ build --jobs 8
 build --define='absl=1'  # for gtest
 
 build --enable_platform_specific_config
-build --copt=-g --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO'
+build --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG' --verbose_failures
 
 build:debug --strip=never --subcommands --verbose_failures
 build:debug --copt=-g --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG'

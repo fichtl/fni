@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <vector>
 
 #include "dni/framework/framework.h"
 #include "snding_defines.h"
@@ -25,49 +26,40 @@ public:
         {
                 // dms general rules
                 // key: host#nic-name
-                std::unordered_map<std::string, std::vector<snding::DMSRule>> nic_rules;
+                snding::NICDMSRulesMap nic_rules;
 
                 auto nsize = ctx->Inputs().size();
                 SPDLOG_DEBUG("{}: input size: {}", name_, nsize);
-                for (size_t i = 0; i < nsize; i++)
+                for (size_t i = 0; i < nsize / 2; i++)
                 {
-                        // input in even index each map is from sip based merge result
-                        // from one NIC.
-                        Datum sip_base_merge_stats_d = ctx->Inputs()[i].Value();
-                        SPDLOG_DEBUG(
-                            "{}: Consume sip_base_merge_stats: {}",
-                            name_,
-                            sip_base_merge_stats_d);
-                        auto sip_base_merge_stats_opt = sip_base_merge_stats_d.Consume<
+                        // CIDR is a map comes from sip based merge result
+                        Datum cidr_d = ctx->Inputs().Get("CIDR", i).Value();
+                        SPDLOG_DEBUG("{}: {}: Consume cidr: {}", name_, i, cidr_d);
+                        auto cidr_opt = cidr_d.Consume<
                             std::unordered_map<std::string, snding::SIPBaseMergeStats>>();
-                        if (!sip_base_merge_stats_opt)
+                        if (!cidr_opt)
                         {
-                                SPDLOG_CRITICAL(
-                                    "Task {}, index-{}: invalid sip_base_merge_stats",
-                                    name_, i);
+                                SPDLOG_CRITICAL("{}: {}: invalid cidr", name_, i);
                                 return -1;
                         }
-                        auto sip_base_merge_stats = *(sip_base_merge_stats_opt.value());
-                        SPDLOG_DEBUG("{}: val: {}", name_, sip_base_merge_stats);
+                        auto cidr = *(cidr_opt.value());
+                        SPDLOG_DEBUG("{}: val: {}", name_, cidr);
 
-                        // input in odd index is netdev calc result, each inner vector
-                        // includes: inMbps Value, inMbps score, inKpps Value, inKpps
-                        // score
-                        i++;
-                        Datum netdevs_d = ctx->Inputs()[i].Value();
-                        SPDLOG_DEBUG("{}: Consume netdevs: {}", name_, netdevs_d);
+                        // NETDEV is netdev calc result, each includes: inMbps Value,
+                        // inMbps score, inKpps Value, inKpps score
+                        Datum netdevs_d = ctx->Inputs().Get("NETDEV", i).Value();
+                        SPDLOG_DEBUG("{}: {}: Consume netdevs: {}", name_, i, netdevs_d);
                         auto netdevs_opt = netdevs_d.Consume<std::vector<double_t>>();
                         if (!netdevs_opt)
                         {
-                                SPDLOG_CRITICAL(
-                                    "Task {}, index-{}: invalid netdevs", name_, i);
+                                SPDLOG_CRITICAL("{}: {}: invalid netdevs", name_, i);
                                 return -1;
                         }
                         auto netdevs = *(netdevs_opt.value());
                         SPDLOG_DEBUG("{}: val: {}", name_, netdevs);
 
                         // generate dms rules
-                        for (auto&& stat : sip_base_merge_stats)
+                        for (auto&& stat : cidr)
                         {
                                 auto& rules = nic_rules[stat.second.hostNicSign];
 
@@ -179,8 +171,7 @@ std::vector<snding::DMSRule> SndGenDMSRulesTask::generate_dms_rules(
                         index++;
                         gen_rules[index].hostNicSign = std::move(stat.hostNicSign);
                         gen_rules[index].srcIP = {stat.srcIP.ip, stat.srcIP.len};
-                        // gen_rules[index].dstIP = {
-                        //     stat.dstIP.ip, stat.dstIP.len};
+                        // gen_rules[index].dstIP = {stat.dstIP.ip, stat.dstIP.len};
                         // gen_rules[index].sPort = sPorts[i];
                         gen_rules[index].dPort = dPorts[j];
                         gen_rules[index].protocol = protocols[k];

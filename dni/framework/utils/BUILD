@@ -14,7 +14,8 @@ cc_library(
     srcs = ["tags.cc"],
     hdrs = ["tags.h"],
     deps = [
-        "@com_google_protobuf//:protobuf",
+        ":proto",
+        "@fmtlib",
         "@spdlog",
     ],
 )

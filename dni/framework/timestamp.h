@@ -3,6 +3,7 @@
 #include <ctime>
 #include <limits>
 
+// TODO: watermark system is not implemented yet.
 namespace dni {
 
         const std::time_t kCtimeMin = std::numeric_limits<std::time_t>::min();

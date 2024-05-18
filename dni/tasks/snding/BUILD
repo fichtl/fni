@@ -1,15 +1,13 @@
 # NOTE: Tasks are not directly used in framework,
 #       so it's required to always set `alwayslink` to 1 for tasks.
 
-licenses(["notice"])
-
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "snding_defines",
     hdrs = ["snding_defines.h"],
     deps = [
-        "//dni/tasks/datagram:cidr",
+        "//dni/framework/formats:cidr",
         "@fmtlib",
     ],
 )
@@ -18,6 +16,38 @@ cc_library(
     name = "anomaly_detection_task",
     srcs = ["anomaly_detection_task.cc"],
     deps = [
+        "//dni/framework",
+        "@spdlog",
+    ],
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "pcap_parse_task",
+    srcs = ["pcap_parse_task.cc"],
+    deps = [
+        "//dni/framework",
+        "//third_party:libpcap",
+        "@spdlog",
+    ],
+    alwayslink = 1,
+)
+
+proto_library(
+    name = "feature_counter_task_proto",
+    srcs = ["feature_counter_task.proto"],
+)
+
+cc_proto_library(
+    name = "feature_counter_task_cc_proto",
+    deps = [":feature_counter_task_proto"],
+)
+
+cc_library(
+    name = "feature_counter_task",
+    srcs = ["feature_counter_task.cc"],
+    deps = [
+        ":feature_counter_task_cc_proto",
         "//dni/framework",
         "@spdlog",
     ],

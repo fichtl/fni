@@ -51,7 +51,7 @@ public:
                         return -1;
                 }
                 auto stats_map = *(stats_map_opt.value());
-                SPDLOG_DEBUG("{}: stats_map: {}", name_, stats_map);
+                SPDLOG_TRACE("{}: stats_map: {}", name_, stats_map);
 
                 // numKeyLen
                 auto numKeyLen = stats_map.size();
@@ -68,7 +68,7 @@ public:
                 for (size_t i = 0; i < keys.size() - 1; i++)
                 {
                         keyDiffs.insert(keys[i + 1] - keys[i]);
-                        SPDLOG_DEBUG(
+                        SPDLOG_TRACE(
                             "{}: keyDiffs.insert: {}", name_, keys[i + 1] - keys[i]);
                 }
                 auto keySeriesDiffTypeNum = keyDiffs.size();

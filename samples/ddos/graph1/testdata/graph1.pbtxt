@@ -1,215 +1,212 @@
 type: "Anomaly Detection Graph"
 
 # packet: countTotal
-input_stream: "GIn_CountTotal:0:countTotal"
+input_stream: "countTotal"
 
 # packet: countType_length
-input_stream: "GIn_CountType_Length:0:countType_length"
-input_stream: "GCondIn_CountType_Length:0:cond_countType_length"
+input_stream: "countType_length"
+input_stream: "cond_countType_length"
 
 # packet: countType_srcIP
-input_stream: "GIn_CountType_SrcIP:0:countType_srcIP"
-input_stream: "GCondIn_CountType_SrcIP:0:cond_countType_srcIP"
+input_stream: "countType_srcIP"
+input_stream: "cond_countType_srcIP"
 
 # packet: countType_dstIP
-input_stream: "GIn_CountType_DstIP:0:countType_dstIP"
-input_stream: "GCondIn_CountType_DstIP:0:cond_countType_dstIP"
+input_stream: "countType_dstIP"
+input_stream: "cond_countType_dstIP"
 
 # packet: countType_protocol
-input_stream: "GIn_CountType_Protocol:0:countType_protocol"
-input_stream: "GCondIn_CountType_Protocol:0:cond_countType_protocol"
+input_stream: "countType_protocol"
+input_stream: "cond_countType_protocol"
 
 # packet: countType_srcPortTcp
-input_stream: "GIn_CountType_SrcPortTcp:0:countType_srcPortTcp"
-input_stream: "GCondIn_CountType_SrcPortTcp:0:cond_countType_srcPortTcp"
+input_stream: "countType_srcPortTcp"
+input_stream: "cond_countType_srcPortTcp"
 
 # packet: countType_dstPortTcp
-input_stream: "GIn_CountType_DstPortTcp:0:countType_dstPortTcp"
-input_stream: "GCondIn_CountType_DstPortTcp:0:cond_countType_dstPortTcp"
+input_stream: "countType_dstPortTcp"
+input_stream: "cond_countType_dstPortTcp"
 
 # packet: countType_srcPortUdp
-input_stream: "GIn_CountType_SrcPortUdp:0:countType_srcPortUdp"
-input_stream: "GCondIn_CountType_SrcPortUdp:0:cond_countType_srcPortUdp"
+input_stream: "countType_srcPortUdp"
+input_stream: "cond_countType_srcPortUdp"
 
 # packet: countType_dstPortUdp
-input_stream: "GIn_CountType_DstPortUdp:0:countType_dstPortUdp"
-input_stream: "GCondIn_CountType_DstPortUdp:0:cond_countType_dstPortUdp"
-
+input_stream: "countType_dstPortUdp"
+input_stream: "cond_countType_dstPortUdp"
 
 # netdev: inMbps
-input_stream: "GIn_InMbps:0:inMbps"
+input_stream: "inMbps"
 
 # netdev: inKpps
-input_stream: "GIn_InKpps:0:inKpps"
+input_stream: "inKpps"
 
 # netdev: outMbps
-input_stream: "GIn_OutMbps:0:outMbps"
+input_stream: "outMbps"
 
 # netdev: outKpps
-input_stream: "GIn_OutKpps:0:outKpps"
-
+input_stream: "outKpps"
 
 # resource: cur_cpu
-input_stream: "GIn_Cur_Cpu:0:cur_cpu"
+input_stream: "cur_cpu"
 
 # resource: incr_mem_swap
-input_stream: "GIn_Incr_Mem_Swap:0:incr_mem_swap"
+input_stream: "incr_mem_swap"
 
 # resource: incr_mem_virtual
-input_stream: "GIn_Incr_Mem_Virtual:0:incr_mem_virtual"
+input_stream: "incr_mem_virtual"
 
 # resource: incr_mem_full
-input_stream: "GIn_Incr_Mem_Full:0:incr_mem_full"
+input_stream: "incr_mem_full"
 
 # resource: incr_tcpconn_semi
-input_stream: "GIn_Incr_Tcpconn_Semi:0:incr_tcpconn_semi"
+input_stream: "incr_tcpconn_semi"
 
 # resource: incr_tcpconn_total
-input_stream: "GIn_Incr_Tcpconn_Total:0:incr_tcpconn_total"
+input_stream: "incr_tcpconn_total"
 
 # packet: packet_abnormal_judge
-# input_stream: "Packet_Scores_Sum:0:packet_scores_sum"
+# input_stream: "packet_scores_sum"
 
 # netdev: netdev_abnormal_judge
-# input_stream: "Netdev_Scores_Sum:0:netdev_scores_sum"
+# input_stream: "netdev_scores_sum"
 
 # resource: resource_abnormal_judge
-# input_stream: "Resource_Scores_Sum:0:resource_scores_sum"
-
+# input_stream: "resource_scores_sum"
 
 # Graph output
-output_stream: "Packet_Scores_Sum:0:packet_scores_sum"
-output_stream: "Netdev_Scores_Sum:0:netdev_scores_sum"
-output_stream: "Resource_Scores_Sum:0:resource_scores_sum"
-output_stream: "GOut_abnormal_res:0:abnormal_res"
+output_stream: "packet_scores_sum"
+output_stream: "netdev_scores_sum"
+output_stream: "resource_scores_sum"
+output_stream: "abnormal_res"
 
 
 node{
-        name: "packet_countTotal_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_CountTotal:0:countTotal"
-        output_stream: "NOut_packet_countTotal:0:packet_countTotal"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "packet_countTotal_score"
+    task: "ThresholdTask"
+    input_stream: "countTotal"
+    output_stream: "packet_countTotal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 4000 score: 0.4}
             thresh_scores { threshold: 10000 score: 0.6}
             thresh_scores { threshold: 100000 score: 0.8}
             thresh_scores { threshold: 15000000 score: 1.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_length_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_Length:0:countType_length"
-        input_stream: "GCondIn_CountType_Length:0:cond_countType_length"
-        output_stream: "NOut_packet_countType_length:0:packet_countType_length"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_length_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_length"
+    input_stream: "COND:cond_countType_length"
+    output_stream: "packet_countType_length"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.2}
             thresh_scores { threshold: 500 score: 0.1}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_srcIP_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_SrcIP:0:countType_srcIP"
-        input_stream: "GCondIn_CountType_SrcIP:0:cond_countType_srcIP"
-        output_stream: "NOut_packet_countType_srcIP:0:packet_countType_srcIP"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_srcIP_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_srcIP"
+    input_stream: "COND:cond_countType_srcIP"
+    output_stream: "packet_countType_srcIP"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.05}
             thresh_scores { threshold: 255 score: 0.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_dstIP_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_DstIP:0:countType_dstIP"
-        input_stream: "GCondIn_CountType_DstIP:0:cond_countType_dstIP"
-        output_stream: "NOut_packet_countType_dstIP:0:packet_countType_dstIP"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_dstIP_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_dstIP"
+    input_stream: "COND:cond_countType_dstIP"
+    output_stream: "packet_countType_dstIP"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.05}
             thresh_scores { threshold: 255 score: 0.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_protocol_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_Protocol:0:countType_protocol"
-        input_stream: "GCondIn_CountType_Protocol:0:cond_countType_protocol"
-        output_stream: "NOut_packet_countType_protocol:0:packet_countType_protocol"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_protocol_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_protocol"
+    input_stream: "COND:cond_countType_protocol"
+    output_stream: "packet_countType_protocol"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.1}
             thresh_scores { threshold: 100 score: 0.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_srcPortTcp_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_SrcPortTcp:0:countType_srcPortTcp"
-        input_stream: "GCondIn_CountType_SrcPortTcp:0:cond_countType_srcPortTcp"
-        output_stream: "NOut_packet_countType_srcPortTcp:0:packet_countType_srcPortTcp"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_srcPortTcp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_srcPortTcp"
+    input_stream: "COND:cond_countType_srcPortTcp"
+    output_stream: "packet_countType_srcPortTcp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.05}
             thresh_scores { threshold: 100 score: 0.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_dstPortTcp_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_DstPortTcp:0:countType_dstPortTcp"
-        input_stream: "GCondIn_CountType_DstPortTcp:0:cond_countType_dstPortTcp"
-        output_stream: "NOut_packet_countType_dstPortTcp:0:packet_countType_dstPortTcp"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_dstPortTcp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_dstPortTcp"
+    input_stream: "COND:cond_countType_dstPortTcp"
+    output_stream: "packet_countType_dstPortTcp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.05}
             thresh_scores { threshold: 100 score: 0.2}
-            }
         }
+    }
 }
 
 node{
-        name: "packet_countType_srcPortUdp_score"
-        task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_SrcPortUdp:0:countType_srcPortUdp"
-        input_stream: "GCondIn_CountType_SrcPortUdp:0:cond_countType_srcPortUdp"
-        output_stream: "NOut_packet_countType_srcPortUdp:0:packet_countType_srcPortUdp"
-        options {
-            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+    name: "packet_countType_srcPortUdp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:countType_srcPortUdp"
+    input_stream: "COND:cond_countType_srcPortUdp"
+    output_stream: "packet_countType_srcPortUdp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
             thresh_scores { threshold: 6 score: 0.05}
             thresh_scores { threshold: 100 score: 0.2}
-            }
         }
+    }
 }
 
 node{
         name: "packet_countType_dstPortUdp_score"
         task: "ConditionThresholdTask"
-        input_stream: "GIn_CountType_DstPortUdp:0:countType_dstPortUdp"
-        input_stream: "GCondIn_CountType_DstPortUdp:0:cond_countType_dstPortUdp"
-        output_stream: "NOut_packet_countType_dstPortUdp:0:packet_countType_dstPortUdp"
+        input_stream: "STAT:countType_dstPortUdp"
+        input_stream: "COND:cond_countType_dstPortUdp"
+        output_stream: "packet_countType_dstPortUdp"
         options {
             [type.asnapis.io/dni.CondThresholdTaskOptions] {
             conditions: 2000
@@ -220,223 +217,223 @@ node{
 }
 
 node{
-        name: "packet_total_score"
-        task: "SumTask"
-        input_stream: "NOut_packet_countTotal:0:packet_countTotal"
-        input_stream: "NOut_packet_countType_length:0:packet_countType_length"
-        input_stream: "NOut_packet_countType_srcIP:0:packet_countType_srcIP"
-        input_stream: "NOut_packet_countType_dstIP:0:packet_countType_dstIP"
-        input_stream: "NOut_packet_countType_protocol:0:packet_countType_protocol"
-        input_stream: "NOut_packet_countType_srcPortTcp:0:packet_countType_srcPortTcp"
-        input_stream: "NOut_packet_countType_dstPortTcp:0:packet_countType_dstPortTcp"
-        input_stream: "NOut_packet_countType_srcPortUdp:0:packet_countType_srcPortUdp"
-        input_stream: "NOut_packet_countType_dstPortUdp:0:packet_countType_dstPortUdp"
-        output_stream: "Packet_Scores_Sum:0:packet_scores_sum"
+    name: "packet_total_score"
+    task: "SumTask"
+    input_stream: "packet_countTotal"
+    input_stream: "packet_countType_length"
+    input_stream: "packet_countType_srcIP"
+    input_stream: "packet_countType_dstIP"
+    input_stream: "packet_countType_protocol"
+    input_stream: "packet_countType_srcPortTcp"
+    input_stream: "packet_countType_dstPortTcp"
+    input_stream: "packet_countType_srcPortUdp"
+    input_stream: "packet_countType_dstPortUdp"
+    output_stream: "packet_scores_sum"
 }
 
 node{
-        name: "packet_abnormal_judge"
-        task: "ThresholdTask"
-        input_stream: "Packet_Scores_Sum:0:packet_scores_sum"
-        output_stream: "NOut_packet_abnormal:0:packet_abnormal"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "packet_abnormal_judge"
+    task: "ThresholdTask"
+    input_stream: "packet_scores_sum"
+    output_stream: "packet_abnormal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 0.3 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "netdev_inMbps_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_InMbps:0:inMbps"
-        output_stream: "NOut_netdev_inMbps:0:netdev_inMbps"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "netdev_inMbps_score"
+    task: "ThresholdTask"
+    input_stream: "inMbps"
+    output_stream: "netdev_inMbps"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 100 score: 0.2}
             thresh_scores { threshold: 500 score: 0.4}
             thresh_scores { threshold: 2000 score: 0.6}
             thresh_scores { threshold: 15000 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "netdev_inKpps_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_InKpps:0:inKpps"
-        output_stream: "NOut_netdev_inKpps:0:netdev_inKpps"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "netdev_inKpps_score"
+    task: "ThresholdTask"
+    input_stream: "inKpps"
+    output_stream: "netdev_inKpps"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 4000 score: 0.2}
             thresh_scores { threshold: 10000 score: 0.4}
             thresh_scores { threshold: 100000 score: 0.6}
             thresh_scores { threshold: 15000000 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "netdev_outMbps_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_OutMbps:0:outMbps"
-        output_stream: "NOut_netdev_outMbps:0:netdev_outMbps"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "netdev_outMbps_score"
+    task: "ThresholdTask"
+    input_stream: "outMbps"
+    output_stream: "netdev_outMbps"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 100 score: 0.2}
             thresh_scores { threshold: 500 score: 0.4}
             thresh_scores { threshold: 2000 score: 0.6}
             thresh_scores { threshold: 15000 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "netdev_outKpps_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_OutKpps:0:outKpps"
-        output_stream: "NOut_netdev_outKpps:0:netdev_outKpps"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "netdev_outKpps_score"
+    task: "ThresholdTask"
+    input_stream: "outKpps"
+    output_stream: "netdev_outKpps"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 4000 score: 0.2}
             thresh_scores { threshold: 10000 score: 0.4}
             thresh_scores { threshold: 100000 score: 0.6}
             thresh_scores { threshold: 15000000 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "netdev_total_score"
-        task: "SumTask"
-        input_stream: "NOut_netdev_inMbps:0:netdev_inMbps"
-        input_stream: "NOut_netdev_inKpps:0:netdev_inKpps"
-        input_stream: "NOut_netdev_outMbps:0:netdev_outMbps"
-        input_stream: "NOut_netdev_outKpps:0:netdev_outKpps"
-        output_stream: "Netdev_Scores_Sum:0:netdev_scores_sum"
+    name: "netdev_total_score"
+    task: "SumTask"
+    input_stream: "netdev_inMbps"
+    input_stream: "netdev_inKpps"
+    input_stream: "netdev_outMbps"
+    input_stream: "netdev_outKpps"
+    output_stream: "netdev_scores_sum"
 }
 
 node{
-        name: "netdev_abnormal_judge"
-        task: "ThresholdTask"
-        input_stream: "Netdev_Scores_Sum:0:netdev_scores_sum"
-        output_stream: "NOut_netdev_abnormal:0:netdev_abnormal"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "netdev_abnormal_judge"
+    task: "ThresholdTask"
+    input_stream: "netdev_scores_sum"
+    output_stream: "netdev_abnormal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 0.05 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_cur_cpu_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Cur_Cpu:0:cur_cpu"
-        output_stream: "NOut_resource_cur_cpu:0:resource_cur_cpu"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_cur_cpu_score"
+    task: "ThresholdTask"
+    input_stream: "cur_cpu"
+    output_stream: "resource_cur_cpu"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 20 score: 0.4}
             thresh_scores { threshold: 40 score: 0.7}
             thresh_scores { threshold: 60 score: 1}
             thresh_scores { threshold: 80 score: 1.3}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_incr_mem_swap_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Incr_Mem_Swap:0:incr_mem_swap"
-        output_stream: "NOut_resource_incr_mem_swap:0:resource_incr_mem_swap"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_incr_mem_swap_score"
+    task: "ThresholdTask"
+    input_stream: "incr_mem_swap"
+    output_stream: "resource_incr_mem_swap"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 30 score: 0.2}
             thresh_scores { threshold: 100 score: 0.4}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_incr_mem_virtual_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Incr_Mem_Virtual:0:incr_mem_virtual"
-        output_stream: "NOut_resource_incr_mem_virtual:0:resource_incr_mem_virtual"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_incr_mem_virtual_score"
+    task: "ThresholdTask"
+    input_stream: "incr_mem_virtual"
+    output_stream: "resource_incr_mem_virtual"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 30 score: 0.2}
             thresh_scores { threshold: 100 score: 0.4}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_incr_mem_full_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Incr_Mem_Full:0:incr_mem_full"
-        output_stream: "NOut_resource_incr_mem_full:0:resource_incr_mem_full"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_incr_mem_full_score"
+    task: "ThresholdTask"
+    input_stream: "incr_mem_full"
+    output_stream: "resource_incr_mem_full"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 30 score: 0.3}
             thresh_scores { threshold: 100 score: 0.5}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_incr_tcpconn_semi_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Incr_Tcpconn_Semi:0:incr_tcpconn_semi"
-        output_stream: "NOut_resource_incr_tcpconn_semi:0:resource_incr_tcpconn_semi"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_incr_tcpconn_semi_score"
+    task: "ThresholdTask"
+    input_stream: "incr_tcpconn_semi"
+    output_stream: "resource_incr_tcpconn_semi"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 30 score: 0.4}
             thresh_scores { threshold: 100 score: 0.7}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_incr_tcpconn_total_score"
-        task: "ThresholdTask"
-        input_stream: "GIn_Incr_Tcpconn_Total:0:incr_tcpconn_total"
-        output_stream: "NOut_resource_incr_tcpconn_total:0:resource_incr_tcpconn_total"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_incr_tcpconn_total_score"
+    task: "ThresholdTask"
+    input_stream: "incr_tcpconn_total"
+    output_stream: "resource_incr_tcpconn_total"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 30 score: 0.4}
             thresh_scores { threshold: 100 score: 0.7}
-            }
         }
+    }
 }
 
 node{
-        name: "resource_total_score"
-        task: "SumTask"
-        input_stream: "NOut_resource_cur_cpu:0:resource_cur_cpu"
-        input_stream: "NOut_resource_incr_mem_swap:0:resource_incr_mem_swap"
-        input_stream: "NOut_resource_incr_mem_virtual:0:resource_incr_mem_virtual"
-        input_stream: "NOut_resource_incr_mem_full:0:resource_incr_mem_full"
-        input_stream: "NOut_resource_incr_tcpconn_semi:0:resource_incr_tcpconn_semi"
-        input_stream: "NOut_resource_incr_tcpconn_total:0:resource_incr_tcpconn_total"
-        output_stream: "Resource_Scores_Sum:0:resource_scores_sum"
+    name: "resource_total_score"
+    task: "SumTask"
+    input_stream: "resource_cur_cpu"
+    input_stream: "resource_incr_mem_swap"
+    input_stream: "resource_incr_mem_virtual"
+    input_stream: "resource_incr_mem_full"
+    input_stream: "resource_incr_tcpconn_semi"
+    input_stream: "resource_incr_tcpconn_total"
+    output_stream: "resource_scores_sum"
 }
 
 node{
-        name: "resource_abnormal_judge"
-        task: "ThresholdTask"
-        input_stream: "Resource_Scores_Sum:0:resource_scores_sum"
-        output_stream: "NOut_resource_abnormal:0:resource_abnormal"
-        options {
-            [type.asnapis.io/dni.ThresholdTaskOptions] {
+    name: "resource_abnormal_judge"
+    task: "ThresholdTask"
+    input_stream: "resource_scores_sum"
+    output_stream: "resource_abnormal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
             thresh_scores { threshold: 0.12 score: 1}
-            }
         }
+    }
 }
 
 node{
-        name: "abnormal_judge_result"
-        task: "SndAdTask"
-        input_stream: "NOut_packet_abnormal:0:packet_abnormal"
-        input_stream: "NOut_netdev_abnormal:0:netdev_abnormal"
-        input_stream: "NOut_resource_abnormal:0:resource_abnormal"
-        output_stream: "GOut_abnormal_res:0:abnormal_res"
+    name: "abnormal_judge_result"
+    task: "SndAdTask"
+    input_stream: "PACKET:packet_abnormal"
+    input_stream: "NETDEV:netdev_abnormal"
+    input_stream: "RESOURCE:resource_abnormal"
+    output_stream: "GOut_abnormal_res:abnormal_res"
 }

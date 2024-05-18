@@ -27,7 +27,7 @@ namespace dni {
                         }
                 };
 
-                int FindByTagIndex(const std::string& tag, int index)
+                int Slot(const std::string_view tag, int index)
                 {
                         return tag_map_->FindByTagIndex(tag, index);
                 }

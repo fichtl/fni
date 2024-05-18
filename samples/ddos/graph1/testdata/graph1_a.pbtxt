@@ -1,0 +1,22 @@
+# packet: countTotal
+input_stream: "countTotal"
+input_side_data: "countTotal_th"
+input_side_data: "countTotal_score"
+
+# Graph output
+output_stream: "packet_countTotal"
+
+node{
+    name: "packet_countTotal_score"
+    task: "ThresholdTask"
+    input_stream: "countTotal"
+    output_stream: "packet_countTotal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 4000 score: 0.4}
+            thresh_scores { threshold: 10000 score: 0.6}
+            thresh_scores { threshold: 100000 score: 0.8}
+            thresh_scores { threshold: 15000000 score: 1.2}
+        }
+    }
+}

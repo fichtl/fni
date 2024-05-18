@@ -122,22 +122,20 @@ namespace dni {
         }
 
         int Node::initializeInputStreamHandler(
-            const InputStreamHandlerConfig& handler_config,
-            const DtypeSet& input_stream_types)
+            const InputStreamHandlerConfig& handler_config, const DtypeSet& inputs)
         {
                 const auto& name = handler_config.input_stream_handler();
-                input_stream_handler_ = GetInputStreamHandlerByName(
-                    name, input_stream_types.TagMap(), &context_manager_);
+                input_stream_handler_ =
+                    GetInputStreamHandlerByName(name, inputs.TagMap(), &context_manager_);
                 return 0;
         }
 
         int Node::initializeOutputStreamHandler(
-            const OutputStreamHandlerConfig& handler_config,
-            const DtypeSet& output_stream_types)
+            const OutputStreamHandlerConfig& handler_config, const DtypeSet& outputs)
         {
                 const auto& name = handler_config.output_stream_handler();
                 output_stream_handler_ = GetOutputStreamHandlerByName(
-                    name, output_stream_types.TagMap(), &context_manager_);
+                    name, outputs.TagMap(), &context_manager_);
                 return 0;
         }
 

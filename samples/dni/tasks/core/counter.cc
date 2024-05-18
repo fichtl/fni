@@ -1,77 +1,31 @@
-#include <chrono>
-#include <thread>
-
 #include "dni/framework/framework.h"
+#include "samples/tools/datumgen.h"
 #include "spdlog/spdlog.h"
-
-void inject_after(dni::Graph* g, int after, int n, int interval)
-{
-        std::this_thread::sleep_for(std::chrono::milliseconds(after));
-
-        std::vector<double_t> sums = {0, 1, 1};
-
-        for (int i = 0; i < sums.size(); i++)
-        {
-                g->AddDatumToInputStream("sums_"+ std::to_string(i+1), dni::Datum(sums[i]));
-        }
-}
 
 int main()
 {
         spdlog::set_level(spdlog::level::trace);
 
-        const std::string& proto = R"pb(
-                type: "Counter"
-
-                input_stream: "GIn_1:0:sums_1"
-                input_stream: "GIn_2:0:sums_2"
-                input_stream: "GIn_3:0:sums_3"
-
-                output_stream: "GOut:0:count"
-
-                node {
-                  name: "A"
-                  task: "CounterTask"
-                  input_stream: "GIn_1:0:sums_1"
-                  input_stream: "GIn_2:0:sums_2"
-                  input_stream: "GIn_3:0:sums_3"
-
-                  output_stream: "GOut:0:count"
-
-                  options {
-                    [type.asnapis.io/dni.CounterTaskOptions] {
-                      feature: 1
-                    }
-                  }
-                }
-        )pb";
-
-        auto gc = dni::ParseStringToGraphConfig(proto);
+        const std::string& proto = "samples/dni/tasks/core/testdata/counter.pbtxt";
+        auto gc = dni::LoadTextprotoFile(proto);
         if (!gc)
         {
                 spdlog::error("invalid pbtxt config: {}", proto);
                 return -1;
         }
-        spdlog::debug(
-            "GraphConfig: {}, node size: {}", gc.value().type(), gc.value().node_size());
 
         dni::Graph* g = new dni::Graph(gc.value());
+        DatumGen gen = DatumGen<uint64_t>(g);
 
+        std::vector<InputMap> inputs = {
+            {
+                {"sums_1", dni::Datum(0.)},
+                {"sums_2", dni::Datum(1.)},
+                {"sums_3", dni::Datum(1.)},
+            },
+        };
         std::string out = "count";
-
-        spdlog::debug("Create ObserveOutputStream: {}", out);
-        g->ObserveOutputStream(out);
-
-        g->PrepareForRun();
-
-        inject_after(g, 0, 1, 0);
-
-        g->RunOnce();
-
-        g->Wait();
-
-        auto ret = g->GetResult<uint64_t>(out);
-        spdlog::info("Gout {} result is: {}", out, ret);
+        gen.Loop(inputs, out);
 
         g->Finish();
 

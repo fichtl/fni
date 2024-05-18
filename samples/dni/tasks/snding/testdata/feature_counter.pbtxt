@@ -1,0 +1,27 @@
+input_stream: "pcap_packets"
+output_stream: "sip_count"
+output_stream: "sport_count"
+output_stream: "dport_count"
+output_stream: "protocol_count"
+output_stream: "length_count"
+
+node {
+    name: "A"
+    task: "FeatureCounterTask"
+    input_stream: "pcap_packets"
+    output_stream: "SIP:0:sip_count"
+    output_stream: "SPort:0:sport_count"
+    output_stream: "DPort:0:dport_count"
+    output_stream: "Protocol:0:protocol_count"
+    output_stream: "Length:0:length_count"
+
+    options {
+        [type.asnapis.io/dni.FeatureCounterTaskOptions] {
+            feature: "SIP"
+            feature: "SPort"
+            feature: "DPort"
+            feature: "Protocol"
+            feature: "Length"
+        }
+    }
+}

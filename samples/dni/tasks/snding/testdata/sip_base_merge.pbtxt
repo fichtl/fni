@@ -1,0 +1,36 @@
+input_stream: "parsed_packets"
+input_stream: "cidr_merged_sip"
+input_stream: "host_nic_name"
+
+output_stream: "GOut:0:sip_cidr_based_packets_merge"
+
+node {
+    name: "A"
+    task: "SndSIPBaseMergeTask"
+
+    input_stream: "PACKET:0:parsed_packets"
+    input_stream: "SIP:0:cidr_merged_sip"
+    input_stream: "NIC:0:host_nic_name"
+
+    output_stream: "GOut_SIPCidrBasedPacketsMerge:0:sip_cidr_based_packets_merge"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}

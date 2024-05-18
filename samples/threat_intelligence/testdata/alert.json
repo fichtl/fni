@@ -1,0 +1,35 @@
+{
+"alarmTime":"2021-12-21 12:33:24"
+"alarmGrade": "1"
+"alarmName": "恶意程序"
+"alarmDesc": "业务平台服务器遭受XX计算机病毒攻击……"
+"alarmType": "1"
+"alarmSubType": "01001"
+"devType": " D105"
+"devIp": "1.1.1.1"
+18
+"victimIP": "2.2.2.2"
+"victimPort": "1443"
+"encryption": "1"
+"devID": " NGFW4000-UF "
+"devVer": " NGFW4000v2.0"
+"devVenodor": "XXX公司"
+"alarmArea": "互联网"
+"sourceIP": "51.1.1.1"
+"sourcePort": "443"
+"protocol": "TCP"
+"state": "3"
+"programName":" Voluminer "
+"filePath": "/etc/……"
+"fileMd5": " 6512bd43d9caa6e02c990b0a82652dca"
+"family": " Lockbit"
+"fileSha1": " 17ba0791499db908433b80f37c5fbc89b870084b"
+"fileSha256": " 4fc82b26aecb47d2868c4efbe3581732a3e7cbc
+c6c2efb32062c08170a05eeb8"
+"fileSM3": "d5744897e47fb6d78b726e9ff0c9fa70e0013a0d4f0
+a757af8ec0b812664b828"
+"organization": "匿名者"
+19
+"process":"123.exe "
+"filePath": "/etc/……"
+}

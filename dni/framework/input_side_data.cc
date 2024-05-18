@@ -24,7 +24,7 @@ namespace dni {
                         {
                                 return std::nullopt;
                         }
-                        ret->at(i) = it->second; // where to define the size of ret ?
+                        ret->at(i) = it->second;   // where to define the size of ret ?
                 }
                 return std::move(ret);
         }

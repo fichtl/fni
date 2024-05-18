@@ -33,24 +33,43 @@ public:
                         return -1;
                 }
 
-                std::vector<int> judges;
                 int sum = 0;
-                for (int i = 0; i < ctx->Inputs().size(); i++)
-                {
-                        Datum judge_d = ctx->Inputs()[i].Value();
-                        SPDLOG_DEBUG("{}: Consume Datum: {}", name_, judge_d);
-                        auto judge_opt = judge_d.Consume<double_t>();
-                        if (!judge_opt)
-                        {
-                                SPDLOG_CRITICAL("{}: invalid input", name_);
-                                return -1;
-                        }
-                        auto judge = *(judge_opt.value());
-                        SPDLOG_DEBUG("{}: judge: {}", name_, judge);
 
-                        sum += (int(judge + 0.5));
-                        judges.push_back(int(judge + 0.5));
+                Datum pkt_d = ctx->Inputs().Tag("PACKET").Value();
+                SPDLOG_DEBUG("{}: Consume Datum: {}", name_, pkt_d);
+                auto pkt_opt = pkt_d.Consume<double_t>();
+                if (!pkt_opt)
+                {
+                        SPDLOG_CRITICAL("{}: invalid input", name_);
+                        return -1;
                 }
+                auto pkt = *(pkt_opt.value());
+                SPDLOG_DEBUG("{}: pkt: {}", name_, pkt);
+                sum += (int(pkt + 0.5));
+
+                Datum netdev_d = ctx->Inputs().Tag("NETDEV").Value();
+                SPDLOG_DEBUG("{}: Consume Datum: {}", name_, netdev_d);
+                auto netdev_opt = netdev_d.Consume<double_t>();
+                if (!netdev_opt)
+                {
+                        SPDLOG_CRITICAL("{}: invalid input", name_);
+                        return -1;
+                }
+                auto netdev = *(netdev_opt.value());
+                SPDLOG_DEBUG("{}: netdev: {}", name_, netdev);
+                sum += (int(netdev + 0.5));
+
+                Datum resource_d = ctx->Inputs().Tag("RESOURCE").Value();
+                SPDLOG_DEBUG("{}: Consume Datum: {}", name_, resource_d);
+                auto resource_opt = resource_d.Consume<double_t>();
+                if (!resource_opt)
+                {
+                        SPDLOG_CRITICAL("{}: invalid input", name_);
+                        return -1;
+                }
+                auto resource = *(resource_opt.value());
+                SPDLOG_DEBUG("{}: resource: {}", name_, resource);
+                sum += (int(resource + 0.5));
 
                 int abnormal_type = 0;   // -1, normal
                 if (sum == 3)
@@ -59,15 +78,15 @@ public:
                 }
                 else if (sum == 2)
                 {
-                        if (judges[0] + judges[1] == 2)
+                        if (pkt + netdev == 2)
                         {
                                 abnormal_type = 2;
                         }
-                        else if (judges[0] + judges[2] == 2)
+                        else if (pkt + resource == 2)
                         {
                                 abnormal_type = 3;
                         }
-                        else if (judges[1] + judges[2] == 2)
+                        else if (netdev + resource == 2)
                         {
                                 abnormal_type = 4;
                         }

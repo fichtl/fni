@@ -1,0 +1,164 @@
+input_stream: "parsed_packets_1"
+input_stream: "cidr_merged_sip_1"
+input_stream: "host_nic_name1"
+input_stream: "netdevs_1"
+
+input_stream: "parsed_packets_2"
+input_stream: "cidr_merged_sip_2"
+input_stream: "host_nic_name2"
+input_stream: "netdevs_2"
+
+input_stream: "parsed_packets_3"
+input_stream: "cidr_merged_sip_3"
+input_stream: "host_nic_name3"
+input_stream: "netdevs_3"
+
+input_stream: "parsed_packets_4"
+input_stream: "cidr_merged_sip_4"
+input_stream: "host_nic_name4"
+input_stream: "netdevs_4"
+
+output_stream: "dms_rules"
+
+node {
+    name: "A"
+    task: "SndSIPBaseMergeTask"
+
+    input_stream: "PACKET:parsed_packets_1"
+    input_stream: "SIP:cidr_merged_sip_1"
+    input_stream: "NIC:host_nic_name1"
+
+    output_stream: "sip_cidr_based_packets_merge1"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "B"
+    task: "SndSIPBaseMergeTask"
+
+    input_stream: "PACKET:parsed_packets_2"
+    input_stream: "SIP:cidr_merged_sip_2"
+    input_stream: "NIC:host_nic_name2"
+
+    output_stream: "sip_cidr_based_packets_merge2"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "C"
+    task: "SndSIPBaseMergeTask"
+
+    input_stream: "PACKET:parsed_packets_3"
+    input_stream: "SIP:cidr_merged_sip_3"
+    input_stream: "NIC:host_nic_name3"
+
+    output_stream: "sip_cidr_based_packets_merge3"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "D"
+    task: "SndSIPBaseMergeTask"
+
+    input_stream: "PACKET:parsed_packets_4"
+    input_stream: "SIP:cidr_merged_sip_4"
+    input_stream: "NIC:host_nic_name4"
+
+    output_stream: "sip_cidr_based_packets_merge4"
+
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "E"
+    task: "SndGenDMSRulesTask"
+
+    input_stream: "CIDR:0:sip_cidr_based_packets_merge1"
+    input_stream: "NETDEV:0:netdevs_1"
+
+    input_stream: "CIDR:1:sip_cidr_based_packets_merge2"
+    input_stream: "NETDEV:1:netdevs_2"
+
+    input_stream: "CIDR:2:sip_cidr_based_packets_merge3"
+    input_stream: "NETDEV:2:netdevs_3"
+
+    input_stream: "CIDR:3:sip_cidr_based_packets_merge4"
+    input_stream: "NETDEV:3:netdevs_4"
+
+    output_stream: "GOut_DMSRules:0:dms_rules"
+}

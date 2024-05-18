@@ -1,5 +1,3 @@
-licenses(["notice"])
-
 py_binary(
     name = "py_main",
     srcs = ["dni.py"],

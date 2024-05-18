@@ -1,6 +1,6 @@
-licenses(["notice"])
-
 package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
 
 alias(
     name = "onnxruntime",
@@ -17,9 +17,9 @@ alias(
     name = "libpcap",
     actual = select(
         {
-            "//dni:macos_arm64": "@macos_libpcap",
-            "//dni:macos_x86_64": "@macos_libpcap",
-            "//conditions:default": "@linux_libpcap",
+            "//dni:macos_arm64": "@libpcap_macos_arm64//:libpcap",
+            "//dni:macos_x86_64": "@libpcap_macos_x86_64//:libpcap",
+            "//conditions:default": "@libpcap_linux//:libpcap",
         },
     ),
 )

@@ -45,7 +45,7 @@ namespace dni {
                         return 0;
                 for (int i = 0; i < input_stream_managers_.size(); ++i)
                 {
-                        // TODO: setup the i-th input stream
+                        inputs->at(i).SetName(&input_stream_managers_[i]->Name());
                 }
                 return 0;
         }

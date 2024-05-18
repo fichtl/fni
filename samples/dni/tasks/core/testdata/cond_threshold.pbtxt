@@ -1,0 +1,18 @@
+input_stream: "statistic"
+input_stream: "cond_values"
+output_stream: "score"
+
+node {
+    name: "A"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:statistic"
+    input_stream: "COND:cond_values"
+    output_stream: "SCORE:score"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.2}
+            thresh_scores { threshold: 500 score: 0.1}
+        }
+    }
+}

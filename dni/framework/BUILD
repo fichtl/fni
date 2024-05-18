@@ -262,6 +262,7 @@ cc_library(
     srcs = ["output_stream.cc"],
     hdrs = ["output_stream.h"],
     deps = [
+        ":collection",
         ":datum",
         ":dtype",
         ":timestamp",
@@ -315,7 +316,15 @@ cc_library(
     srcs = ["input_stream.cc"],
     hdrs = ["input_stream.h"],
     deps = [
+        ":collection",
         ":datum",
+    ],
+)
+
+cc_library(
+    name = "collection",
+    hdrs = ["collection.h"],
+    deps = [
         "//dni/framework/utils:tags",
     ],
 )

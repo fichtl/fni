@@ -6,7 +6,7 @@
 int main()
 {
         std::ifstream ifs;
-        ifs.open("samples/snding/testdata/ceni-40nodes-topology.json");
+        ifs.open("samples/dni/serdes/testdata/ceni-40nodes-topology.json");
         if (!ifs.is_open())
         {
                 std::cout << "ifs.open failed"

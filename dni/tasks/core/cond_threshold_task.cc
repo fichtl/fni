@@ -35,7 +35,7 @@ public:
         int Process(TaskContext* ctx) override
         {
                 // input: statistics
-                Datum stat_d = ctx->Inputs()[0].Value();
+                Datum stat_d = ctx->Inputs().Tag("STAT").Value();
                 SPDLOG_DEBUG("{}: Consume Datum: {}", name_, stat_d);
                 auto stat_opt = stat_d.Consume<double_t>();
                 if (!stat_opt)
@@ -47,7 +47,7 @@ public:
                 SPDLOG_DEBUG("{}: input: {}", name_, stat);
 
                 // input: conditions
-                Datum cond_val_d = ctx->Inputs()[1].Value();
+                Datum cond_val_d = ctx->Inputs().Tag("COND").Value();
                 SPDLOG_DEBUG("{}: Consume Datum: {}", name_, cond_val_d);
                 auto cond_val_opt = cond_val_d.Consume<std::vector<double_t>>();
                 if (!cond_val_opt)

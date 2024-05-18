@@ -197,8 +197,6 @@ int main()
                 spdlog::error("invalid pbtxt config: {}", proto);
                 return -1;
         }
-        spdlog::debug(
-            "GraphConfig: {}, node size: {}", gc.value().type(), gc.value().node_size());
 
         dni::Graph* g = new dni::Graph(gc.value());
 
