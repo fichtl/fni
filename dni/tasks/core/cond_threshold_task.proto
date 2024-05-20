@@ -11,4 +11,6 @@ message CondThresholdTaskOptions {
     repeated double conditions = 1;
 
     repeated ThreshScore thresh_scores = 2;
+
+    optional double default = 3;
 }

@@ -27,6 +27,10 @@ public:
                 {
                         tsmap_[t_s.threshold()] = t_s.score();
                 }
+                if (options_.has_default_())
+                {
+                        default_ = options_.default_();
+                }
 
                 return 0;
         }
@@ -45,7 +49,7 @@ public:
                 double_t statistic = *(statistic_opt.value());
                 SPDLOG_DEBUG("{}: input: {}", name_, statistic);
 
-                double_t score = 0.0;
+                double_t score = default_;
 
                 // std::map is always sorted by key
                 for (auto th_score : tsmap_)
@@ -79,6 +83,7 @@ private:
 
         ThresholdTaskOptions options_;
         std::map<double_t, double_t> tsmap_;
+        double_t default_ = 0.;
 };
 
 REGISTER(ThresholdTask);

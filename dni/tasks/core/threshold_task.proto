@@ -9,4 +9,6 @@ message ThresholdTaskOptions {
     }
 
     repeated ThreshScore thresh_scores = 1;
+
+    optional double default = 2;
 }

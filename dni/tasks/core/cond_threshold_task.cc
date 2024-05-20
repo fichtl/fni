@@ -28,6 +28,10 @@ public:
                 {
                         tsmap_[t_s.threshold()] = t_s.score();
                 }
+                if (options_.has_default_())
+                {
+                        default_ = options_.default_();
+                }
 
                 return 0;
         }
@@ -70,7 +74,7 @@ public:
                 }
 
                 // scoring
-                double_t score = 0.0;
+                double_t score = default_;
 
                 for (size_t i = 0; i < cond_vals.size(); i++)
                 {
@@ -113,6 +117,7 @@ private:
 
         CondThresholdTaskOptions options_;
         std::map<double_t, double_t> tsmap_;
+        double_t default_ = 0.;
 };
 
 REGISTER(ConditionThresholdTask);
