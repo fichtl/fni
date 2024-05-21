@@ -20,3 +20,12 @@ cc_binary(
         "@taskflow",
     ],
 )
+
+cc_binary(
+    name = "influxdb_client",
+    srcs = ["influxdb_client.cc"],
+    deps = [
+        "@influxdb-cxx",
+        "@spdlog",
+    ],
+)

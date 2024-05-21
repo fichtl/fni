@@ -48,6 +48,22 @@ http_archive(
     url = "https://github.com/microsoft/onnxruntime/releases/download/v1.17.1/onnxruntime-linux-x64-1.17.1.tgz",
 )
 
+http_archive(
+    name = "cpr",
+    build_file = "@//third_party:cpr.BUILD",
+    sha256 = "c8590568996cea918d7cf7ec6845d954b9b95ab2c4980b365f582a665dea08d8",
+    strip_prefix = "cpr-1.10.5",
+    url = "https://github.com/libcpr/cpr/archive/refs/tags/1.10.5.tar.gz",
+)
+
+http_archive(
+    name = "influxdb-cxx",
+    build_file = "@//third_party:influxdb_cxx.BUILD",
+    sha256 = "951e067df5731cb23b72f53fcbea8e56920819c6191b6885ea180168eb1950d9",
+    strip_prefix = "influxdb-cxx-0.7.2",
+    url = "https://github.com/offa/influxdb-cxx/archive/refs/tags/v0.7.2.tar.gz",
+)
+
 # dependencies from local repositories
 
 new_local_repository(
