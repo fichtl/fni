@@ -1,60 +1,155 @@
-#include <iostream>
 
-#include "DNIDynamicModelLoader.h"
+#include <cmath>
+#include <cstdint>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-/*
+#include "dni/framework/datum.h"
+#include "dni/framework/framework.h"
+#include "dni/tasks/onnx/onnx_task.h"
+#include "onnx_defines.h"
+#include "spdlog/spdlog.h"
 
-[[0 ]],              output_labels_total: 1
+namespace dni {
 
-value:
-0.968146		0.0318539		9.15881e-08
+class OnnxLogRegTask: public OnnxTask {
+public:
+        OnnxLogRegTask() {}
+        ~OnnxLogRegTask() override {}
 
-
-
-[[2 0 ]],              output_labels_total: 2
-
-value:
-1.23354e-05		0.022736		0.977252
-
-value:
-0.968146		0.0318539		9.15881e-08
-
-*/
-
-void userPrepareInputData1(std::vector<std::vector<float>*>& input_data)
-{
-        std::vector<float>* input_tensor = new std::vector<float>();
-        input_tensor->push_back((float) 5.1);
-        input_tensor->push_back((float) 3.4);
-        input_tensor->push_back((float) 1.5);
-        input_tensor->push_back((float) 0.2);
-        input_data.push_back(input_tensor);
-}
-
-void userPrepareInputData2(std::vector<std::vector<float>*>& input_data)
-{
-        std::vector<float>* input_tensor2 = new std::vector<float>();
-        input_tensor2->push_back((float) 6.7);
-        input_tensor2->push_back((float) 3.2);
-        input_tensor2->push_back((float) 5.7);
-        input_tensor2->push_back((float) 2.3);
-
-        input_tensor2->push_back((float) 5.1);
-        input_tensor2->push_back((float) 3.4);
-        input_tensor2->push_back((float) 1.5);
-        input_tensor2->push_back((float) 0.2);
-        input_data.push_back(input_tensor2);
-}
+private:
+        virtual void DumpInferenceRet(std::vector<Ort::Value>& inference_ret);
+        virtual Datum ParseInferenceResult(std::vector<Ort::Value>& inference_ret);
+};
 
 // refer to onnxruntime/test/shared_lib/test_nontensor_types.cc:
-// CreateGetVectorOfMapsInt64Float test
-void PrintInferenceRet(
-    std::shared_ptr<dni::DNIModelLoader> loader, std::vector<Ort::Value>& inference_ret)
+// CreateGetVectorOfMapsInt64Float test and
+// https://github.com/microsoft/onnxruntime/issues/4620
+Datum OnnxLogRegTask::ParseInferenceResult(std::vector<Ort::Value>& inference_ret)
+{
+        spdlog::info("inference_ret size is: {}", inference_ret.size());
+
+        LogRegInferenceRet ret;
+
+        int output_labels_total = 0;
+        for (size_t i = 0; i < loader_->GetOutputNodesNum(); i++)
+        {
+                if (inference_ret[i].IsTensor())
+                {
+                        spdlog::info("inference_ret idx:{} is tensor", i);
+
+                        auto outputInfo = inference_ret[i].GetTensorTypeAndShapeInfo();
+                        int64_t* int64arr =
+                            inference_ret[i].GetTensorMutableData<int64_t>();
+
+                        spdlog::info(
+                            "GetElementType is: {}", (int) outputInfo.GetElementType());
+                        spdlog::info(
+                            "Dimensions of the output is: {}",
+                            outputInfo.GetShape().size());
+
+                        std::vector<std::vector<int64_t>> layer1_vec;
+
+                        for (int m = 0; m < outputInfo.GetShape().size(); m++)
+                        {
+                                auto width = outputInfo.GetShape()[0];
+
+                                std::vector<int64_t> layer2_vec;
+                                for (int n = 0; n < width; n++)
+                                {
+                                        output_labels_total++;
+
+                                        layer2_vec.push_back(*(int64arr + m * width + n));
+                                }
+
+                                layer1_vec.push_back(std::move(layer2_vec));
+                        }
+
+                        ret.output_labels.push_back(std::move(layer1_vec));
+
+                        spdlog::info("output_labels_total is: {}", output_labels_total);
+                }
+                else
+                {
+                        spdlog::info("inference_ret idx:{} is not tensor", i);
+
+                        Ort::AllocatorWithDefaultOptions default_allocator;
+
+                        // Fetch
+                        for (size_t idx = 0; idx < inference_ret[i].GetCount(); ++idx)
+                        {
+                                Ort::Value map_out = inference_ret[i].GetValue(
+                                    static_cast<int>(idx), default_allocator);
+
+                                // fetch the map
+                                // first fetch the keys
+                                Ort::Value keys_ort =
+                                    map_out.GetValue(0, default_allocator);
+
+                                auto key_outputInfo =
+                                    keys_ort.GetTensorTypeAndShapeInfo();
+                                int keys_total = 0;
+
+                                for (unsigned int shapeI = 0;
+                                     shapeI < key_outputInfo.GetShape().size();
+                                     shapeI++)
+                                { keys_total += key_outputInfo.GetShape()[shapeI]; }
+
+                                int64_t* keys_ret =
+                                    keys_ort.GetTensorMutableData<int64_t>();
+
+                                // second fetch the values
+                                Ort::Value values_ort =
+                                    map_out.GetValue(1, default_allocator);
+
+                                auto values_outputInfo =
+                                    values_ort.GetTensorTypeAndShapeInfo();
+                                int values_total = 0;
+
+                                for (unsigned int shapeI = 0;
+                                     shapeI < values_outputInfo.GetShape().size();
+                                     shapeI++)
+                                {
+                                        values_total +=
+                                            values_outputInfo.GetShape()[shapeI];
+                                }
+
+                                float* values_ret =
+                                    values_ort.GetTensorMutableData<float>();
+
+                                if (keys_total != values_total)
+                                {
+                                        spdlog::info(
+                                            "keys_total is not equal to values_total, {} "
+                                            "vs {}",
+                                            keys_total,
+                                            values_total);
+                                        return Datum();
+                                }
+
+                                std::unordered_map<int64_t, float_t> probabilities;
+                                for (int key_idx = 0; key_idx < keys_total; key_idx++)
+                                {
+                                        probabilities[keys_ret[key_idx]] =
+                                            values_ret[key_idx];
+                                }
+
+                                ret.output_probabilities.push_back(
+                                    std::move(probabilities));
+                        }
+                }
+        }
+
+        return Datum(std::move(ret));
+}
+
+void OnnxLogRegTask::DumpInferenceRet(std::vector<Ort::Value>& inference_ret)
 {
         std::cout << "inference_ret.size(): " << inference_ret.size() << std::endl;
 
         int output_labels_total = 0;
-        for (size_t i = 0; i < loader->GetOutputNodesNum(); i++)
+        for (size_t i = 0; i < loader_->GetOutputNodesNum(); i++)
         {
                 if (inference_ret[i].IsTensor())
                 {
@@ -158,9 +253,7 @@ void PrintInferenceRet(
                                     keys_ort.GetTensorMutableData<int64_t>();
                                 std::cout << "key:   " << std::endl;
                                 for (int key_idx = 0; key_idx < keys_total; key_idx++)
-                                {
-                                        std::cout << keys_ret[key_idx] << "\t\t\t\t";
-                                }
+                                { std::cout << keys_ret[key_idx] << "\t\t\t\t"; }
                                 std::cout << std::endl;
 
                                 // second fetch the values
@@ -173,9 +266,9 @@ void PrintInferenceRet(
 
                                 std::cout << "values_outputInfo GetElementType: "
                                           << values_outputInfo.GetElementType() << "\n";
-                                std::cout
-                                    << "values_outputInfo Dimensions of the output: "
-                                    << values_outputInfo.GetShape().size() << "\n";
+                                std::cout << "values_outputInfo Dimensions of "
+                                             "the output: "
+                                          << values_outputInfo.GetShape().size() << "\n";
                                 std::cout << "values_outputInfo Shape of the output: ";
                                 for (unsigned int shapeI = 0;
                                      shapeI < values_outputInfo.GetShape().size();
@@ -192,9 +285,7 @@ void PrintInferenceRet(
                                     values_ort.GetTensorMutableData<float>();
                                 std::cout << "value: " << std::endl;
                                 for (int val_idx = 0; val_idx < values_total; val_idx++)
-                                {
-                                        std::cout << values_ret[val_idx] << "\t\t";
-                                }
+                                { std::cout << values_ret[val_idx] << "\t\t"; }
                                 std::cout << std::endl;
                         }
                 }
@@ -203,32 +294,6 @@ void PrintInferenceRet(
         std::cout << std::endl;
 }
 
-int main()
-{
-        // print model info
-        std::string modelPath = "samples/onnx/testdata/logreg_iris.onnx";
+REGISTER(OnnxLogRegTask);
 
-        std::shared_ptr<dni::DNIModelLoader> loader =
-            std::make_shared<dni::DNIDynamicModelLoader>(
-                modelPath, 1, ORT_ENABLE_BASIC, ORT_LOGGING_LEVEL_WARNING, "test_c");
-
-        loader->Load();
-
-        // create input1
-        std::vector<std::vector<float>*> input_data1;
-        userPrepareInputData1(input_data1);   // user call
-
-        // infer1
-        std::vector<Ort::Value> ret = loader->Inference(input_data1);
-        PrintInferenceRet(loader, ret);
-
-        std::cout << std::endl << std::endl << std::endl;
-
-        // create input2
-        std::vector<std::vector<float>*> input_data2;
-        userPrepareInputData2(input_data2);   // user call
-
-        // infer2
-        ret = loader->Inference(input_data2);
-        PrintInferenceRet(loader, ret);
-}
+}   // namespace dni

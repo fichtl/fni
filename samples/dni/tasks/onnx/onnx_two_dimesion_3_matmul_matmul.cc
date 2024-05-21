@@ -1,6 +1,10 @@
-#include <iostream>
+#include <chrono>
+#include <thread>
+#include <vector>
 
-#include "DNIFixedModelLoader.h"
+#include "dni/framework/framework.h"
+#include "dni/tasks/onnx/onnx.h"
+#include "spdlog/spdlog.h"
 
 /*
 same as the python code with numpy,
@@ -108,64 +112,72 @@ void userPrepareInputData(std::vector<std::vector<float>*>& input_data)
         input_data.push_back(input_tensor_values3);
 }
 
-void PrintInferenceRet(
-    std::shared_ptr<dni::DNIModelLoader> loader, std::vector<Ort::Value>& inference_ret)
+void inject_after(dni::Graph* g, int after, int interval)
 {
-        std::cout << inference_ret.size() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(after));
 
-        for (size_t i = 0; i < loader->GetOutputNodesNum(); i++)
-        {
-                if (inference_ret[i].IsTensor())
-                {
-                        auto outputInfo = inference_ret[i].GetTensorTypeAndShapeInfo();
-                        float* floatarr = inference_ret[i].GetTensorMutableData<float>();
+        std::vector<std::vector<float>*> input_data;
+        userPrepareInputData(input_data);   // user call
 
-                        std::cout << "GetElementType: " << outputInfo.GetElementType()
-                                  << "\n";
-                        std::cout << "Dimensions of the output: "
-                                  << outputInfo.GetShape().size() << "\n";
-                        std::cout << "Shape of the output: ";
-                        for (unsigned int shapeI = 0;
-                             shapeI < outputInfo.GetShape().size();
-                             shapeI++)
-                                std::cout << outputInfo.GetShape()[shapeI] << ", ";
+        g->AddDatumToInputStream("data", dni::Datum(input_data));
 
-                        std::cout << std::endl << "[" << std::endl;
-                        for (int m = 0; m < outputInfo.GetShape().size(); m++)
-                        {
-                                std::cout << "[";
-                                for (int n = 0; n < outputInfo.GetShape()[1]; n++)
-                                {
-                                        std::cout << *(floatarr +
-                                                       m * outputInfo.GetShape()[1] + n)
-                                                  << " ";
-                                }
-                                std::cout << "]" << std::endl;
-                        }
-
-                        std::cout << "]" << std::endl;
-                }
-        }
-
-        std::cout << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
 }
 
 int main()
 {
-        std::string modelPath = "samples/onnx/testdata/model_2_5_x_5_3_x_3_2_v19.onnx";
+        spdlog::set_level(spdlog::level::trace);
 
-        std::shared_ptr<dni::DNIModelLoader> loader =
-            std::make_shared<dni::DNIFixedModelLoader>(
-                modelPath, 1, ORT_ENABLE_BASIC, ORT_LOGGING_LEVEL_WARNING, "test_cxx");
+        const std::string& proto = R"pb(
+                type: "Onnx-MatMul-MatMul"
 
-        loader->Load();
+                input_stream: "GIn_Data:0:data"
+                output_stream: "GOut_Ret:0:ret"
 
-        // create input tensor object from data values
-        std::vector<std::vector<float>*> input_data;
-        userPrepareInputData(input_data);   // user call
+                node {
+                  name: "A"
+                  task: "OnnxTwoDimesionTask"
+                  input_stream: "GIn_Data:0:data"
+                  output_stream: "GOut_Ret:0:ret"
 
-        std::vector<Ort::Value> ret = loader->Inference(input_data);
-        PrintInferenceRet(loader, ret);
+                  options {
+                    [type.asnapis.io/dni.OnnxTaskOptions] {
+                      model_path: "samples/dni/tasks/onnx/testdata/model_2_5_x_5_3_x_3_2_v19.onnx"
+                    }
+                  }
+                }
+        )pb";
 
-        std::cout << "main done\n\n" << std::endl;
+        auto gc = dni::ParseStringToGraphConfig(proto);
+        if (!gc)
+        {
+                spdlog::error("invalid pbtxt config: {}", proto);
+                return -1;
+        }
+        spdlog::debug(
+            "GraphConfig: {}, node size: {}", gc.value().type(), gc.value().node_size());
+
+        dni::Graph* g = new dni::Graph(gc.value());
+
+        std::string out = "ret";
+
+        spdlog::debug("Create ObserveOutputStream: {}", out);
+        g->ObserveOutputStream(out);
+
+        g->PrepareForRun();
+        inject_after(g, 0, 1);
+
+        g->RunOnce();
+
+        g->Wait();
+
+        auto ret = g->GetResult<std::vector<std::vector<std::vector<float_t>>>>(out);
+
+        spdlog::info("Gout {} result is: {}", out, ret);
+
+        g->Finish();
+
+        spdlog::info("main over");
+
+        return 0;
 }

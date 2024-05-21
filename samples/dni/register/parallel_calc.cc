@@ -22,48 +22,30 @@ int main()
         std::string proto = R"pb(
                 type: "TwoWayCounter"
 
-                input_stream: "GIn0:0:GInSSS"
-                input_stream: "GIn1:0:GInTTT"
+                input_stream: "GIn:0:GInSSS"
+                input_stream: "GIn:1:GInTTT"
+                input_stream: "GIn:2:GInXXX"
 
-                output_stream: "GOut0:0:GOutSSS"
-                output_stream: "GOut1:0:GOutTTT"
-                output_stream: "GOut2:0:GOutUUU"
-                output_stream: "GOut3:0:GOutVVV"
+                output_stream: "GOut:0:GOutSSS"
+                output_stream: "GOut:1:GOutTTT"
 
                 node {
                   name: "A"
                   task: "AddOrMulTask"
-                  input_stream: "GIn0:0:GInSSS"
-                  input_stream: "GIn1:0:GInTTT"
-                  output_stream: "AOut0:0:AOut000"
-                  output_stream: "AOut1:0:AOut111"
+                  input_stream: "GIn:GInSSS"
+                  input_stream: "GIn:1:GInTTT"
+                  output_stream: "AOut:0:AOut000"
+                  output_stream: "AOut:1:AOut111"
                 }
 
                 node {
                   name: "B"
                   task: "SubOrDivTask"
-                  input_stream: "AOut0:0:AOut000"
-                  input_stream: "AOut1:0:AOut111"
-                  output_stream: "BOut0:0:BOut000"
-                  output_stream: "BOut1:0:BOut111"
-                }
-
-                node {
-                  name: "C"
-                  task: "AddOrMulTask"
-                  input_stream: "BOut0:0:BOut000"
-                  input_stream: "BOut1:0:BOut111"
-                  output_stream: "COut0:0:COut000"
-                  output_stream: "COut1:0:COut111"
-                }
-
-                node {
-                  name: "D"
-                  task: "SubOrDivTask"
-                  input_stream: "COut0:0:COut000"
-                  input_stream: "COut1:0:COut111"
-                  output_stream: "GOut0:0:GOutSSS"
-                  output_stream: "GOut1:0:GOutTTT"
+                  input_stream: "AOut:0:AOut000"
+                  input_stream: "AOut:1:AOut111"
+                  input_stream: "GIn:2:GInXXX"
+                  output_stream: "GOut:0:GOutSSS"
+                  output_stream: "GOut:1:GOutTTT"
                 }
         )pb";
 
@@ -89,22 +71,22 @@ int main()
 
         g->PrepareForRun();
 
-        for (int i = 0; i < 5; i++)
-        {
-                inject_after(g, dni::Datum(10 + i), 0, 1000);
+        // for (int i = 0; i < 5; i++)
+        // {
+        //         inject_after(g, dni::Datum(10 + i), 0, 1000);
 
-                g->RunOnce();
+        //         g->RunOnce();
 
-                g->Wait();
+        //         g->Wait();
 
-                auto ret = g->GetResult<int>(out1);
-                spdlog::info("Gout:{} result is: {:d}", out1, ret);
+        //         auto ret = g->GetResult<int>(out1);
+        //         spdlog::info("Gout:{} result is: {:d}", out1, ret);
 
-                auto ret2 = g->GetResult<int>(out2);
-                spdlog::info("Gout:{} result is: {:d}", out2, ret2);
+        //         auto ret2 = g->GetResult<int>(out2);
+        //         spdlog::info("Gout:{} result is: {:d}", out2, ret2);
 
-                g->ClearResult();
-        }
+        //         g->ClearResult();
+        // }
 
         g->Finish();
 

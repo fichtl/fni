@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package dni;
+
+message OnnxTaskOptions {
+    string model_path = 1;
+}
