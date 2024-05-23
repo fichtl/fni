@@ -74,9 +74,11 @@ namespace snding {
                 dni::CIDR srcIP;           // cidr, {1.2.3.0, 24}
                 dni::CIDR dstIP;           // cidr, {5.6.7.8, 32}
 
-                int sPort = -1;      // if -1, do not config sport
-                int dPort = -1;      // if -1, do not config dport
-                int protocol = -1;   // if -1, do not config protocol
+                std::string sPort;
+                std::string dPort;
+                std::string length;
+
+                int protocol = -1;
 
                 std::string action = "drop";   // drop/limit
                 std::string limitMode;
@@ -115,10 +117,11 @@ struct formatter<dni::snding::DMSRule>: formatter<std::string_view> {
                 return format_to(
                     ctx.out(),
                     "hostNicSign: {}\n, srcIP: {}\t, dstIP: {}\n,"
-                    "sPort: {}\t, dPort: {}\t, protocol: {}\n"
+                    "sPort: {}\t, dPort: {}\t, length: {}\t, protocol: {}\n"
                     "action: {}\t, limitMode: {}\t, limitMaxValue: {}\n\n",
                     rule.hostNicSign, rule.srcIP, rule.dstIP, rule.sPort, rule.dPort,
-                    rule.protocol, rule.action, rule.limitMode, rule.limitMaxValue);
+                    rule.length, rule.protocol, rule.action, rule.limitMode,
+                    rule.limitMaxValue);
         }
 };
 

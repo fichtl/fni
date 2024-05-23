@@ -3,11 +3,19 @@ syntax = "proto3";
 package dni;
 
 message SndSIPBaseMergeTaskOptions {
-    message ThreshLabels {
+    message NumberThreshLabels {
+        double ratioMin = 1;
+        double ratioMax = 2;
+        int32 keyLenThresh = 3;
+        repeated string label = 4;
+    }
+
+    message ProtoThreshLabels {
         double ratioMin = 1;
         double ratioMax = 2;
         repeated string label = 3;
     }
-    ThreshLabels num_stat = 1;
-    ThreshLabels proto_stat = 2;
+
+    NumberThreshLabels num_stat = 1;
+    ProtoThreshLabels proto_stat = 2;
 }

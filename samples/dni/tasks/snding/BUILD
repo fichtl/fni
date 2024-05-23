@@ -14,6 +14,20 @@ cc_binary(
     deps = _DEPS_ + ["//dni/tasks/snding:pcap_parse_task"],
 )
 
+cc_binary(
+    name = "pcap_parse_vlan_id",
+    srcs = ["pcap_parse_vlan_id.cc"],
+    data = glob(["testdata/pcap_parse*"]),
+    deps = _DEPS_ + ["//dni/tasks/snding:pcap_parse_task"],
+)
+
+cc_binary(
+    name = "pcap_parse_stp",
+    srcs = ["pcap_parse_stp.cc"],
+    data = glob(["testdata/pcap_parse*"]),
+    deps = _DEPS_ + ["//dni/tasks/snding:pcap_parse_task"],
+)
+
 ##################
 
 cc_binary(
@@ -144,6 +158,16 @@ cc_binary(
     name = "dms_rules_dedup_3",
     srcs = ["dms_rules_dedup_3.cc"],
     data = glob(["testdata/dms_rules_dedup_3*"]),
+    deps = _DEPS_ + [
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+    ],
+)
+
+cc_binary(
+    name = "dms_rules_dedup_4",
+    srcs = ["dms_rules_dedup_4.cc"],
+    data = glob(["testdata/dms_rules_dedup_4*"]),
     deps = _DEPS_ + [
         "//dni/tasks/snding:dms_rules_dedup_task",
         "//dni/tasks/snding:sip_base_merge_dedup_task",

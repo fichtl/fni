@@ -31,9 +31,9 @@ private:
 
         std::string calc_number_stat_type(
             const std::unordered_set<uint32_t>& uset,
-            int numValueSum,
             double_t num_ratioMin,
             double_t num_ratioMax,
+            int num_keyLenThresh,
             const ProtoStrings& num_stat_type);
 
         std::unordered_map<int, std::string> calc_proto_stat_type(
@@ -48,6 +48,7 @@ private:
         SndSIPBaseMergeTaskOptions options_;
         double num_ratioMin_;
         double num_ratioMax_;
+        int num_keyLenThresh_;
         double proto_ratioMin_;
         double proto_ratioMax_;
 };
@@ -60,6 +61,7 @@ int SndSIPBaseMergeDeDupTask::Open(TaskContext* ctx)
         options_ = ctx->Options<SndSIPBaseMergeTaskOptions>();
         num_ratioMin_ = options_.num_stat().ratiomin();
         num_ratioMax_ = options_.num_stat().ratiomax();
+        num_keyLenThresh_ = options_.num_stat().keylenthresh();
         if (options_.num_stat().label_size() != 4)
         {
                 SPDLOG_ERROR(
@@ -79,10 +81,11 @@ int SndSIPBaseMergeDeDupTask::Open(TaskContext* ctx)
                 return -1;
         }
         SPDLOG_DEBUG(
-            "{}: num stat ratioMin: {}, num stat ratioMax: {}, num stat labels: {}, "
-            "proto stat ratioMin: {}, proto stat ratioMax: {}, proto stat labels: {}",
-            name_, num_ratioMin_, num_ratioMax_, options_.num_stat().label(),
-            proto_ratioMin_, proto_ratioMax_, options_.proto_stat().label());
+            "{}: num stat ratioMin: {}, ratioMax: {}, keyLenThresh: {}, labels: {}; "
+            "proto stat ratioMin: {}, ratioMax: {}, labels: {}",
+            name_, num_ratioMin_, num_ratioMax_, num_keyLenThresh_,
+            options_.num_stat().label(), proto_ratioMin_, proto_ratioMax_,
+            options_.proto_stat().label());
 
         return 0;
 }
@@ -238,23 +241,23 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 
                 auto sport_stat_type = calc_number_stat_type(
                     merge_ret.second.sport,
-                    numValueSum,
                     num_ratioMin_,
                     num_ratioMax_,
+                    num_keyLenThresh_,
                     options_.num_stat().label());
 
                 auto dport_stat_type = calc_number_stat_type(
                     merge_ret.second.dport,
-                    numValueSum,
                     num_ratioMin_,
                     num_ratioMax_,
+                    num_keyLenThresh_,
                     options_.num_stat().label());
 
                 auto length_stat_type = calc_number_stat_type(
                     merge_ret.second.length,
-                    numValueSum,
                     num_ratioMin_,
                     num_ratioMax_,
+                    num_keyLenThresh_,
                     options_.num_stat().label());
 
                 // for sport, dport, length, if the stat_type is CENTRALIZED, use
@@ -333,7 +336,7 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                         else
                         {
                                 rule_elements += (stat.second.srcPort.stat_type + "--");
-                                rule_stat["SPort"] = "-1";
+                                rule_stat["SPort"] = stat.second.srcPort.stat_type;
                         }
 
                         if (stat.second.dstPort.stat_type == "centralize")
@@ -344,16 +347,27 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                         else
                         {
                                 rule_elements += (stat.second.dstPort.stat_type + "--");
-                                rule_stat["DPort"] = "-1";
+                                rule_stat["DPort"] = stat.second.dstPort.stat_type;
                         }
 
-                        rule_elements += (std::to_string(p["Protocol"]));
+                        rule_elements += (std::to_string(p["Protocol"]) + "--");
                         rule_stat["Protocol"] = std::to_string(p["Protocol"]);
 
                         rule_stat["hostNicSign"] = stat.second.hostNicSign;
 
                         // collect length if need in stat.second.length.stat_type,
                         // stat.second.length.value
+                        // length join in rule_elements
+                        if (stat.second.length.stat_type == "centralize")
+                        {
+                                rule_elements += std::to_string(p["Length"]);
+                                rule_stat["Length"] = std::to_string(p["Length"]);
+                        }
+                        else
+                        {
+                                rule_elements += stat.second.length.stat_type;
+                                rule_stat["Length"] = stat.second.length.stat_type;
+                        }
 
                         // add to ...
                         rules[rule_elements] = rule_stat;
@@ -383,13 +397,14 @@ bool SndSIPBaseMergeDeDupTask::belongs(CIDR cidr, uint32_t ip)
 
 std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
     const std::unordered_set<uint32_t>& uset,
-    int numValueSum,
     double_t num_ratioMin,
     double_t num_ratioMax,
+    int num_keyLenThresh,
     const ProtoStrings& num_stat_type)
 {
         // numKeyLen
         auto numKeyLen = uset.size();
+        SPDLOG_DEBUG("{}: numKeyLen: {}", name_, numKeyLen);
 
         // keySeriesDiffTypeNum
         std::vector<uint32_t> keys;
@@ -411,20 +426,19 @@ std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
         SPDLOG_DEBUG("{}: keySeriesDiffTypeNum: {}", name_, keySeriesDiffTypeNum);
 
         std::string stat_type;
-        double_t score = 0.0;
-        double_t min_ = (double_t) numValueSum * num_ratioMin;
-        double_t max_ = (double_t) numValueSum * num_ratioMax;
-        if (numKeyLen < min_)
+        double_t min_ = (double_t) numKeyLen * num_ratioMin;
+        double_t max_ = (double_t) numKeyLen * num_ratioMax;
+        if (numKeyLen < num_keyLenThresh)
         {
                 stat_type = num_stat_type[0];
         }
         else
         {
-                if (keySeriesDiffTypeNum <= min_)
+                if ((double_t) keySeriesDiffTypeNum <= min_)
                 {
                         stat_type = num_stat_type[1];
                 }
-                else if (keySeriesDiffTypeNum >= max_)
+                else if ((double_t) keySeriesDiffTypeNum >= max_)
                 {
                         stat_type = num_stat_type[2];
                 }

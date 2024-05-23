@@ -69,6 +69,7 @@ node {
             num_stat {
                 ratioMin: 0.1
                 ratioMax: 0.6
+                keyLenThresh: 10
                 label: "centralize"
                 label: "regular"
                 label: "random"

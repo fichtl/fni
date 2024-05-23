@@ -102,7 +102,9 @@ snding::DMSRule SndGenDeDupDMSRulesTask::generate_dms_rule(
         std::string limitMode;
         uint64_t limitMaxValue = 0;
 
-        SPDLOG_DEBUG("{}: {}-{}-{}", name_, stat["SIP"], stat["SPort"], stat["DPort"]);
+        SPDLOG_DEBUG(
+            "{}: {}-{}-{}-{}", name_, stat["SIP"], stat["SPort"], stat["DPort"],
+            stat["Length"]);
 
         // quick action judge
         if ((stat["SIP"] != "RANDOM") || (stat["SPort"] != "-1") ||
@@ -137,23 +139,9 @@ snding::DMSRule SndGenDeDupDMSRulesTask::generate_dms_rule(
         auto ip = std::stoul(stat["DIP"]);
         gen_rule.dstIP = {static_cast<uint32_t>(ip), 32};
 
-        if (stat["SPort"] != "-1")
-        {
-                gen_rule.sPort = std::stoi(stat["SPort"]);
-        }
-        else
-        {
-                gen_rule.sPort = -1;
-        }
-
-        if (stat["DPort"] != "-1")
-        {
-                gen_rule.dPort = std::stoi(stat["DPort"]);
-        }
-        else
-        {
-                gen_rule.dPort = -1;
-        }
+        gen_rule.sPort = stat["SPort"];
+        gen_rule.dPort = stat["DPort"];
+        gen_rule.length = stat["Length"];
 
         gen_rule.protocol = std::stoi(stat["Protocol"]);
 
