@@ -3,6 +3,7 @@ package scheduler
 import (
 	"fmt"
 
+	config "github.com/amianetworks/dni/sdk/config"
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 )
 
@@ -10,7 +11,7 @@ type InputStreamHandler interface {
 	PrepareForRun() error
 	Close() error
 	GetGraphInputStreams() []string
-	AddGraphInputData(flowmng.DataSpec, string) error
+	AddGraphInputData(*flowmng.DataSpec, string) error
 	SetSourceEdge(map[string][]*flowmng.InputManager)
 }
 
@@ -18,7 +19,7 @@ type GraphInputHandler struct {
 	OutputManager *flowmng.OutputManager
 }
 
-func NewGraphInputHandler(gInputStreams []string) *GraphInputHandler {
+func NewGraphInputHandler(gInputStreams config.StreamUnit) *GraphInputHandler {
 	h := &GraphInputHandler{
 		OutputManager: flowmng.NewOutputManager(gInputStreams),
 	}
@@ -33,7 +34,7 @@ func (h *GraphInputHandler) SetSourceEdge(nextInputManagers map[string][]*flowmn
 	h.OutputManager.NextInputManagers = nextInputManagers
 }
 
-func (h *GraphInputHandler) AddGraphInputData(data flowmng.DataSpec, stream string) error {
+func (h *GraphInputHandler) AddGraphInputData(data *flowmng.DataSpec, stream string) error {
 	err := h.OutputManager.AddData(data, stream)
 	return fmt.Errorf("graph input handler error:%v", err)
 }

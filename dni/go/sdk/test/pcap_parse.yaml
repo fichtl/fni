@@ -1,11 +1,11 @@
 input_stream:
-  - name: "Filepath"
+  - "PATH:0:path"
 output_stream:
-  - name: "PcapParseResult"
+  - "pinfos"
 
-nodes:
-  - runner: "PcapParseExecutor"
+node:
+  - task: "SndPcapParseTask"
     input_stream:
-    - "Filepath"
+    - "PATH:0:path"
     output_stream:
-    - "PcapParseResult"
+    - "pinfos"

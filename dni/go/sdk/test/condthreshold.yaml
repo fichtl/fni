@@ -1,22 +1,24 @@
 input_stream:
-  - name: "Val"
-  - name: "Condval"
+  - "stat"
+  - "cond"
 output_stream:
-  - name: "Score"
+  - "score"
 
-nodes:
-  - runner: "ConditionThresholdRunner"
+node:
+  - task: "ConditionThresholdTask"
     input_stream:
-    - "Val"
-    - "Condval"
+    - "STAT:0:stat"
+    - "COND:0:cond"
     output_stream:
-    - "Score"
+    - "score"
     options:
-      condthreshold: 2000
-      thresholds:
-      - 6
-      - 500
-      scores:
-      - 0.2
-      - 0.1
-      - 0
+      thresh_scores:
+        - threshold: 0
+          score: 0.2
+        - threshold: 6
+          score: 0
+        - threshold: 500
+          score: 0.1
+      conditions:
+        - 2000
+      default: 0

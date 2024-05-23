@@ -1,58 +1,66 @@
 input_stream:
-  - name: "Filepath"
+  - "PATH:0:path"
 output_stream:
-  - name: "MaxScore"
+  - "maxscore"
 
 
-nodes:
-  - runner: "PcapParseExecutor"
+node:
+  - task: "SndPcapParseTask"
     input_stream:
-    - "Filepath"
+    - "PATH:0:path"
     output_stream:
-    - "PcapParseResult"
+    - "pinfos"
 
-  - runner: "PacketFeatureRunner"
+  - task: "FeatureCounterTask"
     input_stream:
-    - "PcapParseResult"
+    - "pinfos"
     output_stream:
-    - "SPortStat"
-    - "DPortStat"
+    - "SIP:0:sip_count"
+    - "SPort:0:sport_count"
+    - "DPort:0:dport_count"
+    - "Proto:0:proto_count"
+    - "Length:0:length_count"
     options:
-      featurenames:
+      feature:
+      - "SIP"
       - "SPort"
       - "DPort"
+      - "Proto"
+      - "Length"
     
-  - runner: "NumberStatisticRunner"
+  - task: "SndNumberStatsTask"
     input_stream:
-    - "SPortStat"
+    - "SPort:0:sport_count"
     output_stream:
-    - "SPortScore"
+    - "sportscore"
     options:
-      ratiomin: 0.1
-      ratiomax: 0.6
-      scores:
+      numValueSum: 10000
+      ratioMin: 0.1
+      ratioMax: 0.6
+      score_thresholds:
+       - 0.4
+       - 1
+       - 0.6
+       - 0
+    
+  - task: "SndNumberStatsTask"
+    input_stream:
+    - "DPort:0:dport_count"
+    output_stream:
+    - "dportscore"
+    options:
+      numValueSum: 10000
+      ratioMin: 0.1
+      ratioMax: 0.6
+      score_thresholds:
        - 0.4
        - 1
        - 0.6
        - 0
 
-  - runner: "NumberStatisticRunner"
+  - task: "MaxTask"
     input_stream:
-    - "DPortStat"
+    - "sportscore"
+    - "dportscore"
     output_stream:
-    - "DPortScore"
-    options:
-      ratiomin: 0.1
-      ratiomax: 0.6
-      scores:
-       - 0.4
-       - 1
-       - 0.6
-       - 0
-
-  - runner: "MaxRunner"
-    input_stream:
-    - "SPortScore"
-    - "DPortScore"
-    output_stream:
-    - "MaxScore"
+    - "maxscore"

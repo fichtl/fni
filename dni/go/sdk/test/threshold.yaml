@@ -1,19 +1,21 @@
 input_stream:
-  - name: "A"
+  - "A"
 output_stream:
-  - name: "B"
+  - "B"
 
-nodes:
-  - runner: "ThresholdRunner"
+node:
+  - task: "ThresholdTask"
     input_stream:
     - "A"
     output_stream:
     - "B"
     options:
-      thresholds:
-      - 10.0
-      - 20.0
-      scores:
-      - 1.0
-      - 2.0
-      - 3.0
+      thresh_scores:
+        - threshold: 4000
+          score: 0.4
+        - threshold: 10000
+          score: 0.6
+        - threshold: 100000
+          score: 0.8
+        - threshold: 15000000
+          score: 1.2

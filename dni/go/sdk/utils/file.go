@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 )
@@ -28,6 +26,6 @@ func GetPacketInfos(fin string) (pinfos []map[string]uint32, err error) {
 			pinfos = append(pinfos, pinfo_map)
 		}
 	}
-	fmt.Println(len(pinfos))
+	// fmt.Println(pinfos)
 	return pinfos, nil
 }

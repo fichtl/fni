@@ -2,9 +2,8 @@ input_stream:
   - "PATH:0:path"
   - "KNOWN_IPS:0:knownips"
   - "NIC:0:nic"
-  - "netdev"
 output_stream:
-  - "dmsrules"
+  - "iplink"
 
 
 node:
@@ -56,7 +55,7 @@ node:
     options:
       num_stat: 
         label:
-          - "centralize"
+          - "centrailize"
           - "regular"
           - "random"
           - "void"
@@ -71,9 +70,8 @@ node:
         ratioMin: 0.1
         ratioMax: 0.6
 
-  - task: "SndGenDedupTDMSRulesask"
+  - task: "SndNetRecordMergeTask"
     input_stream:
-    - "CIDR:0:dms_rules_prepare"
-    - "NETDEV:0:netdev"
+    - "merged_stats"
     output_stream:
-    - "dmsrules"
+    - "iplink"

@@ -27,16 +27,6 @@ func GetThresholdScoreID(val float64, thresholds []float64) int {
 	return len(thresholds)
 }
 
-// condition threshold
-// condval>=condthrehold,cond=true
-func GetCondThresholdScore[T int | float64](val, condval, condthreshold, ncondscore T, thresholds, scores []T) T {
-	var cond bool = condval >= condthreshold
-	if cond {
-		return GetThresholdScore[T](val, thresholds, scores)
-	}
-	return ncondscore
-}
-
 func GetCondThresholdScoreSnd(val, condval, condthreshold float64, thresholds, scores []float64) float64 {
 	var cond bool = condval >= condthreshold
 	if cond {
@@ -86,7 +76,7 @@ func GetFeatureStatistics(pinfos []map[string]uint32, featureNames []string) []m
 }
 
 // Number Statistics
-func GetNumStatisticScore(numFeatureMap map[uint32]int, numTypeRatioMin, numTypeRatioMax float64) int {
+func GetNumStatisticScore(numFeatureMap map[uint32]int, condthreshold int, numTypeRatioMin, numTypeRatioMax float64) int {
 	//numKeyLen
 	numKeyLen := len(numFeatureMap)
 	numValueSum := float64(0)
@@ -99,8 +89,7 @@ func GetNumStatisticScore(numFeatureMap map[uint32]int, numTypeRatioMin, numType
 	keyDiffSeries := GetDiff(numKeys)
 	keyDiffSeriesTypeNum := GetTypeNum[uint32](keyDiffSeries)
 	//get score idx
-	condthrehold := numValueSum * numTypeRatioMin
-	if numKeyLen < int(condthrehold) {
+	if numKeyLen < int(condthreshold) {
 		return 0
 	} else {
 		if keyDiffSeriesTypeNum <= int(numValueSum*numTypeRatioMin) {
@@ -114,15 +103,11 @@ func GetNumStatisticScore(numFeatureMap map[uint32]int, numTypeRatioMin, numType
 }
 
 // Proto Statistics
-func GetProtoStatisticScore[T string | float64](protoScoreMap map[uint32]T, protoFeatureMap map[uint32]int, protoTypeRatioMin, protoTypeRatioMax float64, scores []T) {
-	protoValueSum := float64(0)
-	for _, value := range protoFeatureMap {
-		protoValueSum += float64(value)
-	}
+func GetProtoStatisticScore[T string | float64](protoScoreMap map[uint32]T, protoFeatureMap map[uint32]int, protoCountSum, protoTypeRatioMin, protoTypeRatioMax float64, scores []T) {
 	for proto, value := range protoFeatureMap {
-		if value >= int(protoValueSum*protoTypeRatioMax) {
+		if value >= int(protoCountSum*protoTypeRatioMax) {
 			protoScoreMap[proto] = scores[0]
-		} else if value >= int(protoValueSum*protoTypeRatioMin) {
+		} else if value >= int(protoCountSum*protoTypeRatioMin) {
 			protoScoreMap[proto] = scores[1]
 		} else {
 			protoScoreMap[proto] = scores[2]
@@ -151,6 +136,12 @@ func IPRangeToCIDR(start uint32, end uint32) []*net.IPNet {
 	}
 	ipnets := r.ToIPNets()
 	return ipnets
+}
+
+type AttackerIPMergeResult struct {
+	AttackerIPNets []*net.IPNet
+	IsRand         bool
+	RandIPCountDF  map[uint32]int
 }
 
 // ip merge 1
@@ -394,7 +385,7 @@ func SIPBaseMerge(hostNicSign string, pinfos []map[string]uint32, attakIPNets []
 		length := info["Length"]
 		proto := info["Proto"]
 		for _, attakIPNet := range attakIPNets {
-			if attakIPNet.Contains(net.IP(Uitoa(ip))) {
+			if attakIPNet.Contains(net.IP(Uiton(ip))) {
 				sipnet := attakIPNet.String()
 				mergedStat, ok := mergedStats[sipnet]
 				if !ok {
@@ -439,9 +430,10 @@ type DMSRule struct {
 	HostNicSign    string
 	SRCIP          string
 	DSTIP          string
-	SPort          int    //-1,do not config sport
-	DPort          int    //-1,do not config dport
-	Proto          int    //-1,do not config proto
+	SPort          string //
+	DPort          string //
+	Length         string
+	Proto          int    //
 	Action         string //default drop
 	LimitMode      string //"bps" or "pps"
 	LimnitMaxValue uint64
@@ -496,8 +488,8 @@ func GenDMSRules(mergedStats *SIPBaseMergedStat, netdev []float64) (rules []DMSR
 					rule.HostNicSign = mergedStats.HostNicSign
 					rule.SRCIP = mergedStats.SIP
 					rule.DSTIP = Uitoa(dip)
-					rule.SPort = sport
-					rule.DPort = dport
+					rule.SPort = strconv.Itoa(sport)
+					rule.DPort = strconv.Itoa(dport)
 					rule.Proto = int(proto)
 					rule_id++
 				}
@@ -519,12 +511,9 @@ func GenDMSRulesDedup(fiveTupleValue map[string]string, netdev []float64) DMSRul
 	if err == nil {
 		sport_central = true
 	}
-	sport := -1
 	//dport stats judge
-	dport, err := strconv.Atoi(fiveTupleValue["SPort"])
-	if err != nil {
-		dport = -1
-	} else {
+	_, err = strconv.Atoi(fiveTupleValue["SPort"])
+	if err == nil {
 		dport_central = true
 	}
 	//action judge
@@ -540,8 +529,9 @@ func GenDMSRulesDedup(fiveTupleValue map[string]string, netdev []float64) DMSRul
 	rule := DMSRule{
 		SRCIP:          sip,
 		DSTIP:          dip,
-		SPort:          sport,
-		DPort:          dport,
+		SPort:          fiveTupleValue["SPort"],
+		DPort:          fiveTupleValue["DPort"],
+		Length:         fiveTupleValue["Length"],
 		Proto:          proto,
 		HostNicSign:    hostNic,
 		Action:         action,

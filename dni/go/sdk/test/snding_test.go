@@ -5,89 +5,84 @@ import (
 	"testing"
 	"time"
 
-	"github.com/amianetworks/dni/sdk/runner"
-	"github.com/amianetworks/dni/sdk/scheduler"
+	graph "github.com/amianetworks/dni/sdk/graph"
 )
 
-func TestThresholdRunner(t *testing.T) {
+func TestThresholdTask(t *testing.T) {
 	graph_path := "/home/yf/workspace/dni/dni/go/sdk/test/threshold.yaml"
-	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	for i := 0; i < 50; i++ {
-		graph.AddGraphInputData(float64(i), "A")
+	for i := 3; i < 5; i++ {
+		g.AddGraphInputData(float64(i*1000), "A")
 		//get output
-		d, err := graph.GetGraphOutputData("B")
+		d, err := g.GetGraphOutputData("B")
 		if err != nil {
 			t.Log(err)
 		}
 		fmt.Println("Score:", d)
 	}
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestCondThresholdRunner(t *testing.T) {
+func TestCondThresholdTask(t *testing.T) {
 	graph_path := "condthreshold.yaml"
-	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	for i := 0; i < 600; i++ {
-		for j := 1999; j < 2001; j++ {
-			graph.AddGraphInputData(float64(i), "Val")
-			graph.AddGraphInputData(float64(i*200), "Condval")
+	for i := 0; i < 1; i++ {
+		for j := 1999; j < 2000; j++ {
+			g.AddGraphInputData(float64(i), "stat")
+			g.AddGraphInputData([]float64{float64(i * 200)}, "cond")
 			//get output
-			d, err := graph.GetGraphOutputData("Score")
+			d, err := g.GetGraphOutputData("score")
 			if err != nil {
 				t.Log(err)
 			}
-			fmt.Println("Score:", d)
+			fmt.Println("score:", d)
 		}
 	}
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestAbnormalJudge(t *testing.T) {
+func TestSndAdTask(t *testing.T) {
 	graph_path := "abnormaljudge.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 2; j++ {
 			for z := 0; z < 2; z++ {
-				graph.AddGraphInputData(float64(i), "Pscore")
-				graph.AddGraphInputData(float64(j), "Nscore")
-				graph.AddGraphInputData(float64(z), "Rscore")
+				g.AddGraphInputData(float64(i), "packet")
+				g.AddGraphInputData(float64(j), "netdev")
+				g.AddGraphInputData(float64(z), "resource")
 				//get output
-				d, err := graph.GetGraphOutputData("Abnormal")
+				d, err := g.GetGraphOutputData("abnormal_res")
 				if err != nil {
 					t.Log(err)
 				}
@@ -95,165 +90,164 @@ func TestAbnormalJudge(t *testing.T) {
 			}
 		}
 	}
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestPcapParseExecutor(t *testing.T) {
+func TestSndPcapParseTask(t *testing.T) {
 	graph_path := "pcap_parse.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
-	_, err = graph.GetGraphOutputData("PcapParseResult")
+	file_path := "/home/yf/workspace/pcap/hping3-icmp.pcap"
+	g.AddGraphInputData(file_path, "path")
+	_, err = g.GetGraphOutputData("pinfos")
 	if err != nil {
 		t.Log(err)
 	}
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestPacketFeatureExecutor(t *testing.T) {
+func TestFeatureCounterTask(t *testing.T) {
 	graph_path := "pcap_feature.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
-	_, err = graph.GetGraphOutputData("PcapParseResult")
+	file_path := "/home/yf/workspace/pcap/hping3-icmp.pcap"
+	g.AddGraphInputData(file_path, "path")
+	_, err = g.GetGraphOutputData("sip_count")
 	if err != nil {
 		t.Log(err)
 	}
 	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestNumberFeatureExecutor(t *testing.T) {
+func TestSndNumberStatsTask(t *testing.T) {
 	graph_path := "num_feature.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
-	_, err = graph.GetGraphOutputData("PcapParseResult")
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
+	g.AddGraphInputData(file_path, "path")
+	_, err = g.GetGraphOutputData("sipscore")
 	if err != nil {
 		t.Log(err)
 	}
 	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestProtoFeatureExecutor(t *testing.T) {
+func TestSndProtoStatsTask(t *testing.T) {
 	graph_path := "proto_feature.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
-	_, err = graph.GetGraphOutputData("PcapParseResult")
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
+	g.AddGraphInputData(file_path, "path")
+	_, err = g.GetGraphOutputData("protoscore")
 	if err != nil {
 		t.Log(err)
 	}
 	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestMaxExecutor(t *testing.T) {
+func TestMaxTask(t *testing.T) {
 	graph_path := "num_feature_max.yaml"
-	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
-	_, err = graph.GetGraphOutputData("MaxScore")
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
+	g.AddGraphInputData(file_path, "path")
+	_, err = g.GetGraphOutputData("maxsocre")
 	if err != nil {
 		t.Log(err)
 	}
 	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func TestIPMergeExecutor(t *testing.T) {
+func TestIPMergeTask(t *testing.T) {
 	graph_path := "ip_merge.yaml"
 	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
+	g.AddGraphInputData(file_path, "path")
 	normal_ips := make(map[uint32]struct{})
-	graph.AddGraphInputData(normal_ips, "NormalIPs")
-	_, err = graph.GetGraphOutputData("AttackIPNets")
+	g.AddGraphInputData(normal_ips, "knownips")
+	_, err = g.GetGraphOutputData("attakerIPMergeRes")
 	if err != nil {
 		t.Log(err)
 	}
 	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -261,29 +255,27 @@ func TestIPMergeExecutor(t *testing.T) {
 
 func TestSIPBaseMerge(t *testing.T) {
 	graph_path := "sip_base_merge.yaml"
-	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
+	g.AddGraphInputData(file_path, "path")
 	normal_ips := make(map[uint32]struct{})
-	graph.AddGraphInputData(normal_ips, "NormalIPs")
-	graph.AddGraphInputData("ens1f1", "HostNicSign")
-	nicrecord, err := graph.GetGraphOutputData("NicRecords")
+	g.AddGraphInputData(normal_ips, "knownips")
+	g.AddGraphInputData("ens1f1", "nic")
+	nicrecord, err := g.GetGraphOutputData("dms_rules_prepare")
 	if err != nil {
 		t.Log(err)
 	}
 	t.Log(nicrecord)
-	time.Sleep(2 * time.Second)
-	//destroy graph
-	err = graph.Destroy()
+	time.Sleep(5 * time.Second)
+	//destroy g
+	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -291,23 +283,44 @@ func TestSIPBaseMerge(t *testing.T) {
 
 func TestGenDMSRule(t *testing.T) {
 	graph_path := "gen_dms_rules.yaml"
-	//register executors
-	runner.InitExecutorRegistry()
-	//init graph
-	graph, err := scheduler.InitialGraph(graph_path)
+	//init g
+	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
-		t.Fatalf("failed to run graph:%v", err)
+		t.Fatalf("failed to run g:%v", err)
 	}
-	graph.GetReady()
-	graph.Run()
+	g.GetReady()
+	g.Run()
 	//add inputs
-	file_path := "/home/yf/Workspace/dni/dni/go/test/test_sources/2024_0515_1406_17.324-enp5s0f1np1_ddos21.pcap"
-	graph.AddGraphInputData(file_path, "Filepath")
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
+	g.AddGraphInputData(file_path, "path")
 	normal_ips := make(map[uint32]struct{})
-	graph.AddGraphInputData(normal_ips, "NormalIPs")
-	graph.AddGraphInputData("ens1f1", "HostNicSign")
-	graph.AddGraphInputData([]float64{200, 0.6, 300, 0.4}, "Netdev")
-	nicrecord, err := graph.GetGraphOutputData("DMSRules")
+	g.AddGraphInputData(normal_ips, "knownips")
+	g.AddGraphInputData("ens1f1", "nic")
+	g.AddGraphInputData([]float64{200, 0.6, 300, 0.4}, "netdev")
+	nicrecord, err := g.GetGraphOutputData("dmsrules")
+	if err != nil {
+		t.Log(err)
+	}
+	t.Log(nicrecord)
+	time.Sleep(2 * time.Second)
+}
+
+func TestNetRecordMerge(t *testing.T) {
+	graph_path := "net_record_merge.yaml"
+	//init g
+	g, err := graph.InitialGraph(graph_path)
+	if err != nil {
+		t.Fatalf("failed to run g:%v", err)
+	}
+	g.GetReady()
+	g.Run()
+	//add inputs
+	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
+	g.AddGraphInputData(file_path, "path")
+	normal_ips := make(map[uint32]struct{})
+	g.AddGraphInputData(normal_ips, "knownips")
+	g.AddGraphInputData("ens1f1", "nic")
+	nicrecord, err := g.GetGraphOutputData("iplink")
 	if err != nil {
 		t.Log(err)
 	}

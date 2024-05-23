@@ -2,55 +2,58 @@ package flowmanager
 
 import (
 	"fmt"
+
+	config "github.com/amianetworks/dni/sdk/config"
 )
 
 type InputManager struct {
-	InputStreams   []string
-	InputStreamMap map[string]int
-	InputChannels  map[string]chan DataSpec
+	InputStreams  []string
+	InputChannels map[string]chan *DataSpec
+	Inputs        *DataSlice
 }
 
-func NewInputManager(inputstream []string) *InputManager {
+func NewInputManager(inputstream config.StreamUnit) *InputManager {
 	//different input stream to different channel
-	inputchannels := make(map[string]chan DataSpec)
-	instreammap := make(map[string]int, 0)
-	for id, stream := range inputstream {
-		instreammap[stream] = id
-		inputch := make(chan DataSpec, 1000)
+	inputchannels := make(map[string]chan *DataSpec)
+	for _, stream := range inputstream.Name {
+		inputch := make(chan *DataSpec, 1000)
 		inputchannels[stream] = inputch
 	}
-
+	//data slice to save input
+	inputs := NewDataSlice(inputstream.TagIndexMap)
 	return &InputManager{
-		InputStreams:   inputstream,
-		InputStreamMap: instreammap,
-		InputChannels:  inputchannels,
+		InputStreams:  inputstream.Name,
+		InputChannels: inputchannels,
+		Inputs:        inputs,
 	}
 }
 
 func (im *InputManager) HasInputStream(stream string) bool {
-	_, ok := im.InputStreamMap[stream]
+	_, ok := im.InputChannels[stream]
 	return ok
 }
 
-func (im *InputManager) GetInputStreamChannel(stream string) (chan DataSpec, bool) {
+func (im *InputManager) GetInputStreamChannel(stream string) (chan *DataSpec, bool) {
 	inputch, ok := im.InputChannels[stream]
 	return inputch, ok
 }
 
-func (im *InputManager) Subscribe() ([]*DataSpec, bool) {
-	//return when all input stream data has been recieved
-	var allstop bool = true
-	inputdatas := make([]*DataSpec, len(im.InputStreams))
+func (im *InputManager) Subscribe() (bool, bool) {
+	var allok bool = true
+	var allclosed bool = true
 	for id, stream := range im.InputStreams {
 		ch, _ := im.GetInputStreamChannel(stream)
 		inputdata, ok := <-ch
-		allstop = allstop && !ok
-		inputdatas[id] = &inputdata
+		allok = allok && ok
+		allclosed = allclosed && !ok
+		//put data in order
+		//TODO:set data
+		im.Inputs.Values[id] = inputdata
 	}
-	return inputdatas, allstop
+	return allok, allclosed
 }
 
-func (im *InputManager) AddData(input DataSpec, stream string) error {
+func (im *InputManager) AddData(input *DataSpec, stream string) error {
 	ch, ok := im.GetInputStreamChannel(stream)
 	if !ok {
 		return fmt.Errorf("add data error: stream name error:%s", stream)

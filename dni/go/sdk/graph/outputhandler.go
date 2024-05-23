@@ -1,12 +1,13 @@
 package scheduler
 
 import (
+	config "github.com/amianetworks/dni/sdk/config"
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 )
 
 type OutputStreamHandler interface {
 	PrepareForRun() error
-	GetOutputChannel(string) (chan flowmng.DataSpec, bool)
+	GetOutputChannel(string) (chan *flowmng.DataSpec, bool)
 	GetInputManager() *flowmng.InputManager
 	Close() error
 }
@@ -15,7 +16,7 @@ type GraphOutputHandler struct {
 	InputManager *flowmng.InputManager
 }
 
-func NewGraphOutputHandler(gOutputStreams []string) *GraphOutputHandler {
+func NewGraphOutputHandler(gOutputStreams config.StreamUnit) *GraphOutputHandler {
 	h := &GraphOutputHandler{
 		InputManager: flowmng.NewInputManager(gOutputStreams),
 	}
@@ -30,7 +31,7 @@ func (h *GraphOutputHandler) GetInputManager() *flowmng.InputManager {
 	return h.InputManager
 }
 
-func (h *GraphOutputHandler) GetOutputChannel(stream string) (chan flowmng.DataSpec, bool) {
+func (h *GraphOutputHandler) GetOutputChannel(stream string) (chan *flowmng.DataSpec, bool) {
 	outCh, ok := h.InputManager.GetInputStreamChannel(stream)
 	return outCh, ok
 }

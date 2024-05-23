@@ -1,15 +1,15 @@
 input_stream:
-  - name: "Pscore"
-  - name: "Nscore"
-  - name: "Rscore"
+  - "PACKET:packet"
+  - "NETDEV:netdev"
+  - "RESOURCE:resource"
 output_stream:
-  - name: "Abnormal"
+  - "abnormal_res"
 
-nodes:
-  - runner: "AbnormalJudgeRunner"
+node:
+  - task: "SndAdTask"
     input_stream:
-    - "Pscore"
-    - "Nscore"
-    - "Rscore"
+    - "PACKET:packet"
+    - "NETDEV:netdev"
+    - "RESOURCE:resource"
     output_stream:
-    - "Abnormal"
+    - "abnormal_res"

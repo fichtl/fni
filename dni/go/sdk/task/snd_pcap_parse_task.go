@@ -1,0 +1,41 @@
+package task
+
+import (
+	"fmt"
+	"log"
+
+	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/utils"
+)
+
+type SndPcapParseTask struct {
+	TaskName string
+}
+
+func NewSndPcapParseTask(task string, options interface{}) Task {
+	return &SndPcapParseTask{
+		TaskName: task,
+	}
+}
+
+func (t *SndPcapParseTask) Start(ctx *flowmng.TaskContext) error {
+	fin, ok := ctx.Inputs.Get("PATH", 0).Data.(string)
+	if !ok {
+		return fmt.Errorf("[%s] cast error", t.TaskName)
+	}
+	pinfos, err := utils.GetPacketInfos(fin)
+	if err != nil {
+		return fmt.Errorf("[%s] get packet info error:%v", t.TaskName, err)
+	}
+	ctx.Outputs.Get("", 0).Data = pinfos
+	log.Printf("[%s] packet infos:%v", t.TaskName, pinfos)
+	return nil
+}
+
+func (t *SndPcapParseTask) Stop() error {
+	return nil
+}
+
+func init() {
+	RegisterTask("SndPcapParseTask", NewSndPcapParseTask)
+}

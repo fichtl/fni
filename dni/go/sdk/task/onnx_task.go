@@ -1,9 +1,8 @@
-package runner
+package task
 
 import (
 	"fmt"
 	"log"
-	"time"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/mitchellh/mapstructure"
@@ -108,62 +107,57 @@ func (om *OnnxModel) Destory() {
 	om.session.Destroy()
 }
 
-type OnnxExecutor struct {
-	RunnerName string
+type OnnxTask struct {
+	TaskName   string
 	onnxModel  *OnnxModel
 	LastOutput []float32
 }
 
-type OnnxExecutorOptions struct {
-	ModelPath string `mapstructure:"path"`
+type OnnxTaskOptions struct {
+	ModelPath string `mapstructure:"model_path"`
 }
 
-func NewOnnxExecutor(runner string, options map[string]interface{}) Executor {
-	//decode map[string]interface{} to onnx runner options
-	var opts OnnxExecutorOptions
+func NewOnnxTask(task string, options interface{}) Task {
+	//decode map[string]interface{} to onnx task options
+	var opts OnnxTaskOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
-		log.Printf("%s options decode error:%v", runner, err)
+		log.Printf("%s options decode error:%v", task, err)
 		return nil
 	}
 	//create onnx executor
-	e := &OnnxExecutor{
-		RunnerName: runner,
+	t := &OnnxTask{
+		TaskName: task,
 	}
 	//load model
 	model := opts.ModelPath
-	e.onnxModel = NewOnnxModel(model)
-	err = e.onnxModel.Load()
+	t.onnxModel = NewOnnxModel(model)
+	err = t.onnxModel.Load()
 	if err != nil {
 		log.Printf("load onnx model error: %v\n", err)
 		return nil
 	}
-	return e
+	return t
 }
 
-func (e *OnnxExecutor) Start(value []*flowmng.DataSpec) ([]flowmng.DataSpec, error) {
-	data := flowmng.DataSpec{
-		Type: flowmng.DATA_TYPE_TENSOR_FLOAT,
-	}
-
-	if len(value) != 1 {
-		return []flowmng.DataSpec{}, fmt.Errorf("onnx executor input num error")
-	}
-	inputs, ok := value[0].Data.([][]float32)
+func (t *OnnxTask) Start(ctx *flowmng.TaskContext) error {
+	inputdata, ok := ctx.Inputs.Values[0].Data.([][]float32)
 	if !ok {
-		return []flowmng.DataSpec{}, fmt.Errorf("onnx executor cast error")
+		return fmt.Errorf("[%s] cast error", t.TaskName)
 	}
-	outputTensor, err := e.onnxModel.Inference(inputs)
+	outputTensor, err := t.onnxModel.Inference(inputdata)
 	if err != nil {
 		log.Printf("onnx executor inference error:%v", err)
-		return []flowmng.DataSpec{}, fmt.Errorf("onnx executor inference error:%v", err)
+		return fmt.Errorf("onnx executor inference error:%v", err)
 	}
-
-	data.Data = outputTensor
-	data.TimeStamp = time.Now()
-	return []flowmng.DataSpec{data}, nil
+	ctx.Outputs.Values[0].Data = outputTensor
+	return nil
 }
 
-func (e *OnnxExecutor) Stop() error {
+func (t *OnnxTask) Stop() error {
 	return nil
+}
+
+func init() {
+	RegisterTask("OnnxTask", NewOnnxTask)
 }

@@ -1,8 +1,8 @@
 input_stream:
-  - name: "A"
-  - name: "B"
+  - "A"
+  - "B"
 output_stream:
-  - name: "C"
+  - "C"
 
 nodes:
   - runner: "SumRunner"

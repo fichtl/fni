@@ -1,35 +1,41 @@
 input_stream:
-  - name: "Filepath"
-  - name: "NormalIPs"
-  - name: "HostNicSign"
+  - "PATH:0:path"
+  - "KNOWN_IPS:0:knownips"
+  - "NIC:0:nic"
 output_stream:
-  - name: "NicRecords"
+  - "CIDR:1:dms_rules_prepare"
 
 
-nodes:
-  - runner: "PcapParseExecutor"
+node:
+  - task: "SndPcapParseTask"
     input_stream:
-    - "Filepath"
+    - "PATH:0:path"
     output_stream:
-    - "PcapParseResult"
+    - "PACKET:0:pinfos"
 
-  - runner: "PacketFeatureRunner"
+  - task: "FeatureCounterTask"
     input_stream:
-    - "PcapParseResult"
+    - "PACKET:0:pinfos"
     output_stream:
-    - "SIPStats"
+    - "SIP:0:sip_count"
+    - "SPort:0:sport_count"
+    - "DPort:0:dport_count"
+    - "Proto:0:proto_count"
+    - "Length:0:length_count"
     options:
-      featurenames:
+      feature:
       - "SIP"
+      - "SPort"
+      - "DPort"
+      - "Proto"
+      - "Length"
     
-  - runner: "AttackIPMergeRunner"
+  - task: "SndAttackerIPMergeTask"
     input_stream:
-    - "SIPStats"
-    - "NormalIPs"
+    - "SIP:0:sip_count"
+    - "KNOWN_IPS:0:knownips"
     output_stream:
-    - "AttackIPNets"
-    - "IS_RAND"
-    - "RandIPs"
+    - "SIP:0:attakerIPMergeRes"
     options:
       ipFw4CountRatio: 0.1
       ipFw3CountRatio: 0.2
@@ -38,26 +44,28 @@ nodes:
       ipSegCoverThreshold: 100
       ipRandCountThreshold: 2
 
-  - runner: "SIPBaseMergeDedupRunner"
+  - task: "SndSIPBaseMergeDedupTask"
     input_stream:
-    - "HostNicSign"
-    - "PcapParseResult"
-    - "AttackIPNets"
-    - "IS_RAND"
-    - "RandIPs"
+    - "PACKET:0:pinfos"
+    - "SIP:0:attakerIPMergeRes"
+    - "NIC:0:nic"
     output_stream:
-    - "NicRecords"
+    - "CIDR:0:merged_stats"
+    - "CIDR:1:dms_rules_prepare"
     options:
-      numTypeRatioMin: 0.1
-      numTypeRatioMax: 0.6
-      protoTypeRatioMin: 0.1
-      protoTypeRatioMax: 0.6
-      numStats: 
-      - "centrailize"
-      - "regular"
-      - "random"
-      - "void"
-      protoStats: 
-      - "flood"
-      - "rapid"
-      - "void"
+      num_stat: 
+        label:
+          - "centralize"
+          - "regular"
+          - "random"
+          - "void"
+        ratioMin: 0.1
+        ratioMax: 0.6
+        keyLenThresh: 10
+      proto_stat: 
+        label:
+          - "flood"
+          - "rapid"
+          - "void"
+        ratioMin: 0.1
+        ratioMax: 0.6
