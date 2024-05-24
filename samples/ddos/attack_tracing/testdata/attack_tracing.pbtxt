@@ -20,7 +20,7 @@ node {
 node {
     name: "abnormal_pcap_feature_counter"
     task: "FeatureCounterTask"
-    input_stream: ":parsed_packets"
+    input_stream: "parsed_packets"
     output_stream: "SIP:sip_count"
     output_stream: "SPort:sport_count"
     output_stream: "DPort:dport_count"

@@ -7,7 +7,8 @@ int main()
 {
         spdlog::set_level(spdlog::level::trace);
 
-        const std::string& proto = "samples/ddos/testdata/attack_tracing.pbtxt";
+        const std::string& proto =
+            "samples/ddos/attack_tracing/testdata/attack_tracing.pbtxt";
         auto gc = dni::LoadTextprotoFile(proto);
         if (!gc)
         {
@@ -18,7 +19,7 @@ int main()
         dni::Graph* g = new dni::Graph(gc.value());
         DatumGen gen = DatumGen<dni::snding::AttackerIPMergeResult>(g);
 
-        std::string pcapPath = "samples/ddos/testdata/attack_tracing.pcap";
+        std::string pcapPath = "samples/ddos/attack_tracing/testdata/attack_tracing.pcap";
         std::vector<InputMap> inputs = {
             {
                 {"pcapPath", dni::Datum(pcapPath)},
