@@ -158,7 +158,8 @@ void parse_snd_features(u_char* args, const struct pcap_pkthdr* hdr, const u_cha
                 SPDLOG_TRACE(
                     "Packet total len: {}, capture len: {}", hdr->len, hdr->caplen);
 
-                packet["Length"] = hdr->len;
+                // packet["Length"] = hdr->len;
+                packet["Length"] = ntohs(ip_header->ip_len);
 
                 packet["Protocol"] = proto;
 
