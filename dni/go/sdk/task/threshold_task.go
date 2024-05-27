@@ -38,7 +38,11 @@ func NewThresholdTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *ThresholdTask) Start(ctx *flowmng.TaskContext) error {
+func (t *ThresholdTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *ThresholdTask) Process(ctx *flowmng.TaskContext) error {
 	val, ok := ctx.Inputs.Values[0].Data.(float64)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -68,7 +72,7 @@ func (t *ThresholdTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *ThresholdTask) Stop() error {
+func (t *ThresholdTask) Close() error {
 	return nil
 }
 

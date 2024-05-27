@@ -15,11 +15,7 @@ type OutputManager struct {
 }
 
 func NewOutputManager(outputstream config.StreamUnit) *OutputManager {
-	outputchannels := make(map[string]chan DataSpec)
-	for _, stream := range outputstream.Name {
-		outputchannels[stream] = make(chan DataSpec, 1000)
-	}
-	outputs := NewDataSlice(outputstream.TagIndexMap)
+	outputs := NewDataSlice(outputstream)
 	return &OutputManager{
 		OutputStreams: outputstream.Name,
 		Outputs:       outputs,
@@ -39,7 +35,7 @@ func (om *OutputManager) AddData(output *DataSpec, stream string) error {
 		mng := inMngs[id]
 		err := mng.AddData(output, stream)
 		if err != nil {
-			return fmt.Errorf("outputmanager send stream (%s) to next node failed", stream)
+			return fmt.Errorf("outputmanager send stream/sidedata (%s) to next node failed", stream)
 		}
 	}
 	return nil
@@ -50,7 +46,7 @@ func (om *OutputManager) AddAllData() {
 		outputs := om.Outputs.Values
 		outputs[id].StreamName = stream
 		om.AddData(outputs[id], stream)
-		log.Printf("send stream (%s) to next node", stream)
+		log.Printf("send stream/sidedata (%s) to next node", stream)
 	}
 }
 

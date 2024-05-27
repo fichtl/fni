@@ -45,7 +45,11 @@ func NewSndSIPBaseMergeDedupTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *SndSIPBaseMergeDedupTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndSIPBaseMergeDedupTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndSIPBaseMergeDedupTask) Process(ctx *flowmng.TaskContext) error {
 	//cast ctx.Inputs
 	hostNicSign, ok := ctx.Inputs.Get("NIC", 0).Data.(string)
 	if !ok {
@@ -133,7 +137,7 @@ func (t *SndSIPBaseMergeDedupTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndSIPBaseMergeDedupTask) Stop() error {
+func (t *SndSIPBaseMergeDedupTask) Close() error {
 	return nil
 }
 

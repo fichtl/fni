@@ -18,7 +18,11 @@ func NewSndPcapParseTask(task string, options interface{}) Task {
 	}
 }
 
-func (t *SndPcapParseTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndPcapParseTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndPcapParseTask) Process(ctx *flowmng.TaskContext) error {
 	fin, ok := ctx.Inputs.Get("PATH", 0).Data.(string)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -32,7 +36,7 @@ func (t *SndPcapParseTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndPcapParseTask) Stop() error {
+func (t *SndPcapParseTask) Close() error {
 	return nil
 }
 

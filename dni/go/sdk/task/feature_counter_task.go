@@ -32,7 +32,11 @@ func NewFeatureCounterTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *FeatureCounterTask) Start(ctx *flowmng.TaskContext) error {
+func (t *FeatureCounterTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *FeatureCounterTask) Process(ctx *flowmng.TaskContext) error {
 	//inputs
 	pinfos, ok := ctx.Inputs.Get("", 0).Data.([]map[string]uint32)
 	if !ok {
@@ -48,7 +52,7 @@ func (t *FeatureCounterTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *FeatureCounterTask) Stop() error {
+func (t *FeatureCounterTask) Close() error {
 	return nil
 }
 

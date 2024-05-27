@@ -17,7 +17,11 @@ func NewSumTask(task string, options interface{}) Task {
 	}
 }
 
-func (t *SumTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SumTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SumTask) Process(ctx *flowmng.TaskContext) error {
 	var sum float64
 	for _, value := range ctx.Inputs.Values {
 		val, ok := value.Data.(float64)
@@ -31,7 +35,7 @@ func (t *SumTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SumTask) Stop() error {
+func (t *SumTask) Close() error {
 	return nil
 }
 

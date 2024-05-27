@@ -34,7 +34,11 @@ func NewConditionThresholdTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *ConditionThresholdTask) Start(ctx *flowmng.TaskContext) error {
+func (t *ConditionThresholdTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *ConditionThresholdTask) Process(ctx *flowmng.TaskContext) error {
 	//get inputs
 	val, ok := ctx.Inputs.Get("STAT", 0).Data.(float64)
 	if !ok {
@@ -80,7 +84,7 @@ func (t *ConditionThresholdTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *ConditionThresholdTask) Stop() error {
+func (t *ConditionThresholdTask) Close() error {
 	return nil
 }
 

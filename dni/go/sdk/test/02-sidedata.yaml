@@ -1,0 +1,39 @@
+input_stream:
+  - "A"
+output_stream:
+  - "D"
+input_sidedata:
+  - "in_sidedata"
+output_sidedata:
+  - "out_sidedata3"
+
+node:
+  - task: "PropagateAndAddSideDataTask"
+    input_stream:
+    - "A"
+    output_stream:
+    - "B"
+    input_sidedata:
+    - "in_sidedata"
+    output_sidedata:
+    - "out_sidedata1"
+
+  - task: "PropagateAndAddSideDataTask"
+    input_stream:
+    - "B"
+    output_stream:
+    - "C"
+    input_sidedata:
+    - "out_sidedata1"
+    output_sidedata:
+    - "out_sidedata2"
+
+  - task: "PropagateAndAddSideDataTask"
+    input_stream:
+    - "B"
+    output_stream:
+    - "D"
+    input_sidedata:
+    - "out_sidedata1"
+    output_sidedata:
+    - "out_sidedata3"

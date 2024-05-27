@@ -7,8 +7,9 @@ import (
 )
 
 type Task interface {
-	Start(*flowmng.TaskContext) error
-	Stop() error
+	Open(*flowmng.TaskContext) error
+	Process(*flowmng.TaskContext) error
+	Close() error
 }
 
 var TaskRegistry = make(map[string]func(string, interface{}) Task)

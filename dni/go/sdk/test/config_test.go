@@ -81,11 +81,12 @@ func TestGetNodeEdge1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nodeEdge, err := gu.GetNodeEdge()
+	nodeEdge, topo, err := gu.GetNodeEdge()
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(nodeEdge)
+	t.Log(topo)
 }
 
 func TestGetNodeEdge2(t *testing.T) {
@@ -98,11 +99,12 @@ func TestGetNodeEdge2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nodeEdge, err := gu.GetNodeEdge()
+	nodeEdge, topo, err := gu.GetNodeEdge()
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(nodeEdge)
+	t.Log(topo)
 }
 
 func TestGetNodeEdge3(t *testing.T) {
@@ -115,9 +117,46 @@ func TestGetNodeEdge3(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nodeEdge, err := gu.GetNodeEdge()
+	nodeEdge, topo, err := gu.GetNodeEdge()
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log(nodeEdge)
+	t.Log(topo)
+}
+
+func TestGetNodeEdge4(t *testing.T) {
+	graphfile := "/home/yf/workspace/dni/dni/go/sdk/test/01-loop-graph.yaml"
+	gc, err := config.GetGraphConfig(graphfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gu, err := config.GetGraphUnit(gc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodeEdge, topo, err := gu.GetNodeEdge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(nodeEdge)
+	t.Log(topo)
+}
+
+func TestGetNodeEdge5(t *testing.T) {
+	graphfile := "/home/yf/workspace/dni/dni/go/sdk/test/01-loop-graph.yaml"
+	gc, err := config.GetGraphConfig(graphfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gu, err := config.GetGraphUnit(gc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodeEdge, topo, err := gu.GetNodeEdge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(nodeEdge)
+	t.Log(topo)
 }

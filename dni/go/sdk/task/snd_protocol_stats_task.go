@@ -35,7 +35,11 @@ func NewSndProtocolStatsTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *SndProtocolStatsTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndProtocolStatsTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndProtocolStatsTask) Process(ctx *flowmng.TaskContext) error {
 	protoFeatureMap, ok := ctx.Inputs.Get("", 0).Data.(map[uint32]int)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -52,7 +56,7 @@ func (t *SndProtocolStatsTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndProtocolStatsTask) Stop() error {
+func (t *SndProtocolStatsTask) Close() error {
 	return nil
 }
 

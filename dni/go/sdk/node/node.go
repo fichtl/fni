@@ -16,9 +16,10 @@ type Node struct {
 	InputStream  config.StreamUnit // InputStreams
 	OutputStream config.StreamUnit // OutputStreams
 
-	InputManager  *flowmng.InputManager  // Manage node input streams
-	OutputManager *flowmng.OutputManager // Manage node output streams
-	TaskContext   *flowmng.TaskContext
+	InputManager          *flowmng.InputManager          // Manage node input streams
+	OutputManager         *flowmng.OutputManager         // Manage node output streams
+	OutputSideDataManager *flowmng.OutputSideDataManager // Manage node output sidedata
+	TaskContext           *flowmng.TaskContext
 
 	Task task.Task // Node task
 
@@ -37,13 +38,17 @@ func InitNode(nodeID int, unit config.NodeUnit) (*Node, error) {
 		mutex:        &sync.Mutex{},
 		stopinfo:     false,
 	}
-	node.InputManager = flowmng.NewInputManager(node.InputStream)
-	node.OutputManager = flowmng.NewOutputManager(node.OutputStream)
+	node.InputManager = flowmng.NewInputManager(unit.InputStream)
+	node.OutputManager = flowmng.NewOutputManager(unit.OutputStream)
+	node.OutputSideDataManager = flowmng.NewOutputSideDataManager(unit.OutputSideData)
 	//context
 	node.TaskContext = &flowmng.TaskContext{
-		Inputs:  node.InputManager.Inputs,
-		Outputs: node.OutputManager.Outputs,
+		Inputs:         node.InputManager.Inputs,
+		Outputs:        node.OutputManager.Outputs,
+		InputSideData:  flowmng.NewDataSlice(unit.InputSideData),
+		OutputSideData: node.OutputSideDataManager.Outputs,
 	}
+	//task
 	task := task.NewTask(unit.Task, unit.Options)
 	if task == nil {
 		return nil, fmt.Errorf("node %d cretae %s error", nodeID, unit.Task)
@@ -54,37 +59,51 @@ func InitNode(nodeID int, unit config.NodeUnit) (*Node, error) {
 	return &node, nil
 }
 
+func (n *Node) PrepareForRun() error {
+	if err := n.Task.Open(n.TaskContext); err != nil {
+		return fmt.Errorf("task open failed:%v", err)
+	}
+	n.OutputSideDataManager.AddAllData()
+	return nil
+}
+
 func (n *Node) Execute() error {
 	if err := n.statusCheckBeforExecute(); err != nil {
 		return err
 	}
 	n.setStatusRunning()
 	for {
+		//input stream
 		allok, allclosed := n.InputManager.Subscribe()
 		if allclosed {
 			//if all input channel colsed , stop node
 			break
 		}
-		//read stop info to decide start runner executor or not
+		//read stop info to decide start task or not
 		n.mutex.Lock()
 		if n.stopinfo || !allok {
 			continue
 		}
 		n.mutex.Unlock()
-		//start executor
-		err := n.Task.Start(n.TaskContext)
+
+		//start task
+		err := n.Task.Process(n.TaskContext)
 		if err != nil {
-			log.Printf("runner error:%v", err)
+			log.Printf("task process error:%v", err)
 		}
+		//send output stream to next nodes & graph outputs
 		n.OutputManager.AddAllData()
+		//send output sidedata to next nodes & graph outputs
 	}
 	//stop executor
-	if err := n.Task.Stop(); err != nil {
+	if err := n.Task.Close(); err != nil {
 		n.setStatusFailed()
-		log.Printf("node %d runner executor stop error:%v", n.NodeID, err)
+		log.Printf("node %d task stop error:%v", n.NodeID, err)
 	}
 	//stop output
-	_ = n.OutputManager.Close()
+	if err := n.OutputManager.Close(); err != nil {
+		log.Printf("node %d output manager stop error:%v", n.NodeID, err)
+	}
 	//change node status
 	n.setStatusNone()
 	log.Printf("node %d destroy", n.NodeID)
@@ -99,4 +118,20 @@ func (n *Node) Destroy() error {
 		return nil
 	}
 	return nil
+}
+
+func (n *Node) GetInputManager() *flowmng.InputManager {
+	return n.InputManager
+}
+
+func (n *Node) SetNodeEdge(nextInputManagers map[string][]*flowmng.InputManager) {
+	n.OutputManager.NextInputManagers = nextInputManagers
+}
+
+func (n *Node) GetInputSideData() *flowmng.DataSlice {
+	return n.TaskContext.InputSideData
+}
+
+func (n *Node) SetSideDataNodeEdge(nextInputSideData map[string][]*flowmng.DataSlice) {
+	n.OutputSideDataManager.NextInputSideData = nextInputSideData
 }

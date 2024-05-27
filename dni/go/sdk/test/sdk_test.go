@@ -15,7 +15,7 @@ func TestGraphAPI1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	for i := 0; i < 20000; i++ {
@@ -42,7 +42,7 @@ func TestGraphAPI2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.AddGraphInputData(float64(1), "A")
 	g.AddGraphInputData(float64(2), "B")
 	g.AddGraphInputData(float64(3), "B")
@@ -69,7 +69,7 @@ func TestGraphAPI3(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.AddGraphInputData(2, "A")
 	g.AddGraphInputData(2, "B")
 	g.Run()
@@ -109,7 +109,7 @@ func TestGraphAPI4(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	a := [][]float32{{1, 2, 3, 4}, {3, 3, 3, 3}, {2, 2, 2, 2}}
 	g.AddGraphInputData(a, "A")
 	g.Run()
@@ -135,7 +135,7 @@ func TestGraphAPI5(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.AddGraphInputData(1, "A")
 	g.AddGraphInputData(2, "B")
 	g.Run()
@@ -179,7 +179,7 @@ func TestDestroyAPI1(t *testing.T) {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
 	//准备
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	//销毁图
 	err = g.Destroy()
 	if err != nil {
@@ -194,11 +194,55 @@ func TestDestroyAPI2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%s", g.GraphID)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.AddGraphInputData(1, "A")
 	g.AddGraphInputData(2, "B")
 	err = g.Destroy()
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func TestSideData1(t *testing.T) {
+	graph_path := "01-sidedata.yaml"
+	g, err := graph.InitialGraph(graph_path)
+	if err != nil {
+		t.Fatalf("failed to run graph:%v", err)
+		return
+	}
+	sidedataMap := make(map[string]interface{})
+	sidedataMap["in_sidedata"] = int(10)
+	err = g.PrepareForRun(sidedataMap)
+	if err != nil {
+		t.Fatalf("failed to prepare graph:%v", err)
+	}
+	g.Run()
+	g.AddGraphInputData(1, "A")
+	d, err := g.GetGraphOutputData("B")
+	if err != nil {
+		t.Fatalf("failed to get graph output")
+	}
+	fmt.Println("output data:", d)
+}
+
+func TestSideData2(t *testing.T) {
+	graph_path := "02-sidedata.yaml"
+	g, err := graph.InitialGraph(graph_path)
+	if err != nil {
+		t.Fatalf("failed to run graph:%v", err)
+		return
+	}
+	sidedataMap := make(map[string]interface{})
+	sidedataMap["in_sidedata"] = int(10)
+	err = g.PrepareForRun(sidedataMap)
+	if err != nil {
+		t.Fatalf("failed to prepare graph:%v", err)
+	}
+	g.Run()
+	g.AddGraphInputData(1, "A")
+	d, err := g.GetGraphOutputData("D")
+	if err != nil {
+		t.Fatalf("failed to get graph output")
+	}
+	fmt.Println("output data:", d)
 }

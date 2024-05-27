@@ -1,4 +1,4 @@
-package scheduler
+package graph
 
 import (
 	"fmt"
@@ -36,7 +36,10 @@ func (h *GraphInputHandler) SetSourceEdge(nextInputManagers map[string][]*flowmn
 
 func (h *GraphInputHandler) AddGraphInputData(data *flowmng.DataSpec, stream string) error {
 	err := h.OutputManager.AddData(data, stream)
-	return fmt.Errorf("graph input handler error:%v", err)
+	if err != nil {
+		return fmt.Errorf("graph input handler error:%v", err)
+	}
+	return nil
 }
 
 func (h *GraphInputHandler) GetGraphInputStreams() []string {

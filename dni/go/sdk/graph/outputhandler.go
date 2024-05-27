@@ -1,4 +1,4 @@
-package scheduler
+package graph
 
 import (
 	config "github.com/amianetworks/dni/sdk/config"

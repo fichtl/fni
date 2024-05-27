@@ -1,4 +1,4 @@
-package scheduler
+package graph
 
 const (
 	GRAPH_STATUS_NONE      string = "none"      // 图未完成初始化，空图

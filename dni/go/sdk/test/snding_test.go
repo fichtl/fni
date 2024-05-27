@@ -15,7 +15,7 @@ func TestThresholdTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	for i := 3; i < 5; i++ {
@@ -41,7 +41,7 @@ func TestCondThresholdTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	for i := 0; i < 1; i++ {
@@ -72,7 +72,7 @@ func TestSndAdTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	for i := 0; i < 2; i++ {
@@ -106,7 +106,7 @@ func TestSndPcapParseTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/hping3-icmp.pcap"
@@ -131,7 +131,7 @@ func TestFeatureCounterTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/hping3-icmp.pcap"
@@ -157,7 +157,7 @@ func TestSndNumberStatsTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
@@ -183,7 +183,7 @@ func TestSndProtoStatsTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
@@ -208,7 +208,7 @@ func TestMaxTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr6.pcap"
@@ -234,7 +234,7 @@ func TestIPMergeTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
@@ -260,7 +260,7 @@ func TestSIPBaseMerge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
@@ -288,7 +288,7 @@ func TestGenDMSRule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"
@@ -312,7 +312,7 @@ func TestNetRecordMerge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to run g:%v", err)
 	}
-	g.GetReady()
+	g.PrepareForRun(make(map[string]interface{}))
 	g.Run()
 	//add inputs
 	file_path := "/home/yf/workspace/pcap/pktgen-cidr28.pcap"

@@ -20,7 +20,7 @@ func NewInputManager(inputstream config.StreamUnit) *InputManager {
 		inputchannels[stream] = inputch
 	}
 	//data slice to save input
-	inputs := NewDataSlice(inputstream.TagIndexMap)
+	inputs := NewDataSlice(inputstream)
 	return &InputManager{
 		InputStreams:  inputstream.Name,
 		InputChannels: inputchannels,

@@ -140,7 +140,11 @@ func NewOnnxTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *OnnxTask) Start(ctx *flowmng.TaskContext) error {
+func (t *OnnxTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *OnnxTask) Process(ctx *flowmng.TaskContext) error {
 	inputdata, ok := ctx.Inputs.Values[0].Data.([][]float32)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -154,7 +158,7 @@ func (t *OnnxTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *OnnxTask) Stop() error {
+func (t *OnnxTask) Close() error {
 	return nil
 }
 

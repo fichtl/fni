@@ -36,7 +36,11 @@ func NewSndAttackerIPMergeTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *SndAttackerIPMergeTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndAttackerIPMergeTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndAttackerIPMergeTask) Process(ctx *flowmng.TaskContext) error {
 	ipCountDF, ok := ctx.Inputs.Get("SIP", 0).Data.(map[uint32]int)
 	if !ok {
 		return fmt.Errorf("%s cast error", t.TaskName)
@@ -87,7 +91,7 @@ func (t *SndAttackerIPMergeTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndAttackerIPMergeTask) Stop() error {
+func (t *SndAttackerIPMergeTask) Close() error {
 	return nil
 }
 

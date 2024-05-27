@@ -1,7 +1,8 @@
-package graph
+package config
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -11,17 +12,21 @@ import (
 )
 
 type NodeConf struct {
-	Task         string      `mapstructure:"task"`
-	InputStream  []string    `mapstructure:"input_stream"`
-	OutputStream []string    `mapstructure:"output_stream"`
-	Options      interface{} `mapstructure:"options"`
+	Task           string      `mapstructure:"task"`
+	InputStream    []string    `mapstructure:"input_stream"`
+	OutputStream   []string    `mapstructure:"output_stream"`
+	InputSideData  []string    `mapstructure:"input_sidedata"`
+	OutputSideData []string    `mapstructure:"output_sidedata"`
+	Options        interface{} `mapstructure:"options"`
 }
 
 // Graph config
 type GraphConf struct {
-	GraphInputStream  []string   `mapstructure:"input_stream"`
-	GraphOutputStream []string   `mapstructure:"output_stream"`
-	Nodes             []NodeConf `mapstructure:"node"`
+	GraphInputStream    []string   `mapstructure:"input_stream"`
+	GraphOutputStream   []string   `mapstructure:"output_stream"`
+	GraphInputSideData  []string   `mapstructure:"input_sidedata"`
+	GraphOutputSideData []string   `mapstructure:"output_sidedata"`
+	Nodes               []NodeConf `mapstructure:"node"`
 }
 
 func GetGraphConfig(graphfile string) (*GraphConf, error) {
@@ -44,20 +49,17 @@ func GetGraphConfig(graphfile string) (*GraphConf, error) {
 	return &gc, nil
 }
 
-type TagIndex struct {
-	Tag   string
-	Index int
-}
-
 type StreamUnit struct {
 	Name        []string
 	TagIndexMap map[string]int
+	NameMap     map[string]int
 }
 
 func NewStreamUnit(streams []string) (*StreamUnit, error) {
 	su := &StreamUnit{
 		Name:        make([]string, len(streams)),
 		TagIndexMap: make(map[string]int),
+		NameMap:     make(map[string]int),
 	}
 	for id, stream := range streams {
 		tagindex, name, err := GetTagIndexName(stream, id)
@@ -66,15 +68,18 @@ func NewStreamUnit(streams []string) (*StreamUnit, error) {
 		}
 		su.Name[id] = name
 		su.TagIndexMap[tagindex] = id
+		su.NameMap[name] = id
 	}
 	return su, nil
 }
 
 type NodeUnit struct {
-	InputStream  StreamUnit
-	OutputStream StreamUnit
-	Task         string
-	Options      interface{}
+	InputStream    StreamUnit
+	OutputStream   StreamUnit
+	InputSideData  StreamUnit
+	OutputSideData StreamUnit
+	Task           string
+	Options        interface{}
 }
 
 func NewNodeUnit(nodeConf NodeConf) (*NodeUnit, error) {
@@ -90,15 +95,27 @@ func NewNodeUnit(nodeConf NodeConf) (*NodeUnit, error) {
 	if err != nil {
 		return nil, err
 	}
+	inputSidedata, err := NewStreamUnit(nodeConf.InputSideData)
+	if err != nil {
+		return nil, err
+	}
+	outputSidedata, err := NewStreamUnit(nodeConf.OutputSideData)
+	if err != nil {
+		return nil, err
+	}
 	nu.InputStream = *inputstream
 	nu.OutputStream = *outputstream
+	nu.InputSideData = *inputSidedata
+	nu.OutputSideData = *outputSidedata
 	return nu, nil
 }
 
 type GraphUnit struct {
-	GraphInputStream  StreamUnit
-	GraphOutputStream StreamUnit
-	Nodes             []NodeUnit
+	GraphInputStream    StreamUnit
+	GraphOutputStream   StreamUnit
+	GraphInputSideData  StreamUnit
+	GraphOutputSideData StreamUnit
+	Nodes               []NodeUnit
 }
 
 func GetGraphUnit(gc *GraphConf) (*GraphUnit, error) {
@@ -109,6 +126,16 @@ func GetGraphUnit(gc *GraphConf) (*GraphUnit, error) {
 	}
 	//graph output stream info
 	gOutputStream, err := NewStreamUnit(gc.GraphOutputStream)
+	if err != nil {
+		return nil, err
+	}
+	//graph input sidedata
+	gInputSideData, err := NewStreamUnit(gc.GraphInputSideData)
+	if err != nil {
+		return nil, err
+	}
+	//graph output sidedata
+	gOutputSideData, err := NewStreamUnit(gc.GraphOutputSideData)
 	if err != nil {
 		return nil, err
 	}
@@ -123,74 +150,133 @@ func GetGraphUnit(gc *GraphConf) (*GraphUnit, error) {
 	}
 	//graph unit
 	gu := &GraphUnit{
-		GraphInputStream:  *gInputStream,
-		GraphOutputStream: *gOutputStream,
-		Nodes:             nodes,
+		GraphInputStream:    *gInputStream,
+		GraphOutputStream:   *gOutputStream,
+		GraphInputSideData:  *gInputSideData,
+		GraphOutputSideData: *gOutputSideData,
+		Nodes:               nodes,
 	}
 	return gu, nil
 }
 
-func (gu *GraphUnit) GetNodeEdge() (map[int]map[string][]int, error) {
-	//graph input
-	gInput := make(map[string]struct{})
-	for _, streamname := range gu.GraphInputStream.Name {
-		gInput[streamname] = struct{}{}
+func (gu *GraphUnit) GetNodeEdge() (map[int]map[string][]int, []int, error) {
+	//graph inputs
+	gInputs := make(map[string]struct{})
+	for _, name := range gu.GraphInputStream.Name {
+		gInputs[name] = struct{}{}
 	}
-	//graph output
-	gOutput := make(map[string]struct{})
-	for _, streamname := range gu.GraphOutputStream.Name {
-		gOutput[streamname] = struct{}{}
-	}
-	// inputs stream of node from pre node or graph input
-	nodeOutputs := make(map[string]int)
-	nodeInputs := make(map[string]struct{})
-	outputEdge := make(map[int]map[string][]int)
-	for id, node := range gu.Nodes {
-		outputEdge[id] = make(map[string][]int)
-		for _, out := range node.OutputStream.Name {
-			if _, ok := nodeOutputs[out]; ok {
-				return nil, fmt.Errorf("graph hase multi same output stream:%s", out)
-			}
-			nodeOutputs[out] = id
-			outputEdge[id][out] = make([]int, 0)
-		}
-		nodeInputSet := make(map[string]struct{})
-		for _, in := range node.InputStream.Name {
-			if _, ok := nodeInputSet[in]; ok {
-				return nil, fmt.Errorf("node %d hase multi same input stream:%s", id, in)
-			}
-			nodeInputSet[in] = struct{}{}
-			nodeInputs[in] = struct{}{}
-		}
-	}
-	//create output edge
-	for id, node := range gu.Nodes {
-		for _, stream := range node.InputStream.Name {
-			// if from graph input
-			if _, ok := gInput[stream]; ok {
-				continue
-			}
-			preNodeID, ok := nodeOutputs[stream]
-			if !ok {
-				// if not from graph input or pre node
-				return nil, fmt.Errorf("runner (%s) input stream not found source (%s)", node.Task, stream)
-			}
-			//TODO:loop check
-			if preNodeID > id {
-				return nil, fmt.Errorf("graph tasks have loops, please check nodeID %d and %d", id, preNodeID)
-			}
-			outputEdge[preNodeID][stream] = append(outputEdge[preNodeID][stream], id)
-		}
+	//graph outputs
+	gOutputs := make(map[string]struct{})
+	for _, name := range gu.GraphOutputStream.Name {
+		gOutputs[name] = struct{}{}
 	}
 
-	//check graph outputs from node outputs
-	for gOutStream := range gOutput {
-		_, ok := nodeOutputs[gOutStream]
-		if !ok {
-			return nil, fmt.Errorf("graph output stream (%s) not found source", gOutStream)
+	//node Inputs & node Outputs & nodeEdge
+	nodeInputs := make([][]string, len(gu.Nodes))
+	nodeOutputs := make(map[string]int)
+	nodeEdge := make(map[int]map[string][]int)
+	for nid, node := range gu.Nodes {
+		inputs := node.InputStream.Name
+		outputs := node.OutputStream.Name
+		nodeInputs[nid] = inputs
+		//check node has multi different inputs
+		inputsSet := make(map[string]struct{})
+		for _, input := range inputs {
+			if _, ok := inputsSet[input]; ok {
+				return nil, nil, fmt.Errorf("node %d hase multi same input stream:%s", nid, input)
+			}
+			inputsSet[input] = struct{}{}
+		}
+		//check any graph output has different name
+		nodeEdge[nid] = make(map[string][]int)
+		for _, output := range outputs {
+			if _, ok := nodeOutputs[output]; ok {
+				return nil, nil, fmt.Errorf("graph hase multi same output stream:%s", output)
+			}
+			nodeOutputs[output] = nid
+			nodeEdge[nid][output] = make([]int, 0)
 		}
 	}
-	return outputEdge, nil
+	//check graph outputs from node outputs
+	for output := range gOutputs {
+		_, ok := nodeOutputs[output]
+		if !ok {
+			return nil, nil, fmt.Errorf("graph output (%s) not found source", output)
+		}
+	}
+	//get node edge & preMap & nextMap
+	preMap, nextMap, err := GetNodeEdge(gInputs, gOutputs, nodeInputs, nodeOutputs, nodeEdge)
+	if err != nil {
+		return nil, nil, err
+	}
+	//Loop Judge
+	log.Printf("preMap:%v", preMap)
+	log.Printf("nextMap:%v", nextMap)
+	sortedNodes, isExistLoop := IsExistLoop(preMap, nextMap)
+	if isExistLoop {
+		return nil, nil, fmt.Errorf("graph has loop")
+	}
+	return nodeEdge, sortedNodes, nil
+}
+
+func (gu *GraphUnit) GetSideNodeEdge() (map[int]map[string][]int, []int, error) {
+	//graph inputs
+	gInputs := make(map[string]struct{})
+	for _, name := range gu.GraphInputSideData.Name {
+		gInputs[name] = struct{}{}
+	}
+	//graph outputs
+	gOutputs := make(map[string]struct{})
+	for _, name := range gu.GraphOutputSideData.Name {
+		gOutputs[name] = struct{}{}
+	}
+
+	//node Inputs & node Outputs & nodeEdge
+	nodeInputs := make([][]string, len(gu.Nodes))
+	nodeOutputs := make(map[string]int)
+	nodeEdge := make(map[int]map[string][]int)
+	for nid, node := range gu.Nodes {
+		inputs := node.InputSideData.Name
+		outputs := node.OutputSideData.Name
+		nodeInputs[nid] = inputs
+		//check node has multi different inputs
+		inputsSet := make(map[string]struct{})
+		for _, input := range inputs {
+			if _, ok := inputsSet[input]; ok {
+				return nil, nil, fmt.Errorf("node %d hase multi same input stream:%s", nid, input)
+			}
+			inputsSet[input] = struct{}{}
+		}
+		//check any graph output has different name
+		nodeEdge[nid] = make(map[string][]int)
+		for _, output := range outputs {
+			if _, ok := nodeOutputs[output]; ok {
+				return nil, nil, fmt.Errorf("graph hase multi same output stream:%s", output)
+			}
+			nodeOutputs[output] = nid
+			nodeEdge[nid][output] = make([]int, 0)
+		}
+	}
+	//check graph outputs from node outputs
+	for output := range gOutputs {
+		_, ok := nodeOutputs[output]
+		if !ok {
+			return nil, nil, fmt.Errorf("graph output (%s) not found source", output)
+		}
+	}
+	//get node edge & preMap & nextMap
+	preMap, nextMap, err := GetNodeEdge(gInputs, gOutputs, nodeInputs, nodeOutputs, nodeEdge)
+	if err != nil {
+		return nil, nil, err
+	}
+	//Loop Judge
+	log.Printf("preMap:%v", preMap)
+	log.Printf("nextMap:%v", nextMap)
+	sortedNodes, isExistLoop := IsExistLoop(preMap, nextMap)
+	if isExistLoop {
+		return nil, nil, fmt.Errorf("graph has loop")
+	}
+	return nodeEdge, sortedNodes, nil
 }
 
 func (gu *GraphUnit) GetSourceEdge() (map[string][]int, error) {
@@ -210,6 +296,51 @@ func (gu *GraphUnit) GetSourceEdge() (map[string][]int, error) {
 		}
 	}
 	return sourceEdge, nil
+}
+
+func (gu *GraphUnit) GetSideSourceEdge() (map[string][]int, error) {
+	//gInput
+	gInput := make(map[string]struct{})
+	sourceEdge := make(map[string][]int)
+	for _, graphIn := range gu.GraphInputSideData.Name {
+		gInput[graphIn] = struct{}{}
+		sourceEdge[graphIn] = make([]int, 0)
+	}
+	//cretae source edge
+	for nodeID, node := range gu.Nodes {
+		for _, in := range node.InputSideData.Name {
+			if _, ok := gInput[in]; ok {
+				sourceEdge[in] = append(sourceEdge[in], nodeID)
+			}
+		}
+	}
+	return sourceEdge, nil
+}
+
+func GetNodeEdge(gInputsMap, gOutputsMap map[string]struct{}, nodeInputs [][]string, nodeOutputs map[string]int, nodeEdge map[int]map[string][]int) (preMap map[int]map[int]struct{}, nextMap map[int]map[int]struct{}, err error) {
+	//init results
+	preMap = make(map[int]map[int]struct{})
+	nextMap = make(map[int]map[int]struct{})
+	for nid := 0; nid < len(nodeInputs); nid++ {
+		preMap[nid] = make(map[int]struct{})
+		nextMap[nid] = make(map[int]struct{})
+	}
+	//get node edge
+	for nid, inputs := range nodeInputs {
+		for _, input := range inputs {
+			if _, ok := gInputsMap[input]; ok {
+				continue
+			}
+			preNID, ok := nodeOutputs[input]
+			if !ok {
+				return preMap, nextMap, fmt.Errorf("node[%d] input (%s) can not find source", nid, input)
+			}
+			nodeEdge[preNID][input] = append(nodeEdge[preNID][input], nid)
+			preMap[nid][preNID] = struct{}{}
+			nextMap[preNID][nid] = struct{}{}
+		}
+	}
+	return preMap, nextMap, nil
 }
 
 func GetTagIndexName(stream string, pos int) (tagindex string, name string, err error) {
@@ -235,35 +366,38 @@ func GetTagIndexName(stream string, pos int) (tagindex string, name string, err 
 	return tag_index, name, err
 }
 
-// TODO: TOPO-Sort
-func ISExistLoop(preqList map[int][]int, nextList map[int][]int, nodeNum int) bool {
-	nodeCount := make([]int, nodeNum)
+func IsExistLoop(preList, nextList map[int]map[int]struct{}) ([]int, bool) {
+	nodeNumber := len(preList)
+	nodeCount := make([]int, nodeNumber)
+	sortedNodes := make([]int, 0)
 	q := gqueue.New()
-	for node := range nodeCount {
-		preNodes, ok := preqList[node]
-		if !ok {
-			q.Push(node)
+	for nid := range nodeCount {
+		preNodes := preList[nid]
+		if len(preNodes) == 0 {
+			q.Push(nid)
 		}
-		nodeCount[node] = len(preNodes)
+		nodeCount[nid] = len(preNodes)
 	}
 	zeroCount := 0
 	for {
 		if q.Len() == 0 {
 			break
 		}
+		//pop node
 		node := q.Pop()
+		sortedNodes = append(sortedNodes, node.(int))
 		zeroCount += 1
-		nextNodes, ok := nextList[node.(int)]
-		if !ok {
+		nextNodes := nextList[node.(int)]
+		if len(nextNodes) == 0 {
 			continue
 		}
-		for _, nnode := range nextNodes {
+		for nnode := range nextNodes {
 			nodeCount[nnode] -= 1
 			if nodeCount[nnode] == 0 {
+				//if node has no pre node
 				q.Push(nnode)
 			}
 		}
 	}
-
-	return zeroCount != nodeNum
+	return sortedNodes, zeroCount != nodeNumber
 }

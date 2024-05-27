@@ -19,7 +19,11 @@ func NewMaxTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *MaxTask) Start(ctx *flowmng.TaskContext) error {
+func (t *MaxTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *MaxTask) Process(ctx *flowmng.TaskContext) error {
 	maxval, ok := ctx.Inputs.Values[0].Data.(float64)
 	if !ok {
 		return fmt.Errorf("%s cast error", t.TaskName)
@@ -36,7 +40,7 @@ func (t *MaxTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *MaxTask) Stop() error {
+func (t *MaxTask) Close() error {
 	return nil
 }
 

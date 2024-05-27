@@ -18,7 +18,11 @@ func NewSndNetRecordMergeTask(task string, options interface{}) Task {
 	}
 }
 
-func (t *SndNetRecordMergeTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndNetRecordMergeTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndNetRecordMergeTask) Process(ctx *flowmng.TaskContext) error {
 	recordMergedResults := make(map[string]map[string]struct{})
 	//cast records
 	for idx := 0; idx < ctx.Inputs.Size; idx++ {
@@ -44,7 +48,7 @@ func (t *SndNetRecordMergeTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndNetRecordMergeTask) Stop() error {
+func (t *SndNetRecordMergeTask) Close() error {
 	return nil
 }
 

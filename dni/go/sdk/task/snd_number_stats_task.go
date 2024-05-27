@@ -34,7 +34,11 @@ func NewSndNumberStatsTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *SndNumberStatsTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndNumberStatsTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndNumberStatsTask) Process(ctx *flowmng.TaskContext) error {
 	numFeatureMap, ok := ctx.Inputs.Get("", 0).Data.(map[uint32]int)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -72,7 +76,7 @@ func (t *SndNumberStatsTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndNumberStatsTask) Stop() error {
+func (t *SndNumberStatsTask) Close() error {
 	return nil
 }
 

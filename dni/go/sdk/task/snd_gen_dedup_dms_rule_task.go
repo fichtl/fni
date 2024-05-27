@@ -17,7 +17,11 @@ func NewSndGenDedupTDMSRulesask(task string, options interface{}) Task {
 	}
 }
 
-func (t *SndGenDedupTDMSRulesask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndGenDedupTDMSRulesask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndGenDedupTDMSRulesask) Process(ctx *flowmng.TaskContext) error {
 	//dms rule map
 	allDmsRules := make([]utils.DMSRule, 0)
 	//sipbasemergeresult、netdev group
@@ -41,7 +45,7 @@ func (t *SndGenDedupTDMSRulesask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndGenDedupTDMSRulesask) Stop() error {
+func (t *SndGenDedupTDMSRulesask) Close() error {
 	return nil
 }
 

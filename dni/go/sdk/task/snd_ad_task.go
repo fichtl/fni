@@ -17,7 +17,11 @@ func NewSndAdTask(task string, options interface{}) Task {
 	return t
 }
 
-func (t *SndAdTask) Start(ctx *flowmng.TaskContext) error {
+func (t *SndAdTask) Open(ctx *flowmng.TaskContext) error {
+	return nil
+}
+
+func (t *SndAdTask) Process(ctx *flowmng.TaskContext) error {
 	score1, ok := ctx.Inputs.Get("PACKET", 0).Data.(float64)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
@@ -50,7 +54,7 @@ func (t *SndAdTask) Start(ctx *flowmng.TaskContext) error {
 	return nil
 }
 
-func (t *SndAdTask) Stop() error {
+func (t *SndAdTask) Close() error {
 	return nil
 }
 
