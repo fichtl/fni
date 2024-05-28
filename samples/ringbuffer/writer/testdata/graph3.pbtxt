@@ -1,0 +1,104 @@
+type: "Attack Tracing and Defense"
+
+# ringbuffer data, one slot
+input_stream: "rbData"
+
+# attack_ip_merge
+input_stream: "all_known_ips"
+input_stream: "netdevs_1"
+
+# graph3 output
+output_stream: "dms_rules"
+
+node {
+    name: "ringbuffer_data_parser"
+    task: "RBDataParseTask"
+    input_stream: "RBData:rbData"
+    output_stream: "ParsedPackets:parsed_packets"
+    output_stream: "NIC:host_nic_name"
+    output_stream: "Timestamp:ts"
+    output_stream: "Statistic:packets_statistics"
+}
+
+node {
+    name: "abnormal_pcap_feature_counter"
+    task: "FeatureCounterTask"
+    input_stream: "PATH:parsed_packets"
+    output_stream: "SIP:sip_count"
+    output_stream: "SPort:sport_count"
+    output_stream: "DPort:dport_count"
+    output_stream: "Protocol:protocol_count"
+    output_stream: "Length:length_count"
+    options {
+        [type.asnapis.io/dni.FeatureCounterTaskOptions] {
+            feature: "SIP"
+            feature: "SPort"
+            feature: "DPort"
+            feature: "Protocol"
+            feature: "Length"
+        }
+    }
+}
+
+node {
+    name: "attack_ip_merge"
+    task: "SndAttackerIPMergeTask"
+    input_stream: "SIP:sip_count"
+    input_stream: "KNOWN_IPS:all_known_ips"
+    output_stream: "attackerip_merge_result"
+    options {
+        [type.asnapis.io/dni.SndAttackerIPMergeTaskOptions] {
+            ipFw4CountRatio: 0.1
+            ipFw3CountRatio: 0.2
+            ipSegCoverThreshold: 100
+            ipFw2CountRatio: 0.4
+            ipRandCountThreshold: 2
+            ipRandCountRatio: 0.5
+        }
+    }
+}
+
+node {
+    name: "sip_base_merge_dedup"
+    task: "SndSIPBaseMergeDeDupTask"
+    input_stream: "PACKET:parsed_packets"
+    input_stream: "SIP:attackerip_merge_result"
+    input_stream: "NIC:host_nic_name"
+    output_stream: "CIDR:0:sip_cidr_based_packets_merge"
+    output_stream: "CIDR:1:sip_dms_rules_prepare"
+    options {
+        [type.asnapis.io/dni.SndSIPBaseMergeTaskOptions] {
+            num_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                keyLenThresh: 10
+                label: "centralize"
+                label: "regular"
+                label: "random"
+                label: "void"
+            }
+            proto_stat {
+                ratioMin: 0.1
+                ratioMax: 0.6
+                label: "flood"
+                label: "rapid"
+                label: "void"
+            }
+        }
+    }
+}
+
+node {
+    name: "net_record_merge_dedup"
+    task: "SndNetRecordMergeTask"
+    input_stream: "CIDR:sip_cidr_based_packets_merge"
+    output_stream: "attack_link"
+}
+
+node {
+    name: "dms_rules_dedup"
+    task: "SndGenDeDupDMSRulesTask"
+    input_stream: "CIDR:sip_dms_rules_prepare"
+    input_stream: "NETDEV:netdevs_1"
+    output_stream: "GOut_DMSRules:0:dms_rules"
+}

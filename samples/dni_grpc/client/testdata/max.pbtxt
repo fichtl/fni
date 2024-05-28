@@ -1,0 +1,16 @@
+input_stream: "score_1"
+input_stream: "score_2"
+input_stream: "score_3"
+input_stream: "score_4"
+
+output_stream: "max"
+
+node {
+    name: "A"
+    task: "MaxTask"
+    input_stream: "score_1"
+    input_stream: "score_2"
+    input_stream: "score_3"
+    input_stream: "score_4"
+    output_stream: "max"
+}

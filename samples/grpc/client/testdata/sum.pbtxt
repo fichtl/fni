@@ -1,0 +1,16 @@
+input_stream: "score_1"
+input_stream: "score_2"
+input_stream: "score_3"
+input_stream: "score_4"
+
+output_stream: "sum"
+
+node {
+    name: "A"
+    task: "SumTask"
+    input_stream: "score_1"
+    input_stream: "score_2"
+    input_stream: "score_3"
+    input_stream: "score_4"
+    output_stream: "GOut:0:sum"
+}

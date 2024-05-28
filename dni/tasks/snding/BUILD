@@ -33,6 +33,16 @@ cc_library(
     alwayslink = 1,
 )
 
+cc_library(
+    name = "rb_data_parse_task",
+    srcs = ["rb_data_parse_task.cc"],
+    deps = [
+        "//dni/framework",
+        "@spdlog",
+    ],
+    alwayslink = 1,
+)
+
 proto_library(
     name = "feature_counter_task_proto",
     srcs = ["feature_counter_task.proto"],

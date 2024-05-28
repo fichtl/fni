@@ -1,0 +1,41 @@
+syntax = "proto3";
+package dni.service.grpc;
+
+service DNIService {
+  rpc CalculateGraph (GraphRequest) returns (stream GraphResponse) {
+  }
+}
+
+message GraphRequest {
+  // pbtxt content
+  string pbtxt = 1;
+
+  // sidedata ?
+}
+
+message GraphResponse {
+  repeated GraphCalcResult results = 2;
+}
+
+message GraphCalcResult {
+  //timestamp
+  uint64 ts = 1;
+
+  //enum
+  GraphResultType type = 2;
+
+  // graph calc results
+  // key: graph output name
+  map<string, string> results = 3;
+}
+
+enum GraphResultType {
+  GraphLoadOK = 0;
+  GraphLoadFail = 1;
+  GraphCalcOK = 2;
+  GraphCalcFail = 3;
+}
+
+
+
+

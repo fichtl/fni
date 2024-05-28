@@ -149,6 +149,9 @@ snding::DMSRule SndGenDeDupDMSRulesTask::generate_dms_rule(
         gen_rule.limitMode = limitMode;
         gen_rule.limitMaxValue = limitMaxValue;
 
+        std::string fmt_str = fmt::to_string(gen_rule);
+        SPDLOG_TRACE("@@@@@@@@@@@@, {}", fmt_str);
+
         return std::move(gen_rule);
 }
 
