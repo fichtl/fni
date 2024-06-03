@@ -20,6 +20,11 @@ type Graph struct {
 	InputSideDataHandler *GraphInputSideDataHandler
 	OutputSideData       *flowmng.DataSlice
 
+	GraphInputStream    config.StreamUnit
+	GraphOutputStream   config.StreamUnit
+	GraphInputSideData  config.StreamUnit
+	GraphOutputSideData config.StreamUnit
+
 	SourceEdge          map[string][]int         // Source edge between graph input and nodes(key=source id, val=node id)
 	NodeEdge            map[int]map[string][]int // Output edge between node and next nodes/graph output(key=pre node id, val=map[stream]nextNodes)
 	SideDataSourceEdge  map[string][]int
@@ -82,7 +87,13 @@ func InitialGraph(graphfile string) (*Graph, error) {
 		SideDataNodeEdge:    sideNodeEdge,
 		StreamSortedNodes:   streamSortedNodes,
 		SideDataSortedNodes: sidedataSortedNodes,
-		Nodes:               make([]*node.Node, 0),
+
+		GraphInputStream:    gu.GraphInputStream,
+		GraphOutputStream:   gu.GraphOutputStream,
+		GraphInputSideData:  gu.GraphInputSideData,
+		GraphOutputSideData: gu.GraphOutputSideData,
+
+		Nodes: make([]*node.Node, 0),
 	}
 
 	//init graph InputHandler
@@ -259,6 +270,36 @@ func (g *Graph) Destroy() error {
 	return nil
 }
 
+func (g *Graph) AddAllGraphInputData(inputs map[string]interface{}) error {
+	streamnames := g.InputHandler.GetGraphInputStreams()
+	for _, stream := range streamnames {
+		input, ok := inputs[stream]
+		if !ok {
+			return fmt.Errorf("stream (%s) not exist", stream)
+		}
+		err := g.AddGraphInputData(input, stream)
+		if err != nil {
+			return fmt.Errorf("stream (%s) transport error:%v", stream, err)
+		}
+	}
+	return nil
+}
+
+func (g *Graph) AddAllGraphInputSideData(inputs map[string]interface{}) error {
+	gInputSideDataNames := g.InputSideDataHandler.GetGraphInputSideData()
+	for _, sidedata := range gInputSideDataNames {
+		data, ok := inputs[sidedata]
+		if !ok {
+			return fmt.Errorf("sidedata (%s) not exist", sidedata)
+		}
+		err := g.AddGraphInputSideData(data, sidedata)
+		if err != nil {
+			return fmt.Errorf("sidedata (%s) transport error:%v", sidedata, err)
+		}
+	}
+	return nil
+}
+
 func (g *Graph) AddGraphInputData(data interface{}, stream string) error {
 	d := flowmng.DataSpec{
 		StreamName: stream,
@@ -275,6 +316,17 @@ func (g *Graph) AddGraphInputSideData(data interface{}, sidedata string) error {
 	}
 	err := g.InputSideDataHandler.AddGraphInputSideData(&d, sidedata)
 	return err
+}
+
+func (g *Graph) GetAllGraphOutputData() (map[string]interface{}, error) {
+	streamnames := g.GraphOutputStream.Name
+	outputs := make(map[string]interface{})
+	for _, stream := range streamnames {
+		output, _ := g.GetGraphOutputData(stream)
+		outputs[stream] = output
+	}
+	log.Println(outputs)
+	return outputs, nil
 }
 
 func (g *Graph) GetGraphOutputChannel(stream string) (chan *flowmng.DataSpec, bool) {
@@ -300,4 +352,13 @@ func (g *Graph) GetGraphOutputSideData(sidedata string) (interface{}, error) {
 		return nil, fmt.Errorf("gOutput sidedata(%s) not exist", sidedata)
 	}
 	return data.Data, nil
+}
+
+func (g *Graph) GetGraphErrorList() []error {
+	graphErrList := make([]error, 0)
+	for _, nid := range g.StreamSortedNodes {
+		nodeErrList := g.Nodes[nid].GetNodeErrorList()
+		graphErrList = append(graphErrList, nodeErrList...)
+	}
+	return graphErrList
 }

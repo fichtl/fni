@@ -1,6 +1,10 @@
 package flowmanager
 
-import "time"
+import (
+	"time"
+
+	"github.com/mohae/deepcopy"
+)
 
 type DataSpec struct {
 	StreamName string
@@ -10,7 +14,7 @@ type DataSpec struct {
 }
 
 func (d *DataSpec) Clone() *DataSpec {
-	ds := make([]DataSpec, 0)
-	ds = append(ds, *d)
-	return &ds[0]
+	dsCopy := deepcopy.Copy(*d)
+	dsNew := dsCopy.(DataSpec)
+	return &dsNew
 }

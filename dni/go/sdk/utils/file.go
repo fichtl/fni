@@ -16,14 +16,8 @@ func GetPacketInfos(fin string) (pinfos []map[string]uint32, err error) {
 	for p := range packetSource.Packets() {
 		pinfo := GetPacketInfo(p)
 		if pinfo != nil {
-			pinfo_map := make(map[string]uint32)
-			pinfo_map["SIP"] = pinfo.SIP
-			pinfo_map["DIP"] = pinfo.DIP
-			pinfo_map["SPort"] = pinfo.SPort
-			pinfo_map["DPort"] = pinfo.DPort
-			pinfo_map["Proto"] = pinfo.Proto
-			pinfo_map["Length"] = pinfo.Length
-			pinfos = append(pinfos, pinfo_map)
+			pinfoMap := pinfo.ToMap()
+			pinfos = append(pinfos, pinfoMap)
 		}
 	}
 	// fmt.Println(pinfos)

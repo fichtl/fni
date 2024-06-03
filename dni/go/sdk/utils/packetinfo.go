@@ -16,6 +16,23 @@ type PacketInfo struct {
 	Length uint32
 }
 
+func (pinfo *PacketInfo) String() string {
+	sip := Uitoa(pinfo.SIP)
+	dip := Uitoa(pinfo.DIP)
+	return fmt.Sprintf("SIP:%s DIP:%s SPort:%d DPort:%d Proto:%d Length:%d", sip, dip, pinfo.SPort, pinfo.DPort, pinfo.Proto, pinfo.Length)
+}
+
+func (pinfo *PacketInfo) ToMap() map[string]uint32 {
+	pinfoMap := make(map[string]uint32)
+	pinfoMap["SIP"] = pinfo.SIP
+	pinfoMap["DIP"] = pinfo.DIP
+	pinfoMap["SPort"] = pinfo.SPort
+	pinfoMap["DPort"] = pinfo.DPort
+	pinfoMap["Proto"] = pinfo.Proto
+	pinfoMap["Length"] = pinfo.Length
+	return pinfoMap
+}
+
 func GetPacketLength(packet gopacket.Packet) uint32 {
 	return uint32(packet.Metadata().Length)
 }

@@ -19,13 +19,14 @@ func TestThresholdTask(t *testing.T) {
 	g.Run()
 	//add inputs
 	for i := 3; i < 5; i++ {
-		g.AddGraphInputData(float64(i*1000), "A")
+		g.AddGraphInputData(nil, "A")
 		//get output
-		d, err := g.GetGraphOutputData("B")
+		// d, err := g.GetGraphOutputData("B")
+		outputs, err := g.GetAllGraphOutputData()
 		if err != nil {
 			t.Log(err)
 		}
-		fmt.Println("Score:", d)
+		fmt.Println("Score:", outputs)
 	}
 	//destroy g
 	err = g.Destroy()

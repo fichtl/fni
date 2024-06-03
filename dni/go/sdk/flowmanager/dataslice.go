@@ -10,6 +10,7 @@ import (
 type DataSlice struct {
 	TagIndexMap map[string]int //key:tag+index val:pos
 	NameMap     map[string]int
+	Names       []string
 	Values      []*DataSpec
 	Size        int
 }
@@ -19,10 +20,11 @@ func NewDataSlice(streamUnit config.StreamUnit) *DataSlice {
 	ds := &DataSlice{
 		TagIndexMap: streamUnit.TagIndexMap,
 		NameMap:     streamUnit.NameMap,
+		Names:       streamUnit.Name,
 		Values:      make([]*DataSpec, size),
 		Size:        size,
 	}
-	for pos := 0; pos < size; pos++ {
+	for _, pos := range streamUnit.NameMap {
 		ds.Values[pos] = &DataSpec{}
 	}
 	return ds
@@ -53,6 +55,19 @@ func (ds *DataSlice) GetByName(name string) (*DataSpec, bool) {
 	return ds.Values[pos], ok
 }
 
+func (ds *DataSlice) GetByTagIndex(tagindex string) *DataSpec {
+	pos, ok := ds.TagIndexMap[tagindex]
+	if !ok {
+		log.Printf("tag & index error")
+		return &DataSpec{}
+	}
+	if pos >= ds.Size {
+		log.Printf("pos error")
+		return &DataSpec{}
+	}
+	return ds.Values[pos]
+}
+
 func (ds *DataSlice) Set(name string, data *DataSpec) error {
 	pos, ok := ds.NameMap[name]
 	if !ok {
@@ -66,4 +81,10 @@ func (ds *DataSlice) Set(name string, data *DataSpec) error {
 func (ds *DataSlice) HasName(name string) bool {
 	_, ok := ds.NameMap[name]
 	return ok
+}
+
+func (ds *DataSlice) Reset() {
+	for pos := 0; pos < ds.Size; pos++ {
+		ds.Values[pos] = &DataSpec{}
+	}
 }

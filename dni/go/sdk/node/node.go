@@ -27,6 +27,8 @@ type Node struct {
 
 	mutex    *sync.Mutex //Stop info mutex
 	stopinfo bool        //Node stop info
+
+	ErrorList []error //Node error list to store node executing error
 }
 
 func InitNode(nodeID int, unit config.NodeUnit) (*Node, error) {
@@ -89,7 +91,11 @@ func (n *Node) Execute() error {
 		//start task
 		err := n.Task.Process(n.TaskContext)
 		if err != nil {
-			log.Printf("task process error:%v", err)
+			//if task process error,set all outputs nil
+			n.TaskContext.Outputs.Reset()
+			nErr := fmt.Errorf("task process error:%v", err)
+			n.ErrorList = append(n.ErrorList, nErr)
+			log.Printf("%v", nErr)
 		}
 		//send output stream to next nodes & graph outputs
 		n.OutputManager.AddAllData()
@@ -98,11 +104,15 @@ func (n *Node) Execute() error {
 	//stop executor
 	if err := n.Task.Close(); err != nil {
 		n.setStatusFailed()
-		log.Printf("node %d task stop error:%v", n.NodeID, err)
+		nErr := fmt.Errorf("node %d task stop error:%v", n.NodeID, err)
+		n.ErrorList = append(n.ErrorList, nErr)
+		log.Printf("%v", nErr)
 	}
 	//stop output
 	if err := n.OutputManager.Close(); err != nil {
-		log.Printf("node %d output manager stop error:%v", n.NodeID, err)
+		nErr := fmt.Errorf("node %d output manager stop error:%v", n.NodeID, err)
+		n.ErrorList = append(n.ErrorList, nErr)
+		log.Printf("%v", nErr)
 	}
 	//change node status
 	n.setStatusNone()
@@ -134,4 +144,12 @@ func (n *Node) GetInputSideData() *flowmng.DataSlice {
 
 func (n *Node) SetSideDataNodeEdge(nextInputSideData map[string][]*flowmng.DataSlice) {
 	n.OutputSideDataManager.NextInputSideData = nextInputSideData
+}
+
+func (n *Node) GetNodeErrorList() []error {
+	nodeErrList := make([]error, 0)
+	n.mutex.Lock()
+	copy(nodeErrList, n.ErrorList)
+	n.mutex.Unlock()
+	return nodeErrList
 }
