@@ -1,0 +1,15 @@
+input_stream: "CIDR:0:sip_merge0"
+input_stream: "CIDR:1:sip_merge1"
+input_stream: "CIDR:2:sip_merge2"
+
+output_stream: "GOut:0:attack_link"
+
+node {
+    name: "SndNetRecord"
+    task: "SndNetRecordMergeTask"
+    input_stream: "CIDR:0:sip_merge0"
+    input_stream: "CIDR:1:sip_merge1"
+    input_stream: "CIDR:2:sip_merge2"
+
+    output_stream: "GOut:0:attack_link"
+}

@@ -16,4 +16,6 @@ third_party/*
 !third_party/jsoncpp.BUILD
 !third_party/libpcap*.BUILD
 
+*.pcap
+!*.pcap.gz
 !**/testdata/*

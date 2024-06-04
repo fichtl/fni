@@ -1,0 +1,17 @@
+input_stream: "GIn:0:statistic"
+output_stream: "GOut:0:score"
+
+node {
+    name: "A"
+    task: "ThresholdTask"
+    input_stream: "THRESH:statistic"
+    output_stream: "SCORE:score"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 4000 score: 0.4 }
+            thresh_scores { threshold: 10000 score: 0.6 }
+            thresh_scores { threshold: 100000 score: 0.8 }
+            thresh_scores { threshold: 15000000 score: 1.2 }
+        }
+    }
+}

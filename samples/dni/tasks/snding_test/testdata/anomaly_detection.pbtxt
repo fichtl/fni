@@ -1,0 +1,16 @@
+input_stream: "GIn_Packets:0:packets"
+input_stream: "GIn_Netdev:0:netdev"
+input_stream: "GIn_Resource:0:resource"
+
+output_stream: "GOut:0:type"
+
+node {
+    name: "A"
+    task: "SndAdTask"
+
+    input_stream: "PACKET:packets"
+    input_stream: "NETDEV:netdev"
+    input_stream: "RESOURCE:resource"
+
+    output_stream: "GOut:0:type"
+}

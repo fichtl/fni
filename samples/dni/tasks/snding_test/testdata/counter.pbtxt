@@ -1,0 +1,19 @@
+input_stream: "GIn_1:0:sums_1"
+input_stream: "GIn_2:0:sums_2"
+input_stream: "GIn_3:0:sums_3"
+
+output_stream: "GOut:0:count"
+
+node {
+    name: "A"
+    task: "CounterTask"
+    input_stream: "SUM:0:sums_1"
+    input_stream: "SUM:1:sums_2"
+    input_stream: "SUM:2:sums_3"
+    output_stream: "count"
+    options {
+        [type.asnapis.io/dni.CounterTaskOptions] {
+            feature: 1
+        }
+    }
+}
