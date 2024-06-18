@@ -9,7 +9,7 @@ cc_library(
     srcs = ["common/utils.cpp"],
     hdrs = ["common/utils.h"],
     deps = [
-        "//samples/dni_grpc/protos:dni_service_cc_grpc",
+        "//samples/dni/api/protos:dni_service_cc_grpc",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/random:distributions",
@@ -23,7 +23,7 @@ cc_library(
     srcs = ["common/connection.cpp"],
     hdrs = ["common/connection.h"],
     deps = [
-        "//samples/dni_grpc/protos:dni_service_cc_grpc",
+        "//samples/dni/api/protos:dni_service_cc_grpc",
         ":dni_service_utils",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/random",
@@ -44,7 +44,7 @@ cc_library(
     deps = [
         ":dni_service_conn",
         ":dni_service_utils",
-        "//samples/dni_grpc/protos:dni_service_cc_grpc",
+        "//samples/dni/api/protos:dni_service_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//dni/framework",
@@ -78,7 +78,7 @@ cc_library(
     deps = [
         ":dni_service_conn",
         ":dni_service_utils",
-        "//samples/dni_grpc/protos:dni_service_cc_grpc",
+        "//samples/dni/api/protos:dni_service_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "@spdlog",

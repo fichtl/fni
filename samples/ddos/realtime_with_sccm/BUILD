@@ -1,0 +1,67 @@
+cc_binary(
+    name = "single_detect_defense_with_sccm",
+    srcs = [
+        "single_detect_defense_with_sccm.cc",
+        "rb_data_parse.h",
+        "rb_data_parse.cc",
+    ],
+    data = [
+        "pbtxt/graph1.pbtxt",
+        "pbtxt/graph2.pbtxt",
+        "pbtxt/graph3.pbtxt",
+    ],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/core:cond_threshold_task",
+        "//dni/tasks/core:max_task",
+        "//dni/tasks/core:sum_task",
+        "//dni/tasks/core:threshold_task",
+        "//dni/tasks/snding:anomaly_detection_task",
+        "//dni/tasks/snding:attacker_ip_merge_task",
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:feature_counter_task",
+        "//dni/tasks/snding:net_record_merge_task",
+        "//dni/tasks/snding:number_stats_task",
+        "//dni/tasks/snding:protocol_stats_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "@fmtlib",
+        "@spdlog",
+    ],
+)
+
+cc_binary(
+    name = "all_net_detect_defense_with_sccm",
+    srcs = [
+        "all_net_detect_defense_with_sccm.cc",
+        "rb_data_parse.h",
+        "rb_data_parse.cc",
+        "all_net_ip.h",
+        "all_net_ip.cc",
+    ],
+    data = [
+        "pbtxt/graph1.pbtxt",
+        "pbtxt/graph2.pbtxt",
+        "pbtxt/graph3.pbtxt",
+    ],
+    deps = [
+        "//dni/framework",
+        "//dni/tasks/core:cond_threshold_task",
+        "//dni/tasks/core:max_task",
+        "//dni/tasks/core:sum_task",
+        "//dni/tasks/core:threshold_task",
+        "//dni/tasks/snding:anomaly_detection_task",
+        "//dni/tasks/snding:attacker_ip_merge_task",
+        "//dni/tasks/snding:dms_rules_dedup_task",
+        "//dni/tasks/snding:feature_counter_task",
+        "//dni/tasks/snding:net_record_merge_task",
+        "//dni/tasks/snding:number_stats_task",
+        "//dni/tasks/snding:protocol_stats_task",
+        "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "@influxdb-cxx",
+        "@fmtlib",
+        "@spdlog",
+        "@jsoncpp",
+    ],
+    linkopts = ["-pthread"],
+)
+

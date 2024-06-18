@@ -4,9 +4,9 @@
 #include <string>
 
 #include "grpcpp/grpcpp.h"
-#include "samples/dni_grpc/common/connection.h"
-#include "samples/dni_grpc/common/utils.h"
-#include "samples/dni_grpc/protos/dni_service.grpc.pb.h"
+#include "samples/dni/api/common/connection.h"
+#include "samples/dni/api/common/utils.h"
+#include "samples/dni/api/protos/dni_service.grpc.pb.h"
 
 using dni::Connection;
 using dni::Utils;

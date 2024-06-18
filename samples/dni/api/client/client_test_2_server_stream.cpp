@@ -7,7 +7,7 @@ int main(__attribute__((unused)) int argc, char** argv)
 
         DNIClient dni_clt(Connection::getChannel());
 
-        std::string fpath = "samples/dni_grpc/client/testdata/max.pbtxt";
+        std::string fpath = "samples/dni/api/client/testdata/max.pbtxt";
 
         SPDLOG_DEBUG("Server streaming RPC");
         dni_clt.CalculateGraph(fpath);
