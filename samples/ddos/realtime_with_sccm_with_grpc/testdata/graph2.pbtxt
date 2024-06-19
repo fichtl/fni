@@ -1,0 +1,147 @@
+type: "Lightweight Attack Detection Graph"
+
+input_stream: "parsed_packets"
+
+# graph2 output
+output_stream: "attack_res"
+
+node {
+    name: "abnormal_pcap_feature_counter"
+    task: "FeatureCounterTask"
+    input_stream: "GOut_parsed_packets:0:parsed_packets"
+    output_stream: "SIP:0:sip_count"
+    output_stream: "SPort:0:sport_count"
+    output_stream: "DPort:0:dport_count"
+    output_stream: "Protocol:0:protocol_count"
+    output_stream: "Length:0:length_count"
+    options {
+        [type.asnapis.io/dni.FeatureCounterTaskOptions] {
+            feature: "SIP"
+            feature: "SPort"
+            feature: "DPort"
+            feature: "Protocol"
+            feature: "Length"
+        }
+    }
+}
+
+node {
+    name: "sip_attack_score_calc"
+    task: "SndNumberStatsTask"
+    input_stream: "sip_count"
+    output_stream: "sip_count_score"
+    options {
+        [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
+            numValueSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.5
+            score_thresholds: 0.6
+            score_thresholds: 1.0
+            score_thresholds: 0.8
+            score_thresholds: 0
+        }
+    }
+}
+
+node {
+    name: "sport_attack_score_calc"
+    task: "SndNumberStatsTask"
+    input_stream: "sport_count"
+    output_stream: "sport_count_score"
+    options {
+        [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
+            numValueSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.6
+            score_thresholds: 0.4
+            score_thresholds: 1.0
+            score_thresholds: 0.6
+            score_thresholds: 0
+        }
+    }
+}
+
+node {
+    name: "dport_attack_score_calc"
+    task: "SndNumberStatsTask"
+    input_stream: "dport_count"
+    output_stream: "dport_count_score"
+    options {
+        [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
+            numValueSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.6
+            score_thresholds: 0.4
+            score_thresholds: 1.0
+            score_thresholds: 0.6
+            score_thresholds: 0
+        }
+    }
+}
+
+node {
+    name: "length_attack_score_calc"
+    task: "SndNumberStatsTask"
+    input_stream: "length_count"
+    output_stream: "length_count_score"
+    options {
+        [type.asnapis.io/dni.SndNumberStatsTaskOptions] {
+            numValueSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.6
+            score_thresholds: 0.4
+            score_thresholds: 1.0
+            score_thresholds: 0.6
+            score_thresholds: 0
+        }
+    }
+}
+
+node {
+    name: "protocol_attack_score_calc"
+    task: "SndProtocolStatsTask"
+    input_stream: "protocol_count"
+    output_stream: "protocol_count_score"
+    options {
+        [type.asnapis.io/dni.SndProtocolStatsTaskOptions] {
+            protoCountSum: 10000
+            ratioMin: 0.1
+            ratioMax: 0.6
+            score_thresholds: 0.8
+            score_thresholds: 0.6
+            score_thresholds: 0
+        }
+    }
+}
+
+node {
+    name: "max_number_attack_score_calc"
+    task: "MaxTask"
+    input_stream: "sport_count_score"
+    input_stream: "dport_count_score"
+    input_stream: "length_count_score"
+    output_stream: "number_count_score"
+}
+
+node{
+    name: "attack_total_score"
+    task: "SumTask"
+    input_stream: "sip_count_score"
+    input_stream: "number_count_score"
+    input_stream: "protocol_count_score"
+    output_stream: "attack_scores_sum"
+}
+
+node{
+    name: "attack_detection_judge"
+    task: "ThresholdTask"
+    input_stream:  "attack_scores_sum"
+    output_stream: "attack_res"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 0.22 score: 1}
+            thresh_scores { threshold: 0.57 score: 2}
+        }
+    }
+}
+

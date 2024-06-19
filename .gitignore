@@ -1,6 +1,8 @@
 .vscode
 *.DS_Store*
 
+.configure.bazelrc
+.user.bazelrc
 bazel-*
 target/
 

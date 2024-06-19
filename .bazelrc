@@ -5,13 +5,18 @@ common --experimental_repo_remote_exec
 
 # Basic build settings
 build --jobs 8
-build --define='absl=1'  # for gtest
+build --define='absl=1' # for gtest
 
 build --enable_platform_specific_config
-build --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG' --verbose_failures
+build --verbose_failures
+build --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO'
 
-build:debug --strip=never --subcommands --verbose_failures
-build:debug --copt=-g --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG'
+build:debug --subcommands --verbose_failures
+build:debug --strip=never --copt=-g
+build:debug --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG'
+
+build:release --copt='-Os' --copt='-Wall'
+build:release --copt='-D SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_WARN'
 
 # Enable stack traces
 test --test_env="GTEST_INSTALL_FAILURE_SIGNAL_HANDLER=1"

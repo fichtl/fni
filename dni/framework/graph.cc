@@ -353,7 +353,15 @@ namespace dni {
         void Graph::Cancel()
         {
                 fu_.cancel();
-                fu_.get();
+                try
+                {
+                        fu_.get();
+                }
+                catch (const std::exception& e)
+                {
+                        spdlog::warn("pipeline cancelled with exception: {}", e.what());
+                        return;
+                }
         }
 
         void Graph::ClearResult()
