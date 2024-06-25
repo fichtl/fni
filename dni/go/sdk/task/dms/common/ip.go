@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	"bufio"
@@ -15,18 +15,7 @@ import (
 const (
 	UINT64_MAX = ^uint64(0)
 	UINT32_MAX = ^uint32(0)
-	UINT24_MAX = uint32(0xFFFFFF00)
-	UINT16_MAX = uint32(0xFFFF0000)
 )
-
-// Uitoin convets a uint32 and a mask to net.IPNet
-func Uitoin(ip uint32, mask uint32) *net.IPNet {
-	net := &net.IPNet{
-		IP:   Uiton(ip),
-		Mask: Uiton(mask),
-	}
-	return net
-}
 
 // Self-defined IPNet, net.IPNet is not comparable
 //
@@ -265,6 +254,14 @@ func (is *IPNetSet) ToList() []string {
 		idx++
 	}
 	return ipList
+}
+
+func (is *IPNetSet) ToRuleSet() *RuleSet {
+	rs := &RuleSet{rules: make(map[Match]Action, is.Size())}
+	for ip := range is.inets {
+		rs.rules[Match{Type: "l3", SrcIP: ip.String()}] = Action{Drop: ACTION_DROP}
+	}
+	return rs
 }
 
 func (is *IPNetSet) DumpFile(fname string) error {

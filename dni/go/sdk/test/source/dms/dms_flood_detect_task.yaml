@@ -1,0 +1,52 @@
+input_stream:
+  - "assessorInd"
+  - "listen"
+  - "conntrack"
+  - "packet"
+  - "ratio"
+output_stream:
+  - "responds"
+input_sidedata:
+  - "nicip"
+
+node:
+  - task: "DmsArbitrateTask"
+    input_stream: 
+      - "AssessorInd:0:assessorInd"
+    output_stream:
+      - "Query:0:query"
+      - "Intelligence:0:intelli"
+
+  - task: "DmsProtoDiagTask"
+    input_stream: 
+      - "Query:0:query"
+      - "Conntrack:0:conntrack"
+      - "Packet:0:packet"
+      - "Listen:0:listen"
+      - "Ratio:0:ratio"
+    output_stream:
+      - "ProtoDiag:0:protodiag"
+      - "CtInfo:0:ctinfo"
+    input_sidedata:
+      - "NicIP:0:nicip"
+
+  - task: "DmsFloodAttackDetectTask"
+    input_stream: 
+      - "ProtoDiag:0:protodiag"
+      - "Conntrack:0:ctinfo"
+    output_stream:
+      - "RespondList:0:responds"
+    input_sidedata:
+      - "NicIP:0:nicip"
+    options:
+      pps:
+        threshold: 100000
+        protothreshold:
+          icmp: 1000
+          tcp: 125000
+          udp: 200000
+        tolerance: 0.2 
+
+      capability:
+        cap: 512
+        strictness: 3   

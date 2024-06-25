@@ -37,7 +37,7 @@ func (ds *DataSlice) Get(tag string, index int) *DataSpec {
 	tag_index := fmt.Sprintf("%s:%d", tag, index)
 	pos, ok := ds.TagIndexMap[tag_index]
 	if !ok {
-		log.Printf("tag & index error")
+		log.Printf("tag(%s) & index(%d) error", tag, index)
 		return &DataSpec{}
 	}
 	if pos >= ds.Size {

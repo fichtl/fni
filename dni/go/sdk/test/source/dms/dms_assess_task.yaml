@@ -1,0 +1,34 @@
+input_stream:
+  - "assessorData"
+output_stream:
+  - "assessorInd"
+input_sidedata:
+  - "NicSpeed:nicSpeed"
+
+node:
+  - task: "DmsAssessTask"
+    input_stream:
+      - "STAT:0:assessorData"
+    output_stream:
+      - "assessorInd"
+    input_sidedata:
+      - "NicSpeed:nicSpeed"
+    options:
+      cpu:
+        low: 20
+        okay: 40
+        high: 80
+      bw:
+        bps: 90
+        kpps: 5000
+      tcpconn:
+        tcpsemiconn: 10000
+        tcpfullconn: 5000
+        pertcpfullconn: 5000
+      pps:
+        threshold: 100000
+        protothreshold:
+          tcp: 500000
+          udp: 500000
+        tolerance: 0.2
+      frequency: 2

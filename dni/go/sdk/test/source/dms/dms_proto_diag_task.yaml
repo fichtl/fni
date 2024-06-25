@@ -1,0 +1,32 @@
+input_stream:
+  - "assessorInd"
+  - "listen"
+  - "conntrack"
+  - "packet"
+  - "ratio"
+output_stream:
+  - "protodiag"
+  - "ctinfo"
+input_sidedata:
+  - "nicip"
+
+node:
+  - task: "DmsArbitrateTask"
+    input_stream: 
+      - "AssessorInd:0:assessorInd"
+    output_stream:
+      - "Query:0:query"
+      - "Intelligence:0:intelli"
+
+  - task: "DmsProtoDiagTask"
+    input_stream: 
+      - "Query:0:query"
+      - "Conntrack:0:conntrack"
+      - "Packet:0:packet"
+      - "Listen:0:listen"
+      - "Ratio:0:ratio"
+    output_stream:
+      - "ProtoDiag:0:protodiag"
+      - "CtInfo:0:ctinfo"
+    input_sidedata:
+      - "NicIP:0:nicip"
