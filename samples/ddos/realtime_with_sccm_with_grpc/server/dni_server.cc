@@ -53,14 +53,16 @@ uint8_t* buffer_create(size_t sz)
         shm_id = shmget(SHM_KEY, sz, IPC_CREAT | 0666);
         if (shm_id == -1)
         {
-                perror("parent: shmget SHM_KEY");
+                SPDLOG_ERROR("shmget SHM_KEY");
                 return NULL;
         }
+
+        SPDLOG_INFO("shm_id: {}", shm_id);
 
         void* addr = shmat(shm_id, NULL, 0);
         if (addr == (void*) -1)
         {
-                perror("parent: shmat SHM_KEY");
+                SPDLOG_ERROR("shmat SHM_KEY");
                 return NULL;
         }
 
@@ -71,7 +73,7 @@ void buffer_free(uint8_t* buffer)
 {
         if (shmdt((const void*) (buffer)) == -1)
         {
-                perror("recv: shmdt buffer");
+                SPDLOG_ERROR("shmdt buffer");
                 return;
         }
 }
@@ -410,14 +412,14 @@ void* calc_graph(
                 }
 
                 // ######
-                uint64_t now = (((uint64_t) Utils::now()) / (uint64_t) 1000000000);
-                uint64_t sccm_ts = rb_header.ts;
+                int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
+                int64_t sccm_ts = rb_header.ts;
 
                 SPDLOG_INFO("in process..., now: {}, sccm ts: {}", now, sccm_ts);
 
                 if (now - sccm_ts > 10)
                 {
-                        SPDLOG_ERROR(
+                        SPDLOG_WARN(
                             "@@@@ too slow    in process..., {}, {}, {}", now, sccm_ts,
                             now - sccm_ts);
                 }
@@ -448,7 +450,9 @@ void* calc_graph(
                      std::to_string(rb_header.netdev_stats[2]) + "*\n");
                 str_ret +=
                     ("# single_nic_analysis dmsDropMbps: *" +
-                     std::to_string(rb_header.additional_stats[0] * 8) + "*\n");
+                     std::to_string(
+                         rb_header.additional_stats[4] * 8.0 / 1000.0 / 1000.0) +
+                     "*\n");
                 str_ret +=
                     ("# single_nic_analysis speedStr: *" +
                      std::to_string(rb_header.speed) + "Mb/s*\n");
@@ -469,7 +473,7 @@ void* calc_graph(
                 result->set_inmbps(rb_header.netdev_stats[0]);
                 result->set_outmbps(rb_header.netdev_stats[2]);
                 result->set_dmsdropmbps(
-                    (double) rb_header.additional_stats[0] * 8.0 / 1000.0 / 1000.0);
+                    (double) rb_header.additional_stats[4] * 8.0 / 1000.0 / 1000.0);
                 result->set_speed(rb_header.speed);
                 result->set_cur_cpu(rb_header.cur_cpu);
 
@@ -492,6 +496,20 @@ void* calc_graph(
                             (rb_header.pkts_stats[0] > 10000 ? 10000
                                                              : rb_header.pkts_stats[0]);
                         dni::parse_packets(nic_data + offset, pkts_cnt, packets);
+
+                        SPDLOG_DEBUG(
+                            "want host nic name: {}, {}, {}", rb_header.host_nic_name,
+                            rb_header.ts, rb_header.pkts_stats[0]);
+
+                        if (packets.size() == 0)
+                        {
+                                SPDLOG_WARN(
+                                    "strange, packets size is 0, {}, {}, {}",
+                                    rb_header.host_nic_name, rb_header.ts,
+                                    rb_header.pkts_stats[0]);
+
+                                continue;
+                        }
 
                         // SPDLOG_INFO("parsed_packets size: {}", packets.size());
 
@@ -743,8 +761,8 @@ void* read_rb(uint8_t* rb_buffer, int graph_cnt, std::vector<graph_t*>& concurre
                 slot += nic_name_len;
 
                 // ######
-                uint64_t now = (((uint64_t) Utils::now()) / (uint64_t) 1000000000);
-                uint64_t sccm_ts = *((uint64_t*) slot);
+                int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
+                int64_t sccm_ts = *((uint64_t*) slot);
 
                 SPDLOG_INFO(
                     "receive rb data, push to graph_index: {}, now: {}, sccm ts: {}",
@@ -752,7 +770,7 @@ void* read_rb(uint8_t* rb_buffer, int graph_cnt, std::vector<graph_t*>& concurre
 
                 if (now - sccm_ts > 10)
                 {
-                        SPDLOG_ERROR(
+                        SPDLOG_WARN(
                             "@@@@ too slow, {}, {}, {}", now, sccm_ts, now - sccm_ts);
                 }
 
@@ -802,9 +820,13 @@ Status DNIServiceImpl::CalculateGraph(
 
         std::vector<graph_t*> concurrent_graphs;
         std::vector<std::thread> threads;
+        // int graph_cnt =
+        //     ((all_nic_number / 3 + 1) > (concur_cnt / 3 + 1) ? (concur_cnt / 3 + 1)
+        //                                                      : (all_nic_number / 3 +
+        //                                                      1));
+
         int graph_cnt =
-            ((all_nic_number / 3 + 1) > (concur_cnt / 3 + 1) ? (concur_cnt / 3 + 1)
-                                                             : (all_nic_number / 3 + 1));
+            ((all_nic_number) > (concur_cnt / 2) ? (concur_cnt / 2) : (all_nic_number));
 
         start_graph(
             concurrent_graphs, threads, graph_cnt, all_known_ips, writer, &writer_mutex);
