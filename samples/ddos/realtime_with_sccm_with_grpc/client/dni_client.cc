@@ -36,6 +36,7 @@ void DNIClient::CalculateGraph(const std::string& fpath)
         req.add_all_ips(0xC0A80F3C);
 
         req.set_all_nic_number(6);
+        req.set_count_total_threshold(1000);
 
         const std::unique_ptr<::grpc::ClientReader<GraphResponse>>& response(
             client->CalculateGraph(&context, req));

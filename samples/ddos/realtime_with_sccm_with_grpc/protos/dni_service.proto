@@ -13,6 +13,7 @@ message GraphRequest {
   // sidedata ?
   repeated uint32 all_ips = 2;
   uint32 all_nic_number = 3;
+  uint32 count_total_threshold = 4;
 }
 
 message GraphDMSRule {

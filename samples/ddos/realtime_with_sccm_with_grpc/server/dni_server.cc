@@ -367,7 +367,7 @@ struct graph_t {
 
 void* calc_graph(
     graph_t* g, std::vector<uint32_t>& all_known_ips, ServerWriter<GraphResponse>* writer,
-    std::mutex* writer_mutex)
+    std::mutex* writer_mutex, uint32_t count_total_threshold)
 {
         if (!g || !writer || !writer_mutex)
         {
@@ -403,11 +403,37 @@ void* calc_graph(
 
                 // parse
                 dni::parse_header(nic_data, rb_header, offset);
+                SPDLOG_INFO("countTotal is: {}", rb_header.pkts_stats[0]);
 
-                // if countTotal is 0, stop
-                if (rb_header.pkts_stats[0] == 0)
+                GraphResponse response;
+                GraphCalcResult* result;
+                result = response.add_results();
+
+                // if countTotal is less than count_total_threshold,
+                // no need to analyze by dni graph, just response
+                if (rb_header.pkts_stats[0] <= count_total_threshold)
                 {
-                        SPDLOG_INFO("No packets");
+                        SPDLOG_INFO("Less packets to analyze");
+                        result->set_ts(Utils::now());
+                        result->set_type(GraphResultType::GraphCalcOK);
+                        result->set_host_nic_name(rb_header.host_nic_name);
+                        result->set_abnormal_type(0);
+                        result->set_attack_type(0);
+
+                        GraphDMSRule* rule = result->add_rules();
+                        rule->set_packets_ts(rb_header.ts);
+
+                        writer_mutex->lock();
+                        if (!writer->Write(response))
+                        {
+                                SPDLOG_WARN("the stream has been closed.");
+                                writer_mutex->unlock();
+
+                                break;
+                        }
+
+                        writer_mutex->unlock();
+
                         continue;
                 }
 
@@ -463,9 +489,6 @@ void* calc_graph(
                     ("# single_nic_analysis tag: *" + std::to_string(rb_header.ts) +
                      "*\n");
 
-                GraphResponse response;
-                GraphCalcResult* result;
-                result = response.add_results();
                 // timestamp of server send resp
                 result->set_ts(Utils::now());
                 result->set_type(GraphResultType::GraphCalcOK);
@@ -498,8 +521,8 @@ void* calc_graph(
                         dni::parse_packets(nic_data + offset, pkts_cnt, packets);
 
                         SPDLOG_DEBUG(
-                            "want host nic name: {}, {}, {}", rb_header.host_nic_name,
-                            rb_header.ts, rb_header.pkts_stats[0]);
+                            "want host nic name: {}, {}, {}, {}", rb_header.host_nic_name,
+                            rb_header.ts, rb_header.pkts_stats[0], packets.size());
 
                         if (packets.size() == 0)
                         {
@@ -597,6 +620,9 @@ void* calc_graph(
                                     ("# single_nic_analysis result: *Possible Attack*\n");
 
                                 result->set_detect_result("Possible Attack");
+
+                                GraphDMSRule* rule = result->add_rules();
+                                rule->set_packets_ts(rb_header.ts);
                         }
                         else
                         {
@@ -606,6 +632,9 @@ void* calc_graph(
                                     ("# single_nic_analysis result: *No Attack*\n");
 
                                 result->set_detect_result("No Attack");
+
+                                GraphDMSRule* rule = result->add_rules();
+                                rule->set_packets_ts(rb_header.ts);
                         }
                 }
                 else
@@ -615,6 +644,9 @@ void* calc_graph(
                         str_ret += ("# single_nic_analysis result: *No Anomaly*\n");
 
                         result->set_detect_result("No Anomaly");
+
+                        GraphDMSRule* rule = result->add_rules();
+                        rule->set_packets_ts(rb_header.ts);
                 }
 
                 SPDLOG_INFO("graph: {}, {}", g->index, str_ret);
@@ -681,7 +713,7 @@ void DNIServiceImpl::setChannel(const std::shared_ptr<Channel>& channel)
 void start_graph(
     std::vector<graph_t*>& concurrent_graphs, std::vector<std::thread>& threads, int cnt,
     std::vector<uint32_t>& all_known_ips, ServerWriter<GraphResponse>* writer,
-    std::mutex* writer_mutex)
+    std::mutex* writer_mutex, uint32_t count_total_threshold)
 {
         SPDLOG_INFO("cnt {}", cnt);
 
@@ -701,7 +733,9 @@ void start_graph(
                 concurrent_graphs.push_back(g);
 
                 threads.push_back(std::thread([&]() {
-                        calc_graph(g, std::ref(all_known_ips), writer, writer_mutex);
+                        calc_graph(
+                            g, std::ref(all_known_ips), writer, writer_mutex,
+                            count_total_threshold);
                 }));
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -745,6 +779,7 @@ void* read_rb(uint8_t* rb_buffer, int graph_cnt, std::vector<graph_t*>& concurre
                 if (used < slot_size)
                 {
                         // SPDLOG_INFO("no data in RB, continue...");
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
                         continue;
                 }
 
@@ -805,6 +840,9 @@ Status DNIServiceImpl::CalculateGraph(
                 return Status::OK;
         }
 
+        uint32_t count_total_threshold = request->count_total_threshold();
+        SPDLOG_INFO("count_total_threshold: {}", count_total_threshold);
+
         std::vector<uint32_t> all_known_ips;
         for (auto&& ip : request->all_ips())
         {
@@ -829,7 +867,8 @@ Status DNIServiceImpl::CalculateGraph(
             ((all_nic_number) > (concur_cnt / 2) ? (concur_cnt / 2) : (all_nic_number));
 
         start_graph(
-            concurrent_graphs, threads, graph_cnt, all_known_ips, writer, &writer_mutex);
+            concurrent_graphs, threads, graph_cnt, all_known_ips, writer, &writer_mutex,
+            count_total_threshold);
 
         uint8_t* rb_buffer = 0;
         auto rb_thread = std::thread([&]() {
