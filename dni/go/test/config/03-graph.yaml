@@ -1,0 +1,28 @@
+input_stream:
+  - name: "A"
+  - name: "B"
+output_stream:
+  - name: "C"
+  - name: "D"
+  - name: "E"
+
+nodes:
+  - runner: "MultiInOutTestRunner"
+    input_stream:
+    - "A"
+    - "B"
+    output_stream:
+    - "C"
+    - "D"
+
+  - runner: "SumRunner"
+    input_stream:
+    - "A"
+    - "B"
+    - "C"
+    - "D"
+    output_stream:
+    - "E"
+
+
+

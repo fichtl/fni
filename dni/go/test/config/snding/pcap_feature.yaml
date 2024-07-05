@@ -1,0 +1,29 @@
+input_stream:
+  - "PATH:0:path"
+output_stream:
+  - "SIP:0:sip_count"
+
+
+node:
+  - task: "SndPcapParseTask"
+    input_stream:
+    - "PATH:0:path"
+    output_stream:
+    - "pinfos"
+
+  - task: "FeatureCounterTask"
+    input_stream:
+    - "pinfos"
+    output_stream:
+    - "SIP:0:sip_count"
+    - "SPort:0:sport_count"
+    - "DPort:0:dport_count"
+    - "Proto:0:proto_count"
+    - "Length:0:length_count"
+    options:
+      feature:
+      - "SIP"
+      - "SPort"
+      - "DPort"
+      - "Proto"
+      - "Length"

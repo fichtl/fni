@@ -1,0 +1,18 @@
+input_stream:
+  - name: "A"
+output_stream:
+  - name: "B"
+
+nodes:
+  - runner: "OnnxRunner"
+    input_stream:
+    - "A"
+    output_stream:
+    - "B"
+    options:
+      path: "/home/yf/workspace/onnxruntime_go_examples/goonnx_test/models/model_2_2_x_2_2_v19.onnx"
+
+
+
+
+

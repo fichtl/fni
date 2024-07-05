@@ -1,0 +1,11 @@
+input_stream:
+  - "PATH:0:path"
+output_stream:
+  - "pinfos"
+
+node:
+  - task: "SndPcapParseTask"
+    input_stream:
+    - "PATH:0:path"
+    output_stream:
+    - "pinfos"

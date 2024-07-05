@@ -1,0 +1,19 @@
+input_stream:
+  - "A"
+output_stream:
+  - "B"
+input_sidedata:
+  - "in_sidedata"
+output_sidedata:
+  - "out_sidedata"
+
+node:
+  - task: "PropagateAndAddSideDataTask"
+    input_stream:
+    - "A"
+    output_stream:
+    - "B"
+    input_sidedata:
+    - "in_sidedata"
+    output_sidedata:
+    - "out_sidedata"

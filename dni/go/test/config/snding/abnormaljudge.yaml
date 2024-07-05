@@ -1,0 +1,15 @@
+input_stream:
+  - "PACKET:packet"
+  - "NETDEV:netdev"
+  - "RESOURCE:resource"
+output_stream:
+  - "abnormal_res"
+
+node:
+  - task: "SndAdTask"
+    input_stream:
+    - "PACKET:packet"
+    - "NETDEV:netdev"
+    - "RESOURCE:resource"
+    output_stream:
+    - "abnormal_res"

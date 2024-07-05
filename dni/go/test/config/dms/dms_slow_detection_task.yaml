@@ -1,0 +1,33 @@
+input_stream:
+  - "assessorInd"
+  - "tcpconn"
+  - "nicIP"
+output_stream:
+  - "respond"
+
+node:
+  - task: "DmsArbitrateTask"
+    input_stream: 
+      - "AssessorInd:0:assessorInd"
+    output_stream:
+      - "Query:0:query"
+      - "Intelligence:0:intelli"
+
+  - task: "DmsConnDiagTask"
+    input_stream: 
+      - "Query:0:query"
+      - "TCPConn:0:tcpconn"
+    output_stream:
+      - "ConnDiag:0:conndiag"
+
+  - task: "DmsSlowAttackDetectTask"
+    input_stream: 
+      - "ConnDiag:0:conndiag"
+      - "NicIP:nicIP"
+    output_stream:
+      - "Respond:respond"
+    options:
+      tcpconn:
+        tcpsemiconn: 10000
+        tcpfullconn: 5000
+        pertcpfullconn: 5000   

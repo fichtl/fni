@@ -1,0 +1,66 @@
+input_stream:
+  - "PATH:0:path"
+output_stream:
+  - "maxscore"
+
+
+node:
+  - task: "SndPcapParseTask"
+    input_stream:
+    - "PATH:0:path"
+    output_stream:
+    - "pinfos"
+
+  - task: "FeatureCounterTask"
+    input_stream:
+    - "pinfos"
+    output_stream:
+    - "SIP:0:sip_count"
+    - "SPort:0:sport_count"
+    - "DPort:0:dport_count"
+    - "Proto:0:proto_count"
+    - "Length:0:length_count"
+    options:
+      feature:
+      - "SIP"
+      - "SPort"
+      - "DPort"
+      - "Proto"
+      - "Length"
+    
+  - task: "SndNumberStatsTask"
+    input_stream:
+    - "SPort:0:sport_count"
+    output_stream:
+    - "sportscore"
+    options:
+      numValueSum: 10000
+      ratioMin: 0.1
+      ratioMax: 0.6
+      score_thresholds:
+       - 0.4
+       - 1
+       - 0.6
+       - 0
+    
+  - task: "SndNumberStatsTask"
+    input_stream:
+    - "DPort:0:dport_count"
+    output_stream:
+    - "dportscore"
+    options:
+      numValueSum: 10000
+      ratioMin: 0.1
+      ratioMax: 0.6
+      score_thresholds:
+       - 0.4
+       - 1
+       - 0.6
+       - 0
+
+  - task: "MaxTask"
+    input_stream:
+    - "sportscore"
+    - "dportscore"
+    output_stream:
+    - "maxscore"

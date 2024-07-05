@@ -1,0 +1,79 @@
+input_stream:
+  - "PATH:0:path"
+  - "KNOWN_IPS:0:knownips"
+  - "NIC:0:nic"
+  - "netdev"
+output_stream:
+  - "dmsrules"
+
+
+node:
+  - task: "SndPcapParseTask"
+    input_stream:
+    - "PATH:0:path"
+    output_stream:
+    - "PACKET:0:pinfos"
+
+  - task: "FeatureCounterTask"
+    input_stream:
+    - "PACKET:0:pinfos"
+    output_stream:
+    - "SIP:0:sip_count"
+    - "SPort:0:sport_count"
+    - "DPort:0:dport_count"
+    - "Proto:0:proto_count"
+    - "Length:0:length_count"
+    options:
+      feature:
+      - "SIP"
+      - "SPort"
+      - "DPort"
+      - "Proto"
+      - "Length"
+    
+  - task: "SndAttackerIPMergeTask"
+    input_stream:
+    - "SIP:0:sip_count"
+    - "KNOWN_IPS:0:knownips"
+    output_stream:
+    - "SIP:0:attakerIPMergeRes"
+    options:
+      ipFw4CountRatio: 0.1
+      ipFw3CountRatio: 0.2
+      ipFw2CountRatio: 0.4
+      ipRandCountRatio: 0.5
+      ipSegCoverThreshold: 100
+      ipRandCountThreshold: 2
+
+  - task: "SndSIPBaseMergeDedupTask"
+    input_stream:
+    - "PACKET:0:pinfos"
+    - "SIP:0:attakerIPMergeRes"
+    - "NIC:0:nic"
+    output_stream:
+    - "CIDR:0:merged_stats"
+    - "CIDR:1:dms_rules_prepare"
+    options:
+      num_stat: 
+        label:
+          - "centralize"
+          - "regular"
+          - "random"
+          - "void"
+        ratioMin: 0.1
+        ratioMax: 0.6
+        keyLenThresh: 10
+      proto_stat: 
+        label:
+          - "flood"
+          - "rapid"
+          - "void"
+        ratioMin: 0.1
+        ratioMax: 0.6
+
+  - task: "SndGenDedupTDMSRulesask"
+    input_stream:
+    - "CIDR:0:dms_rules_prepare"
+    - "NETDEV:0:netdev"
+    output_stream:
+    - "dmsrules"

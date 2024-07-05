@@ -1,0 +1,98 @@
+input_stream:
+  - "AssessorData:assessorData"
+  - "Listen:listen"
+  - "Conntrack:conntrack"
+  - "Packet:packet"
+  - "TCPConn:tcpconn"
+  - "Ratio:0:ratio"
+output_stream:
+  - "responds"
+input_sidedata:
+  - "NicIP:nicIP"
+
+node:
+  - task: "DmsAssessTask"
+    input_stream:
+      - "STAT:0:assessorData"
+    output_stream:
+      - "assessorInd"
+    options:
+      cpu:
+        low: 20
+        okay: 40
+        high: 80
+      bw:
+        bps: 90
+        kpps: 5000
+      tcpconn:
+        tcpsemiconn: 10000
+        tcpfullconn: 5000
+        pertcpfullconn: 5000
+      pps:
+        threshold: 100000
+        protothreshold:
+          icmp: 1000
+          tcp: 125000
+          udp: 100000
+        tolerance: 0.2
+      frequency: 1
+
+  - task: "DmsArbitrateTask"
+    input_stream: 
+      - "AssessorInd:0:assessorInd"
+    output_stream:
+      - "Query:0:query"
+      - "Intelligence:0:intelli"
+
+  - task: "DmsConnDiagTask"
+    input_stream: 
+      - "Query:0:query"
+      - "TCPConn:0:tcpconn"
+    output_stream:
+      - "ConnDiag:0:conndiag"
+
+  - task: "DmsProtoDiagTask"
+    input_stream: 
+      - "Query:0:query"
+      - "Conntrack:0:conntrack"
+      - "Packet:0:packet"
+      - "Listen:0:listen"
+      - "Ratio:0:ratio"
+    output_stream:
+      - "ProtoDiag:0:protodiag"
+      - "CtInfo:0:ctinfo"
+    input_sidedata:
+      - "NicIP:0:nicIP"
+
+  - task: "DmsFloodAttackDetectTask"
+    input_stream: 
+      - "ProtoDiag:0:protodiag"
+      - "Conntrack:0:ctinfo"
+    output_stream:
+      - "RespondList:0:responds"
+    input_sidedata:
+      - "NicIP:0:nicIP"
+    options:
+      pps:
+        threshold: 100000
+        protothreshold:
+          icmp: 1000
+          tcp: 10000
+          udp: 100000
+        tolerance: 0.2 
+      capability:
+        cap: 512
+        strictness: 3  
+
+  - task: "DmsSlowAttackDetectTask"
+    input_stream: 
+      - "ConnDiag:0:conndiag"
+    output_stream:
+      - "Respond:respond"
+    input_sidedata:
+      - "NicIP:nicIP"
+    options:
+      tcpconn:
+        tcpsemiconn: 10000
+        tcpfullconn: 5000
+        pertcpfullconn: 5000   

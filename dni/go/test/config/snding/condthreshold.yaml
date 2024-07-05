@@ -1,0 +1,24 @@
+input_stream:
+  - "stat"
+  - "cond"
+output_stream:
+  - "score"
+
+node:
+  - task: "ConditionThresholdTask"
+    input_stream:
+    - "STAT:0:stat"
+    - "COND:0:cond"
+    output_stream:
+    - "score"
+    options:
+      thresh_scores:
+        - threshold: 0
+          score: 0.2
+        - threshold: 6
+          score: 0
+        - threshold: 500
+          score: 0.1
+      conditions:
+        - 2000
+      default: 0

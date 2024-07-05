@@ -1,0 +1,13 @@
+input_stream:
+  - "assessorInd"
+output_stream:
+  - "query"
+  - "intelli"
+
+node:
+  - task: "DmsArbitrateTask"
+    input_stream: 
+      - "AssessorInd:0:assessorInd"
+    output_stream:
+      - "Query:0:query"
+      - "Intelligence:0:intelli"
