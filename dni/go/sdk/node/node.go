@@ -95,7 +95,6 @@ func (n *Node) Execute() error {
 			n.TaskContext.Outputs.Reset()
 			nErr := fmt.Errorf("task process error:%v", err)
 			n.ErrorList = append(n.ErrorList, nErr)
-			log.Printf("%v", nErr)
 		}
 		//send output stream to next nodes & graph outputs
 		n.OutputManager.AddAllData()
@@ -106,13 +105,11 @@ func (n *Node) Execute() error {
 		n.setStatusFailed()
 		nErr := fmt.Errorf("node %d task stop error:%v", n.NodeID, err)
 		n.ErrorList = append(n.ErrorList, nErr)
-		log.Printf("%v", nErr)
 	}
 	//stop output
 	if err := n.OutputManager.Close(); err != nil {
 		nErr := fmt.Errorf("node %d output manager stop error:%v", n.NodeID, err)
 		n.ErrorList = append(n.ErrorList, nErr)
-		log.Printf("%v", nErr)
 	}
 	//change node status
 	n.setStatusNone()

@@ -1,10 +1,9 @@
 input_stream:
   - "assessorInd"
   - "tcpconn"
+  - "nicIP"
 output_stream:
   - "respond"
-input_sidedata:
-  - "nicip"
 
 node:
   - task: "DmsArbitrateTask"
@@ -24,10 +23,9 @@ node:
   - task: "DmsSlowAttackDetectTask"
     input_stream: 
       - "ConnDiag:0:conndiag"
+      - "NicIP:nicIP"
     output_stream:
       - "Respond:respond"
-    input_sidedata:
-      - "NicIP:nicip"
     options:
       tcpconn:
         tcpsemiconn: 10000

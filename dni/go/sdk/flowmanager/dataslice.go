@@ -37,11 +37,10 @@ func (ds *DataSlice) Get(tag string, index int) *DataSpec {
 	tag_index := fmt.Sprintf("%s:%d", tag, index)
 	pos, ok := ds.TagIndexMap[tag_index]
 	if !ok {
-		log.Printf("tag(%s) & index(%d) error", tag, index)
+		log.Printf("tag(%s)&index(%d) error", tag, index)
 		return &DataSpec{}
 	}
 	if pos >= ds.Size {
-		log.Printf("pos error")
 		return &DataSpec{}
 	}
 	return ds.Values[pos]
@@ -58,11 +57,9 @@ func (ds *DataSlice) GetByName(name string) (*DataSpec, bool) {
 func (ds *DataSlice) GetByTagIndex(tagindex string) *DataSpec {
 	pos, ok := ds.TagIndexMap[tagindex]
 	if !ok {
-		log.Printf("tag & index error")
 		return &DataSpec{}
 	}
 	if pos >= ds.Size {
-		log.Printf("pos error")
 		return &DataSpec{}
 	}
 	return ds.Values[pos]
@@ -71,7 +68,6 @@ func (ds *DataSlice) GetByTagIndex(tagindex string) *DataSpec {
 func (ds *DataSlice) Set(name string, data *DataSpec) error {
 	pos, ok := ds.NameMap[name]
 	if !ok {
-		log.Printf("name error")
 		return fmt.Errorf("name error")
 	}
 	ds.Values[pos] = data

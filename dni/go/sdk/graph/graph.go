@@ -50,28 +50,24 @@ func InitialGraph(graphfile string) (*Graph, error) {
 
 	// get stream node edge between node and next nodes/graph output
 	nodeEdge, streamSortedNodes, err := gu.GetNodeEdge()
-	log.Printf("Node Edge:%v", nodeEdge)
 	if err != nil {
 		return nil, err
 	}
 
 	// get stream source edge between graph input and nodes
 	sourceEdge, err := gu.GetSourceEdge()
-	log.Printf("Source Edge:%v", sourceEdge)
 	if err != nil {
 		return nil, err
 	}
 
 	// get sidedata node edge between node and next nodes/graph output
 	sideNodeEdge, sidedataSortedNodes, err := gu.GetSideNodeEdge()
-	log.Printf("SideData Node Edge:%v", sideNodeEdge)
 	if err != nil {
 		return nil, err
 	}
 
 	// get sidedata source edge between graph input and nodes
 	sideSourceEdge, err := gu.GetSideSourceEdge()
-	log.Printf("SideData Source Edge:%v", sideSourceEdge)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +149,6 @@ func (g *Graph) LinkSideDataNodeEdge(preNodeID int, sideDataMap map[string][]int
 
 func (g *Graph) LinkSourceEdge() {
 	gInStreams := g.InputHandler.GetGraphInputStreams()
-	log.Printf("graph in strems:%v", gInStreams)
 	nextInputManagers := make(map[string][]*flowmng.InputManager)
 	for _, stream := range gInStreams {
 		nextNodes := g.SourceEdge[stream]
@@ -167,7 +162,6 @@ func (g *Graph) LinkSourceEdge() {
 
 func (g *Graph) LinkSideDataSourceEdge() {
 	gInSideData := g.InputSideDataHandler.GetGraphInputSideData()
-	log.Printf("graph input sidedata:%v", gInSideData)
 	nextInputSideData := make(map[string][]*flowmng.DataSlice)
 	for _, sidedata := range gInSideData {
 		nextNodes := g.SideDataSourceEdge[sidedata]
@@ -325,7 +319,6 @@ func (g *Graph) GetAllGraphOutputData() (map[string]interface{}, error) {
 		output, _ := g.GetGraphOutputData(stream)
 		outputs[stream] = output
 	}
-	log.Println(outputs)
 	return outputs, nil
 }
 

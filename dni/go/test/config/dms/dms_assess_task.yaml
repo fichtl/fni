@@ -2,8 +2,6 @@ input_stream:
   - "assessorData"
 output_stream:
   - "assessorInd"
-input_sidedata:
-  - "NicSpeed:nicSpeed"
 
 node:
   - task: "DmsAssessTask"
@@ -11,8 +9,6 @@ node:
       - "STAT:0:assessorData"
     output_stream:
       - "assessorInd"
-    input_sidedata:
-      - "NicSpeed:nicSpeed"
     options:
       cpu:
         low: 20

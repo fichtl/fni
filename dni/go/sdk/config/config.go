@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -210,8 +209,8 @@ func (gu *GraphUnit) GetNodeEdge() (map[int]map[string][]int, []int, error) {
 		return nil, nil, err
 	}
 	//Loop Judge
-	log.Printf("preMap:%v", preMap)
-	log.Printf("nextMap:%v", nextMap)
+	// log.Printf("preMap:%v", preMap)
+	// log.Printf("nextMap:%v", nextMap)
 	sortedNodes, isExistLoop := IsExistLoop(preMap, nextMap)
 	if isExistLoop {
 		return nil, nil, fmt.Errorf("graph has loop")
@@ -270,8 +269,8 @@ func (gu *GraphUnit) GetSideNodeEdge() (map[int]map[string][]int, []int, error) 
 		return nil, nil, err
 	}
 	//Loop Judge
-	log.Printf("preMap:%v", preMap)
-	log.Printf("nextMap:%v", nextMap)
+	// log.Printf("preMap:%v", preMap)
+	// log.Printf("nextMap:%v", nextMap)
 	sortedNodes, isExistLoop := IsExistLoop(preMap, nextMap)
 	if isExistLoop {
 		return nil, nil, fmt.Errorf("graph has loop")

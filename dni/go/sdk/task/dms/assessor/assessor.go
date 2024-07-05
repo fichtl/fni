@@ -120,7 +120,7 @@ func CalcBWUtil(bw map[string]map[string]uint64, speed map[string]uint64, th con
 	statusMap := make(map[string]map[string]bool)
 	shapeResult := BW_LOW
 	thbps := uint64(th.BPS)
-	thpps := uint64(th.PPS)
+	thpps := uint64(th.PPS) * 1000
 	for dev, data := range bw {
 		var status BwUtil
 		statusMap[dev] = make(map[string]bool)

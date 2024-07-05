@@ -2,8 +2,8 @@ package assessor
 
 import (
 	"fmt"
-	"log"
 
+	alog "github.com/amianetworks/am.modules/log"
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/amianetworks/dni/sdk/task"
 	config "github.com/amianetworks/dni/sdk/task/dms/config"
@@ -13,7 +13,6 @@ import (
 type DmsAssessTask struct {
 	TaskName string
 	Options  DmsAssessOptions
-	NicSpeed map[string]uint64
 }
 
 type DmsAssessOptions struct {
@@ -28,7 +27,7 @@ func NewDmsAssessTask(task string, options interface{}) task.Task {
 	var opts DmsAssessOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
-		log.Printf("[%s] options decode error:%v", task, err)
+		alog.R.Errorf("[%s] options decode error:%v", task, err)
 		return nil
 	}
 	t := &DmsAssessTask{}
@@ -38,12 +37,6 @@ func NewDmsAssessTask(task string, options interface{}) task.Task {
 }
 
 func (t *DmsAssessTask) Open(ctx *flowmng.TaskContext) error {
-	nicSpeed, ok := ctx.InputSideData.Get("NicSpeed", 0).Data.(map[string]uint64)
-	if !ok {
-		return fmt.Errorf("[%s] cast error", t.TaskName)
-	}
-	t.NicSpeed = nicSpeed
-	log.Printf("[%s] input side data(%s):%v", t.TaskName, "NicSpeed", nicSpeed)
 	return nil
 }
 
@@ -56,17 +49,17 @@ func (t *DmsAssessTask) Process(ctx *flowmng.TaskContext) error {
 	assessorInd := new(AssessorInd)
 	//cpu
 	cpuStatus := CalcCPUUtil(assessorData.CPU, t.Options.CPU)
-	log.Printf("[%s] CPU detailed:%f,status:%v", t.TaskName, assessorData.CPU, cpuStatus)
+	alog.R.Debugf("[%s] CPU detailed:%f,status:%v", t.TaskName, assessorData.CPU, cpuStatus)
 	//bw
-	bwStatus, bwStatusMap := CalcBWUtil(assessorData.BW, t.NicSpeed, t.Options.BW)
-	log.Printf("[%s] Bandwidth detailed:%v status:%v", t.TaskName, assessorData.BW, bwStatusMap)
+	bwStatus, bwStatusMap := CalcBWUtil(assessorData.BW, assessorData.NicSpeed, t.Options.BW)
+	alog.R.Debugf("[%s] Bandwidth detailed:%v status:%v", t.TaskName, assessorData.BW, bwStatusMap)
 	//tcpconn
 	tcpConnStatus := CalcTCPConn(assessorData.TCPConn, t.Options.TCPConn)
-	log.Printf("[%s] TCP Connection detailed:%v,status:%v", t.TaskName, assessorData.TCPConn, tcpConnStatus)
+	alog.R.Debugf("[%s] TCP Connection detailed:%v,status:%v", t.TaskName, assessorData.TCPConn, tcpConnStatus)
 	//snmp
 	protoProhibit := make(map[string]bool)
 	snmpStatus := CalcSnmpUtil(assessorData.SNMP, uint64(t.Options.Frequency), t.Options.PPS, protoProhibit)
-	log.Printf("[%s] SNMP detailed:%v,status:%v", t.TaskName, assessorData.SNMP, snmpStatus)
+	alog.R.Debugf("[%s] SNMP detailed:%v,status:%v", t.TaskName, assessorData.SNMP, snmpStatus)
 	//create outputs
 	assessorInd.CPU = cpuStatus
 	assessorInd.BW = bwStatus

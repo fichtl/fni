@@ -3,9 +3,8 @@ package test
 import (
 	"log"
 	"testing"
-	"time"
 
-	dms "github.com/amianetworks/dni/sdk/task/dms/data"
+	dms "github.com/amianetworks/dni/service/generator"
 )
 
 func TestGetTCPConn(t *testing.T) {
@@ -27,19 +26,6 @@ func TestGetSNMP(t *testing.T) {
 func TestNicSpeed(t *testing.T) {
 	nic_speed := 10_000
 	log.Println(nic_speed)
-}
-
-func TestGetAssessData(t *testing.T) {
-	devs := []string{"eno1"}
-	ag := dms.NewAssessorDataGenerator(devs)
-	for i := 0; i < 5; i++ {
-		data, err := ag.GetAssessData()
-		if err != nil {
-			t.Log(err)
-		}
-		t.Log(data)
-		time.Sleep(time.Second)
-	}
 }
 
 func TestGetConntracks(t *testing.T) {

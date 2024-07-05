@@ -1,10 +1,11 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 )
 
@@ -12,7 +13,7 @@ type SndNetRecordMergeTask struct {
 	TaskName string
 }
 
-func NewSndNetRecordMergeTask(task string, options interface{}) Task {
+func NewSndNetRecordMergeTask(task string, options interface{}) task.Task {
 	return &SndNetRecordMergeTask{
 		TaskName: task,
 	}
@@ -53,5 +54,5 @@ func (t *SndNetRecordMergeTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndNetRecordMergeTask", NewSndNetRecordMergeTask)
+	task.RegisterTask("SndNetRecordMergeTask", NewSndNetRecordMergeTask)
 }

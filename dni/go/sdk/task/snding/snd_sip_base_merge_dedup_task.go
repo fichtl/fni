@@ -1,10 +1,11 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 	"github.com/mitchellh/mapstructure"
 )
@@ -32,7 +33,7 @@ type ProtoThreshLabels struct {
 	Labels   []string `mapstructure:"label"`
 }
 
-func NewSndSIPBaseMergeDedupTask(task string, options interface{}) Task {
+func NewSndSIPBaseMergeDedupTask(task string, options interface{}) task.Task {
 	var opts SndSIPBaseMergeDedupOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
@@ -142,5 +143,5 @@ func (t *SndSIPBaseMergeDedupTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndSIPBaseMergeDedupTask", NewSndSIPBaseMergeDedupTask)
+	task.RegisterTask("SndSIPBaseMergeDedupTask", NewSndSIPBaseMergeDedupTask)
 }

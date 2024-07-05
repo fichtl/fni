@@ -4,10 +4,9 @@ input_stream:
   - "conntrack"
   - "packet"
   - "ratio"
+  - "nicIP"
 output_stream:
   - "responds"
-input_sidedata:
-  - "nicip"
 
 node:
   - task: "DmsArbitrateTask"
@@ -24,20 +23,18 @@ node:
       - "Packet:0:packet"
       - "Listen:0:listen"
       - "Ratio:0:ratio"
+      - "NicIP:nicIP"
     output_stream:
       - "ProtoDiag:0:protodiag"
       - "CtInfo:0:ctinfo"
-    input_sidedata:
-      - "NicIP:0:nicip"
 
   - task: "DmsFloodAttackDetectTask"
     input_stream: 
       - "ProtoDiag:0:protodiag"
       - "Conntrack:0:ctinfo"
+      - "NicIP:nicIP"
     output_stream:
       - "RespondList:0:responds"
-    input_sidedata:
-      - "NicIP:0:nicip"
     options:
       pps:
         threshold: 100000

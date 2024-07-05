@@ -1,10 +1,11 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 	"github.com/mitchellh/mapstructure"
 )
@@ -21,7 +22,7 @@ type SndNumberStatsOptions struct {
 	Scores      []float64 `mapstructure:"score_thresholds"`
 }
 
-func NewSndNumberStatsTask(task string, options interface{}) Task {
+func NewSndNumberStatsTask(task string, options interface{}) task.Task {
 	var opts SndNumberStatsOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
@@ -81,5 +82,5 @@ func (t *SndNumberStatsTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndNumberStatsTask", NewSndNumberStatsTask)
+	task.RegisterTask("SndNumberStatsTask", NewSndNumberStatsTask)
 }

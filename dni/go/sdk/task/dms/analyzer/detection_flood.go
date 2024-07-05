@@ -6,10 +6,10 @@ import (
 )
 
 func FloodAttackDetection(protodiag *ProtoDiag, th config.ProtoThreshold, cap config.Capability, ct *common.CtInfo) []*Respond {
-	if protodiag == nil {
-		return nil
-	}
 	resps := make([]*Respond, 0)
+	if protodiag == nil {
+		return resps
+	}
 	for dev, stat := range protodiag.Stat {
 		//ICMP Attack
 		thicmp := th.GetPPSThreshold(common.PROTO_STR_ICMP, true)

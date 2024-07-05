@@ -1,4 +1,4 @@
-package analyzer
+package generator
 
 import (
 	"bufio"
@@ -10,12 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/amianetworks/dni/sdk/task/dms/assessor"
 	"github.com/amianetworks/dni/sdk/task/dms/common"
-	"github.com/amianetworks/dni/sdk/utils"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
-	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/cpu"
 )
 
 // CPU
@@ -23,7 +21,17 @@ var (
 	all, soft float64
 )
 
-func getSoftirq(t cpu.TimesStat) (float64, float64) {
+func GetCPU() (float64, error) {
+	t, err := cpu.Times(false)
+	if err != nil {
+		return 0.0, err
+	}
+	lastAll, lastSoft := all, soft
+	all, soft = GetSoftirq(t[0])
+	return math.Min(100, math.Max(0, (soft-lastSoft)/(all-lastAll)*100)), nil
+}
+
+func GetSoftirq(t cpu.TimesStat) (float64, float64) {
 	busy := t.User + t.System + t.Nice + t.Iowait + t.Irq + t.Softirq + t.Steal
 	return busy + t.Idle, t.Softirq
 }
@@ -100,10 +108,10 @@ var feats []string = []string{
 
 	"IcmpInMsgs",
 
-	"TcpExtTCPReqQFullDrop",
-	"TcpExtTCPReqQFullDoCookies",
 	"TcpOutRsts",
 	"TcpInSegs",
+	"TcpExtTCPReqQFullDrop",
+	"TcpExtTCPReqQFullDoCookies",
 
 	"UdpRcvbufErrors",
 	"UdpNoPorts",
@@ -135,118 +143,6 @@ func getSnmpCounters(tokens []string) (*snmpCounter, error) {
 		return nil, err
 	}
 	return c, nil
-}
-
-// AssessData
-type AssessorDataGenerator struct {
-	Data            assessor.AssessorData
-	devs            []string
-	start           bool
-	cpuAll, cpuSoft float64
-	bwStat          map[string]map[string]uint64
-}
-
-func NewAssessorDataGenerator(devs []string) *AssessorDataGenerator {
-	ag := &AssessorDataGenerator{
-		devs: devs,
-	}
-	speed := make(map[string]uint64)
-	for _, dev := range devs {
-		speed[dev] = 1000
-	}
-	assessData := assessor.AssessorData{
-		CPU:      0.0,
-		BW:       map[string]map[string]uint64{},
-		SNMP:     map[string]uint64{},
-		TCPConn:  map[string]uint64{},
-		NicSpeed: speed,
-	}
-	ag.Data = assessData
-	//init cpu
-	t, err := cpu.Times(false)
-	if err != nil {
-		return nil
-	}
-	ag.cpuAll, ag.cpuSoft = getSoftirq(t[0])
-	//init bw
-	ag.bwStat = make(map[string]map[string]uint64)
-	for _, dev := range devs {
-		bw, err := GetNetifStat(dev)
-		if err != nil {
-			return nil
-		}
-		ag.bwStat[dev] = bw
-	}
-	return ag
-}
-
-func (ag *AssessorDataGenerator) GetAssessData() (assessor.AssessorData, error) {
-	cpu, err := ag.GetCPU()
-	if err != nil {
-		return assessor.AssessorData{}, err
-	}
-	bw, err := ag.GetBW()
-	if err != nil {
-		return assessor.AssessorData{}, err
-	}
-	tcpconn, err := GetTCPConnBriefProc()
-	if err != nil {
-		return assessor.AssessorData{}, err
-	}
-	snmp, err := GetSNMP()
-	if err != nil {
-		return assessor.AssessorData{}, err
-	}
-	var res assessor.AssessorData
-	if !ag.start {
-		res = ag.Data
-		ag.Data.CPU = cpu
-		ag.Data.BW = bw
-		ag.Data.SNMP = snmp
-		ag.Data.TCPConn = tcpconn
-		ag.start = true
-	} else {
-		ag.Data.CPU = cpu
-		ag.Data.BW = bw
-		ag.Data.SNMP = snmp
-		ag.Data.TCPConn = tcpconn
-		res = ag.Data
-	}
-	return res, nil
-}
-
-func (ag *AssessorDataGenerator) GetCPU() (float64, error) {
-	t, err := cpu.Times(false)
-	if err != nil {
-		return 0.0, err
-	}
-	lastAll, lastSoft := ag.cpuAll, ag.cpuSoft
-	all, soft = getSoftirq(t[0])
-	return math.Min(100, math.Max(0, (soft-lastSoft)/(all-lastAll)*100)), nil
-}
-
-func (ag *AssessorDataGenerator) GetBW() (map[string]map[string]uint64, error) {
-	allStatDiff := make(map[string]map[string]uint64)
-	for _, dev := range ag.devs {
-		lastStat := ag.bwStat[dev]
-		currStat, err := GetNetifStat(dev)
-		if err != nil {
-			return nil, err
-		}
-		statDiff := make(map[string]uint64)
-		for k, v := range currStat {
-			if v != 0 {
-				if v >= currStat[k] {
-					statDiff[k] = v - lastStat[k]
-				} else { // cross the upper bound
-					statDiff[k] = utils.UINT64_MAX - (lastStat[k] - v)
-				}
-			}
-		}
-		allStatDiff[dev] = statDiff
-		ag.bwStat[dev] = currStat
-	}
-	return allStatDiff, nil
 }
 
 // TCP Connection Infos
@@ -364,6 +260,7 @@ func GetCtInfoConntrack() ([]map[string]string, error) {
 			conntrack["rDIP"] = reply["dst"]
 			conntrack["flag"] = ""
 			conntrack["status"] = ""
+			conntracks = append(conntracks, conntrack)
 		case "tcp":
 			orig, reply, flag, err := parseConntrack(fields, 3, 4)
 			if err != nil {
@@ -375,8 +272,9 @@ func GetCtInfoConntrack() ([]map[string]string, error) {
 			conntrack["rDIP"] = reply["dst"]
 			conntrack["flag"] = flag
 			conntrack["status"] = fields[3]
+			conntracks = append(conntracks, conntrack)
 		}
-		conntracks = append(conntracks, conntrack)
+
 	}
 	return conntracks, nil
 }

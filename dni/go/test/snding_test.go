@@ -6,10 +6,11 @@ import (
 	"time"
 
 	graph "github.com/amianetworks/dni/sdk/graph"
+	_ "github.com/amianetworks/dni/sdk/task/snding"
 )
 
 func TestThresholdTask(t *testing.T) {
-	graph_path := "/home/yf/workspace/dni/dni/go/sdk/test/threshold.yaml"
+	graph_path := "./config/snding/threshold.yaml"
 	//init g
 	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
@@ -36,7 +37,7 @@ func TestThresholdTask(t *testing.T) {
 }
 
 func TestCondThresholdTask(t *testing.T) {
-	graph_path := "condthreshold.yaml"
+	graph_path := "./config/snding/condthreshold.yaml"
 	//init g
 	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
@@ -65,7 +66,7 @@ func TestCondThresholdTask(t *testing.T) {
 }
 
 func TestSndAdTask(t *testing.T) {
-	graph_path := "abnormaljudge.yaml"
+	graph_path := "./config/snding/abnormaljudge.yaml"
 	//register executors
 
 	//init g
@@ -99,7 +100,7 @@ func TestSndAdTask(t *testing.T) {
 }
 
 func TestSndPcapParseTask(t *testing.T) {
-	graph_path := "pcap_parse.yaml"
+	graph_path := "./config/snding/pcap_parse.yaml"
 	//register executors
 
 	//init g
@@ -124,7 +125,7 @@ func TestSndPcapParseTask(t *testing.T) {
 }
 
 func TestFeatureCounterTask(t *testing.T) {
-	graph_path := "pcap_feature.yaml"
+	graph_path := "./config/snding/pcap_feature.yaml"
 	//register executors
 
 	//init g
@@ -150,7 +151,7 @@ func TestFeatureCounterTask(t *testing.T) {
 }
 
 func TestSndNumberStatsTask(t *testing.T) {
-	graph_path := "num_feature.yaml"
+	graph_path := "./config/snding/num_feature.yaml"
 	//register executors
 
 	//init g
@@ -176,7 +177,7 @@ func TestSndNumberStatsTask(t *testing.T) {
 }
 
 func TestSndProtoStatsTask(t *testing.T) {
-	graph_path := "proto_feature.yaml"
+	graph_path := "./config/snding/proto_feature.yaml"
 	//register executors
 
 	//init g
@@ -202,7 +203,7 @@ func TestSndProtoStatsTask(t *testing.T) {
 }
 
 func TestMaxTask(t *testing.T) {
-	graph_path := "num_feature_max.yaml"
+	graph_path := "./config/snding/num_feature_max.yaml"
 
 	//init g
 	g, err := graph.InitialGraph(graph_path)
@@ -227,7 +228,7 @@ func TestMaxTask(t *testing.T) {
 }
 
 func TestIPMergeTask(t *testing.T) {
-	graph_path := "ip_merge.yaml"
+	graph_path := "./config/snding/ip_merge.yaml"
 	//register executors
 
 	//init g
@@ -255,7 +256,7 @@ func TestIPMergeTask(t *testing.T) {
 }
 
 func TestSIPBaseMerge(t *testing.T) {
-	graph_path := "sip_base_merge.yaml"
+	graph_path := "./config/snding/sip_base_merge.yaml"
 	//init g
 	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
@@ -283,7 +284,7 @@ func TestSIPBaseMerge(t *testing.T) {
 }
 
 func TestGenDMSRule(t *testing.T) {
-	graph_path := "gen_dms_rules.yaml"
+	graph_path := "./config/snding/gen_dms_rules.yaml"
 	//init g
 	g, err := graph.InitialGraph(graph_path)
 	if err != nil {
@@ -307,7 +308,7 @@ func TestGenDMSRule(t *testing.T) {
 }
 
 func TestNetRecordMerge(t *testing.T) {
-	graph_path := "net_record_merge.yaml"
+	graph_path := "./config/snding/net_record_merge.yaml"
 	//init g
 	g, err := graph.InitialGraph(graph_path)
 	if err != nil {

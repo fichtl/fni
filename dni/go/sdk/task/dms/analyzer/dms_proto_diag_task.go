@@ -2,7 +2,6 @@ package analyzer
 
 import (
 	"fmt"
-	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/amianetworks/dni/sdk/task"
@@ -12,7 +11,6 @@ import (
 
 type DmsProtoDiagTask struct {
 	TaskName string
-	NicIP    map[string]string
 	IPNic    map[string]string
 }
 
@@ -23,16 +21,6 @@ func NewDmsProtoDiagTask(task string, options interface{}) task.Task {
 }
 
 func (t *DmsProtoDiagTask) Open(ctx *flowmng.TaskContext) error {
-	nicIP, ok := ctx.InputSideData.Get("NicIP", 0).Data.(map[string]string)
-	if !ok {
-		return fmt.Errorf("[%s] cast error", t.TaskName)
-	}
-	t.NicIP = nicIP
-	t.IPNic = make(map[string]string)
-	for nic, ip := range nicIP {
-		t.IPNic[ip] = nic
-	}
-	log.Printf("[%s] input side data(%s):%v", t.TaskName, "NicIP", nicIP)
 	return nil
 }
 
@@ -43,7 +31,6 @@ func (t *DmsProtoDiagTask) Process(ctx *flowmng.TaskContext) error {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
 	}
 	if query == nil {
-		log.Printf("[%s] query is nil", t.TaskName)
 		ctx.Outputs.Get("CtInfo", 0).Data = nil
 		ctx.Outputs.Get("ProtoDiag", 0).Data = nil
 		return nil
@@ -64,7 +51,12 @@ func (t *DmsProtoDiagTask) Process(ctx *flowmng.TaskContext) error {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
 	}
 	//conntracks
-	conntracks, ok := ctx.Inputs.Get("Conntrack", 0).Data.([]map[string]string)
+	conntracks, ok := ctx.Inputs.Get("Conntrack", 0).Data.([]*common.ConnInfo)
+	if !ok {
+		return fmt.Errorf("[%s] cast error", t.TaskName)
+	}
+	//nic ip
+	nicIP, ok := ctx.Inputs.Get("NicIP", 0).Data.(map[string]string)
 	if !ok {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
 	}
@@ -87,7 +79,7 @@ func (t *DmsProtoDiagTask) Process(ctx *flowmng.TaskContext) error {
 		if !ok {
 			continue
 		}
-		ip := GetAddr(dev, t.NicIP)
+		ip := GetAddr(dev, nicIP)
 		filter[ip] = struct{}{}
 		for _, packet := range packets {
 			counter.Count(packet)
@@ -101,7 +93,7 @@ func (t *DmsProtoDiagTask) Process(ctx *flowmng.TaskContext) error {
 	//protodiag outputs
 	//conns
 	ct := common.NewCtInfo()
-	ParseConntrack(ct, conntracks, t.IPNic, filter)
+	GetCtInfoSS(ct, conntracks, filter)
 	//create outputs
 	ctx.Outputs.Get("CtInfo", 0).Data = ct
 	ctx.Outputs.Get("ProtoDiag", 0).Data = protodiag

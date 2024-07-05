@@ -2,7 +2,6 @@ package analyzer
 
 import (
 	"fmt"
-	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/amianetworks/dni/sdk/task"
@@ -11,8 +10,6 @@ import (
 
 type DmsConnDiagTask struct {
 	TaskName string
-	NicIP    map[string]string
-	IPNic    map[string]string
 }
 
 func NewDmsConnDiagTask(task string, options interface{}) task.Task {
@@ -35,7 +32,6 @@ func (t *DmsConnDiagTask) Process(ctx *flowmng.TaskContext) error {
 		return fmt.Errorf("[%s] cast error", t.TaskName)
 	}
 	if query == nil {
-		log.Printf("[%s] query is nil", t.TaskName)
 		ctx.Outputs.Get("ConnDiag", 0).Data = nil
 		return nil
 	}

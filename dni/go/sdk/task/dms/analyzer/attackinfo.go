@@ -116,7 +116,7 @@ func (a *AttackInfo) String() string {
 	if a.Noop() {
 		return buf.String()
 	}
-	buf.WriteString("\nDetailed: ")
+	buf.WriteString("\nDetailed:")
 	if a.IsDistributed() {
 		buf.WriteString("spoofed sources and dest ports")
 	} else if a.randSrc {

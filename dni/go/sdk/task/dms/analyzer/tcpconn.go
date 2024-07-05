@@ -74,9 +74,9 @@ func groupByLport(flowset common.FlowSet) (int, []common.FlowStat) {
 	return len(flowset), common.SortFlowStatMap(stats)
 }
 
-func GetESTABConnSS(ct *common.CtInfo, conns []*common.ConnInfo, filter map[string]struct{}) {
+func GetCtInfoSS(ct *common.CtInfo, conns []*common.ConnInfo, filter map[string]struct{}) {
 	for _, tcpconn := range conns {
-		if _, ok := filter[tcpconn.Src]; !ok && tcpconn.Src == tcpconn.Dst {
+		if _, ok := filter[tcpconn.Src]; !ok || tcpconn.Src == tcpconn.Dst {
 			continue
 		}
 		ct.Est[tcpconn.Dst] = struct{}{}

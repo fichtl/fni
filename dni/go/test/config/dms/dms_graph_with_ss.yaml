@@ -1,14 +1,12 @@
 input_stream:
   - "AssessorData:assessorData"
   - "Listen:listen"
-  - "Conntrack:conntrack"
   - "Packet:packet"
   - "TCPConn:tcpconn"
   - "Ratio:0:ratio"
 output_stream:
   - "responds"
 input_sidedata:
-  - "NicSpeed:nicSpeed"
   - "NicIP:nicIP"
 
 node:
@@ -17,27 +15,26 @@ node:
       - "STAT:0:assessorData"
     output_stream:
       - "assessorInd"
-    input_sidedata:
-      - "NicSpeed:nicSpeed"
     options:
       cpu:
         low: 20
         okay: 40
         high: 80
       bw:
-        bps: 90
-        kpps: 5000
+        bps: 50
+        kpps: 1000
       tcpconn:
         tcpsemiconn: 10000
         tcpfullconn: 5000
         pertcpfullconn: 5000
       pps:
-        threshold: 100000
+        threshold: 10000
         protothreshold:
-          tcp: 500000
-          udp: 500000
-        tolerance: 0.2
-      frequency: 2
+          icmp: 1000
+          tcp: 125000
+          udp: 150000
+        tolerance: 0.1
+      frequency: 1
 
   - task: "DmsArbitrateTask"
     input_stream: 
@@ -56,7 +53,7 @@ node:
   - task: "DmsProtoDiagTask"
     input_stream: 
       - "Query:0:query"
-      - "Conntrack:0:conntrack"
+      - "Conntrack:0:tcpconn"
       - "Packet:0:packet"
       - "Listen:0:listen"
       - "Ratio:0:ratio"
@@ -80,8 +77,8 @@ node:
         protothreshold:
           icmp: 1000
           tcp: 125000
-          udp: 200000
-        tolerance: 0.2 
+          udp: 150000
+        tolerance: 0.1 
       capability:
         cap: 512
         strictness: 3  

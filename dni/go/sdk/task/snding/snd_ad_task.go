@@ -1,17 +1,18 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 )
 
 type SndAdTask struct {
 	TaskName string
 }
 
-func NewSndAdTask(task string, options interface{}) Task {
+func NewSndAdTask(task string, options interface{}) task.Task {
 	t := &SndAdTask{}
 	t.TaskName = task
 	return t
@@ -59,5 +60,5 @@ func (t *SndAdTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndAdTask", NewSndAdTask)
+	task.RegisterTask("SndAdTask", NewSndAdTask)
 }

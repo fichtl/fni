@@ -2,7 +2,6 @@ package flowmanager
 
 import (
 	"fmt"
-	"log"
 
 	config "github.com/amianetworks/dni/sdk/config"
 )
@@ -46,7 +45,7 @@ func (om *OutputManager) AddAllData() {
 		outputs := om.Outputs.Values
 		outputs[id].StreamName = stream
 		om.AddData(outputs[id], stream)
-		log.Printf("send stream/sidedata (%s) to next node", stream)
+		// log.Printf("send stream/sidedata (%s) to next node", stream)
 	}
 }
 
@@ -54,10 +53,10 @@ func (om *OutputManager) Close() error {
 	for stream, inMngs := range om.NextInputManagers {
 		for _, mng := range inMngs {
 			if err := mng.CloseInputChannel(stream); err != nil {
-				log.Printf("close next node input failed, err=%v", err)
+				// log.Printf("close next node input failed, err=%v", err)
 			}
 		}
-		log.Printf("stream (%s) to next node channel has been closed", stream)
+		// log.Printf("stream (%s) to next node channel has been closed", stream)
 	}
 	return nil
 }

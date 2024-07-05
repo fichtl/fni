@@ -4,11 +4,10 @@ input_stream:
   - "conntrack"
   - "packet"
   - "ratio"
+  - "nicIP"
 output_stream:
   - "protodiag"
   - "ctinfo"
-input_sidedata:
-  - "nicip"
 
 node:
   - task: "DmsArbitrateTask"
@@ -25,8 +24,7 @@ node:
       - "Packet:0:packet"
       - "Listen:0:listen"
       - "Ratio:0:ratio"
+      - "NicIP:nicIP"
     output_stream:
       - "ProtoDiag:0:protodiag"
       - "CtInfo:0:ctinfo"
-    input_sidedata:
-      - "NicIP:0:nicip"

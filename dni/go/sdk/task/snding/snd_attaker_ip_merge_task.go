@@ -1,10 +1,11 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 	"github.com/mitchellh/mapstructure"
 )
@@ -23,7 +24,7 @@ type SndAttackerIPMergeOptions struct {
 	IPRandCountThreshold int     `mapstructure:"ipRandCountThreshold"`
 }
 
-func NewSndAttackerIPMergeTask(task string, options interface{}) Task {
+func NewSndAttackerIPMergeTask(task string, options interface{}) task.Task {
 	var opts SndAttackerIPMergeOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
@@ -96,5 +97,5 @@ func (t *SndAttackerIPMergeTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndAttackerIPMergeTask", NewSndAttackerIPMergeTask)
+	task.RegisterTask("SndAttackerIPMergeTask", NewSndAttackerIPMergeTask)
 }

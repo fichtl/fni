@@ -1,9 +1,10 @@
-package task
+package snding
 
 import (
 	"fmt"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 )
 
@@ -11,7 +12,7 @@ type SndGenDedupTDMSRulesask struct {
 	TaskName string
 }
 
-func NewSndGenDedupTDMSRulesask(task string, options interface{}) Task {
+func NewSndGenDedupTDMSRulesask(task string, options interface{}) task.Task {
 	return &SndGenDedupTDMSRulesask{
 		TaskName: task,
 	}
@@ -50,5 +51,5 @@ func (t *SndGenDedupTDMSRulesask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndGenDedupTDMSRulesask", NewSndGenDedupTDMSRulesask)
+	task.RegisterTask("SndGenDedupTDMSRulesask", NewSndGenDedupTDMSRulesask)
 }

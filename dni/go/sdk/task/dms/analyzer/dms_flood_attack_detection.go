@@ -2,8 +2,8 @@ package analyzer
 
 import (
 	"fmt"
-	"log"
 
+	alog "github.com/amianetworks/am.modules/log"
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/task/dms/common"
@@ -13,7 +13,6 @@ import (
 
 type DmsFloodAttackDetectTask struct {
 	TaskName string
-	NicIP    map[string]string
 	Options  DmsFloodAttackDetectOptions
 }
 
@@ -26,7 +25,7 @@ func NewDmsFloodAttackDetectTask(task string, options interface{}) task.Task {
 	var opts DmsFloodAttackDetectOptions
 	err := mapstructure.Decode(options, &opts)
 	if err != nil {
-		log.Printf("[%s] options decode error:%v", task, err)
+		alog.R.Errorf("[%s] options decode error:%v", task, err)
 		return nil
 	}
 	t := &DmsFloodAttackDetectTask{}
@@ -36,28 +35,32 @@ func NewDmsFloodAttackDetectTask(task string, options interface{}) task.Task {
 }
 
 func (t *DmsFloodAttackDetectTask) Open(ctx *flowmng.TaskContext) error {
-	nicIP, ok := ctx.InputSideData.Get("NicIP", 0).Data.(map[string]string)
-	if !ok {
-		return fmt.Errorf("[%s] cast error", t.TaskName)
-	}
-	t.NicIP = nicIP
-	log.Printf("[%s] input side data(%s):%v", t.TaskName, "NicIP", nicIP)
 	return nil
 }
 
 func (t *DmsFloodAttackDetectTask) Process(ctx *flowmng.TaskContext) error {
+	if ctx.Inputs.Get("ProtoDiag", 0).Data == nil {
+		ctx.Outputs.Values[0].Data = make([]*Respond, 0)
+		return nil
+	}
 	protodiag, ok := ctx.Inputs.Get("ProtoDiag", 0).Data.(*ProtoDiag)
 	if !ok {
 		return fmt.Errorf("[%s] Protodiag cast error", t.TaskName)
 	}
 	ctInfo, ok := ctx.Inputs.Get("Conntrack", 0).Data.(*common.CtInfo)
 	if !ok {
-		log.Printf("[%s] Conntrack is %v", t.TaskName, ctInfo)
 		return fmt.Errorf("[%s] Conntrack cast error", t.TaskName)
 	}
-	log.Printf("[%s] Protodiag:%v", t.TaskName, protodiag)
 	responds := FloodAttackDetection(protodiag, t.Options.PPS, t.Options.Cap, ctInfo)
-	ctx.Outputs.Get("RespondList", 0).Data = responds
+	if len(responds) == 0 {
+		for dev := range protodiag.Stat {
+			alog.R.Debugf("[%s] No flood attack on dev %s", t.TaskName, dev)
+		}
+	}
+	for _, respond := range responds {
+		alog.R.Debugf("[%s] %v", t.TaskName, respond)
+	}
+	ctx.Outputs.Values[0].Data = responds
 	return nil
 }
 

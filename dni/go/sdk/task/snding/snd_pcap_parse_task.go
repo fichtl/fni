@@ -1,10 +1,11 @@
-package task
+package snding
 
 import (
 	"fmt"
 	"log"
 
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
+	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/utils"
 )
 
@@ -12,7 +13,7 @@ type SndPcapParseTask struct {
 	TaskName string
 }
 
-func NewSndPcapParseTask(task string, options interface{}) Task {
+func NewSndPcapParseTask(task string, options interface{}) task.Task {
 	return &SndPcapParseTask{
 		TaskName: task,
 	}
@@ -41,5 +42,5 @@ func (t *SndPcapParseTask) Close() error {
 }
 
 func init() {
-	RegisterTask("SndPcapParseTask", NewSndPcapParseTask)
+	task.RegisterTask("SndPcapParseTask", NewSndPcapParseTask)
 }

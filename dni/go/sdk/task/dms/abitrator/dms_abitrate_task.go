@@ -3,6 +3,7 @@ package abitrator
 import (
 	"fmt"
 
+	alog "github.com/amianetworks/am.modules/log"
 	flowmng "github.com/amianetworks/dni/sdk/flowmanager"
 	"github.com/amianetworks/dni/sdk/task"
 	"github.com/amianetworks/dni/sdk/task/dms/assessor"
@@ -29,6 +30,7 @@ func (t *DmsArbitrateTask) Process(ctx *flowmng.TaskContext) error {
 	}
 	query, intelli := GetQuery(assessorInd)
 	//create outputs
+	alog.R.Debugf("[%s] Query: %v", t.TaskName, query)
 	ctx.Outputs.Get("Query", 0).Data = query
 	ctx.Outputs.Get("Intelligence", 0).Data = intelli
 	return nil
