@@ -27,7 +27,8 @@ public:
                 SPDLOG_DEBUG("{}: Consume Datum size: {}", name_, ctx->Inputs().size());
 
                 uint64_t cnt = 0;
-                for (int i = 0; i < ctx->Inputs().size(); i++)
+                auto input_size = ctx->Inputs().size();
+                for (int i = 0; i < input_size; i++)
                 {
                         Datum input_d = ctx->Inputs()[i].Value();
 

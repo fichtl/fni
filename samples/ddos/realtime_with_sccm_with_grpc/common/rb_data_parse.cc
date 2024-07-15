@@ -38,7 +38,7 @@ typedef u_int16_t __bitwise __be16;
 
 namespace dni {
 
-        int parse_ethtype_vlan(
+        inline int parse_ethtype_vlan(
             struct ether_header* eth_header, uint16_t* h_proto, uint64_t* l3_off)
         {
                 int i;
@@ -75,9 +75,9 @@ namespace dni {
                 return 0;
         }
 
-        void parse_snd_features(
-            std::vector<std::unordered_map<std::string, uint32_t>>& packets,
-            const u_char* body)
+        // order is 0:"SIP", 1:"SPort", 2:"DPort", 3:"Protocol", 4:"Length", 5:"DIP"
+        inline void parse_snd_features(
+            std::vector<std::vector<uint32_t>>& packets, const u_char* body)
         {
                 struct ether_header* eth_header = (struct ether_header*) body;
 
@@ -90,19 +90,19 @@ namespace dni {
 
                 if (ntohs(h_proto) == ETHERTYPE_IP)
                 {
-                        std::unordered_map<std::string, uint32_t> packet;
+                        std::vector<uint32_t> packet;
+                        packet.resize(6);
 
                         struct ip* ip_header = (struct ip*) (body + l3_off);
 
-                        char ipv4[INET_ADDRSTRLEN];
-                        // #ifdef __APPLE__
-                        inet_ntop(AF_INET, &ip_header->ip_src, ipv4, sizeof(ipv4));
-                        SPDLOG_TRACE("src ip addr is: {}", ipv4);
-                        packet["SIP"] = ntohl(ip_header->ip_src.s_addr);
+                        // char ipv4[INET_ADDRSTRLEN];
+                        // inet_ntop(AF_INET, &ip_header->ip_src, ipv4, sizeof(ipv4));
+                        // SPDLOG_TRACE("src ip addr is: {}", ipv4);
+                        packet[0] = ntohl(ip_header->ip_src.s_addr);
 
-                        inet_ntop(AF_INET, &ip_header->ip_dst, ipv4, sizeof(ipv4));
-                        SPDLOG_TRACE("dst ip addr is: {}", ipv4);
-                        packet["DIP"] = ntohl(ip_header->ip_dst.s_addr);
+                        // inet_ntop(AF_INET, &ip_header->ip_dst, ipv4, sizeof(ipv4));
+                        // SPDLOG_TRACE("dst ip addr is: {}", ipv4);
+                        packet[5] = ntohl(ip_header->ip_dst.s_addr);
 
                         u_char proto = ip_header->ip_p;
                         SPDLOG_TRACE("protocol is : {}", proto);
@@ -114,19 +114,17 @@ namespace dni {
                                                       ip_header->ip_hl * 4);
 #ifdef __APPLE__
                                 SPDLOG_TRACE("src_port = {}", ntohs(tcp->th_sport));
-                                packet["SPort"] = ntohs(tcp->th_sport);
+                                packet[1] = ntohs(tcp->th_sport);
 
                                 SPDLOG_TRACE("dst_port = {}", ntohs(tcp->th_dport));
-                                packet["DPort"] = ntohs(tcp->th_dport);
+                                packet[2] = ntohs(tcp->th_dport);
 #else
                                 SPDLOG_TRACE("src_port = {}", ntohs(tcp->source));
-                                packet["SPort"] = ntohs(tcp->source);
+                                packet[1] = ntohs(tcp->source);
 
                                 SPDLOG_TRACE("dst_port = {}", ntohs(tcp->dest));
-                                packet["DPort"] = ntohs(tcp->dest);
+                                packet[2] = ntohs(tcp->dest);
 #endif
-
-                                SPDLOG_TRACE("-------------------------------\n\n");
 
                                 break;
                         }
@@ -137,35 +135,36 @@ namespace dni {
                                                       ip_header->ip_hl * 4);
 #ifdef __APPLE__
                                 SPDLOG_TRACE("src_port = {}", ntohs(udp->uh_sport));
-                                packet["SPort"] = ntohs(udp->uh_sport);
+                                packet[1] = ntohs(udp->uh_sport);
 
                                 SPDLOG_TRACE("dst_port = {}", ntohs(udp->uh_dport));
-                                packet["DPort"] = ntohs(udp->uh_dport);
+                                packet[2] = ntohs(udp->uh_dport);
 #else
                                 SPDLOG_TRACE("src_port = {}", ntohs(udp->source));
-                                packet["SPort"] = ntohs(udp->source);
+                                packet[1] = ntohs(udp->source);
 
                                 SPDLOG_TRACE("dst_port = {}", ntohs(udp->dest));
-                                packet["DPort"] = ntohs(udp->dest);
+                                packet[2] = ntohs(udp->dest);
 #endif
-
-                                SPDLOG_TRACE("-------------------------------\n\n");
 
                                 break;
                         }
 
                         case IPPROTO_ICMP: {
+                                packet[1] = 0;
+                                packet[2] = 0;
+
                                 break;
                         }
 
                         default: return;
                         }
 
-                        packet["Length"] = ntohs(ip_header->ip_len);
+                        packet[4] = ntohs(ip_header->ip_len);
 
-                        packet["Protocol"] = proto;
+                        packet[3] = proto;
 
-                        packets.push_back(packet);
+                        packets.emplace_back(packet);
                 }
 
                 return;
@@ -173,7 +172,7 @@ namespace dni {
 
         void parse_packets(
             unsigned char* pktsdata, uint32_t cnt,
-            std::vector<std::unordered_map<std::string, uint32_t>>& packets)
+            std::vector<std::vector<uint32_t>>& packets)
         {
                 unsigned char* data = pktsdata;
                 uint16_t pkt_len = *((uint16_t*) data);

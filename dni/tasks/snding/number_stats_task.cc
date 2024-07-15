@@ -35,6 +35,11 @@ public:
                     name_, numValueSum_, ratioMin_, ratioMax_,
                     options_.score_thresholds_size());
 
+                min_ = (double_t) numValueSum_ * ratioMin_;
+                max_ = (double_t) numValueSum_ * ratioMax_;
+
+                SPDLOG_DEBUG("{}: min_: {}, max_: {}", name_, min_, max_);
+
                 return 0;
         }
 
@@ -56,6 +61,11 @@ public:
                 // numKeyLen
                 auto numKeyLen = stats_map.size();
                 SPDLOG_DEBUG("{}: numKeyLen: {}", name_, numKeyLen);
+                if (numKeyLen == 0)
+                {
+                        SPDLOG_CRITICAL("{}: empty stats_map", name_);
+                        return -1;
+                }
 
                 // keySeriesDiffTypeNum
                 std::vector<uint32_t> keys;
@@ -65,7 +75,9 @@ public:
                 }
                 std::sort(keys.begin(), keys.end());
                 std::unordered_set<uint32_t> keyDiffs;
-                for (size_t i = 0; i < keys.size() - 1; i++)
+
+                int key_size = (int) ((int) (keys.size()) - 1);
+                for (int i = 0; i < key_size; i++)
                 {
                         keyDiffs.insert(keys[i + 1] - keys[i]);
                         SPDLOG_TRACE(
@@ -77,8 +89,6 @@ public:
 
                 // score
                 double_t score = 0.0;
-                double_t min_ = (double_t) numValueSum_ * ratioMin_;
-                double_t max_ = (double_t) numValueSum_ * ratioMax_;
                 if (numKeyLen < min_)
                 {
                         score = options_.score_thresholds()[0];
@@ -119,6 +129,9 @@ private:
         int numValueSum_;
         double ratioMin_;
         double ratioMax_;
+
+        double_t min_;
+        double_t max_;
 };
 
 REGISTER(SndNumberStatsTask);

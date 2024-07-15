@@ -24,7 +24,8 @@ public:
                 SPDLOG_DEBUG("{}: Consume Datum: {}", name_, ctx->Inputs().size());
 
                 std::vector<double_t> numbers;
-                for (int i = 0; i < ctx->Inputs().size(); i++)
+                auto input_size = ctx->Inputs().size();
+                for (int i = 0; i < input_size; i++)
                 {
                         Datum d = ctx->Inputs()[i].Value();
 

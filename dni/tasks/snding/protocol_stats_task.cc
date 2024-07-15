@@ -35,6 +35,10 @@ public:
                     name_, protoCountSum_, ratioMin_, ratioMax_,
                     options_.score_thresholds_size());
 
+                min_ = (double_t) protoCountSum_ * ratioMin_;
+                max_ = (double_t) protoCountSum_ * ratioMax_;
+                SPDLOG_DEBUG("{}: min_: {}, max_: {}", name_, min_, max_);
+
                 return 0;
         }
 
@@ -57,8 +61,6 @@ public:
                 // score
                 double_t score_max = 0.0;
                 double_t score = options_.score_thresholds()[2];
-                double_t min_ = (double_t) protoCountSum_ * ratioMin_;
-                double_t max_ = (double_t) protoCountSum_ * ratioMax_;
                 for (auto&& proto_stat : proto_map)
                 {
                         auto protoCountValue = proto_stat.second;
@@ -104,6 +106,9 @@ private:
         int protoCountSum_;
         double ratioMin_;
         double ratioMax_;
+
+        double_t min_;
+        double_t max_;
 };
 
 REGISTER(SndProtocolStatsTask);

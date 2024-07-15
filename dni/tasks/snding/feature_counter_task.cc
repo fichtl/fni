@@ -26,10 +26,10 @@ public:
         int Process(TaskContext* ctx) override
         {
                 // input
+                // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
                 Datum pcap_d = ctx->Inputs()[0].Value();
                 SPDLOG_DEBUG("{}: Consume Datum: {}", name_, pcap_d);
-                auto pcap_opt = pcap_d.Consume<
-                    std::vector<std::unordered_map<std::string, uint32_t>>>();
+                auto pcap_opt = pcap_d.Consume<std::vector<std::vector<uint32_t>>*>();
                 if (!pcap_opt)
                 {
                         SPDLOG_CRITICAL("{}: invalid input", name_);
@@ -38,24 +38,36 @@ public:
                 auto pcap_packets = *(pcap_opt.value());
                 SPDLOG_TRACE("{}: pcap_packets: {}", name_, pcap_packets);
 
+                // "SIP","SPort","DPort","Protocol","Length"
                 SPDLOG_DEBUG("{}: features: {}", name_, options_.feature());
-
-                std::unordered_map<std::string, std::unordered_map<uint32_t, int>> ret;
-                for (auto&& p : pcap_packets)
+                // same order with above
+                std::vector<std::unordered_map<uint32_t, int>> ret;
+                auto pkts_size = pcap_packets->size();
+                auto features = options_.feature();
+                auto feat_size = features.size();
+                ret.resize(feat_size);
+                for (size_t i = 0; i < pkts_size; i++)
                 {
-                        for (int i = 0; i < options_.feature().size(); ++i)
+                        auto& p = pcap_packets->at(i);
+                        for (size_t j = 0; j < feat_size; j++)
                         {
-                                auto val = p[options_.feature()[i]];
-                                int& cnt = ret[options_.feature()[i]][val];
+                                auto val = p[j];
+                                int& cnt = ret[j][val];
                                 ++cnt;
                         }
                 }
 
                 SPDLOG_TRACE("{}: ret: {}", name_, ret);
 
-                for (auto& feat : options_.feature())
+                // for (auto& feat : options_.feature())
+                // {
+                //         ctx->Outputs().Tag(feat).AddDatum(Datum(std::move(ret[feat])));
+                // }
+                for (size_t i = 0; i < feat_size; i++)
                 {
-                        ctx->Outputs().Tag(feat).AddDatum(Datum(std::move(ret[feat])));
+                        ctx->Outputs()
+                            .Tag(features[i])
+                            .AddDatum(Datum(std::move(ret[i])));
                 }
 
                 return 0;

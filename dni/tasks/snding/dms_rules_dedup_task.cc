@@ -29,7 +29,8 @@ public:
 
                 auto nsize = ctx->Inputs().size();
                 SPDLOG_DEBUG("{}: input size: {}", name_, nsize);
-                for (size_t i = 0; i < nsize / 2; i++)
+                auto half_size = nsize / 2;
+                for (size_t i = 0; i < half_size; i++)
                 {
                         // CIDR is a map comes from sip based merge result
                         Datum cidr_d = ctx->Inputs().Get("CIDR", i).Value();

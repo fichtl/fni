@@ -24,7 +24,6 @@
 #include "dni/framework/framework.h"
 #include "dni/tasks/snding/snding_defines.h"
 #include "fmt/format.h"
-#include "samples/ddos/realtime_with_sccm_with_grpc/common/all_net_ip.h"
 #include "samples/ddos/realtime_with_sccm_with_grpc/common/rb_data_parse.h"
 #include "spdlog/spdlog.h"
 
@@ -272,14 +271,13 @@ anomalyResult g1_anomaly_detect(dni::Graph* g, dni::RBDataHeader& rb_header)
         return anomaly_result;
 }
 
-void g2_inject_after(
-    dni::Graph* g, std::vector<std::unordered_map<std::string, uint32_t>>& packets)
+void g2_inject_after(dni::Graph* g, std::vector<std::vector<uint32_t>>& packets)
 {
-        g->AddDatumToInputStream("parsed_packets", dni::Datum(packets));
+        g->AddDatumToInputStream("parsed_packets", dni::Datum(&packets));
 }
 
 int g2_attack_detect(
-    dni::Graph* g, std::vector<std::unordered_map<std::string, uint32_t>>& packets,
+    dni::Graph* g, std::vector<std::vector<uint32_t>>& packets,
     std::unordered_map<uint32_t, int>& sip_count_ret)
 {
         std::string attack_result = "attack_res";
@@ -301,11 +299,11 @@ int g2_attack_detect(
 }
 
 void g3_inject_after(
-    dni::Graph* g, std::vector<std::unordered_map<std::string, uint32_t>>& packets,
+    dni::Graph* g, std::vector<std::vector<uint32_t>>& packets,
     std::vector<uint32_t> all_known_ips, std::vector<double> netdevs,
     std::string host_nic_name, std::unordered_map<uint32_t, int>& sip_count_ret)
 {
-        g->AddDatumToInputStream("parsed_packets", dni::Datum(packets));
+        g->AddDatumToInputStream("parsed_packets", dni::Datum(&packets));
 
         g->AddDatumToInputStream("all_known_ips", dni::Datum(all_known_ips));
 
@@ -379,18 +377,6 @@ void* calc_graph(
         unsigned char* nic_data;
         while (1)
         {
-                // g->mutex_lock.lock();
-                // if (g->slots.empty())
-                // {
-                //         g->mutex_lock.unlock();
-                //         SPDLOG_INFO("Wait for packets");
-                //         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                //         continue;
-                // }
-                // nic_data = g->slots.front();
-                // g->slots.pop_front();
-                // g->mutex_lock.unlock();
-
                 if (!g->ptrs_rb->pop(nic_data))
                 {
                         // SPDLOG_INFO("Wait for packets");
@@ -438,17 +424,17 @@ void* calc_graph(
                 }
 
                 // ######
-                int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
-                int64_t sccm_ts = rb_header.ts;
+                // int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
+                // int64_t sccm_ts = rb_header.ts;
 
-                SPDLOG_INFO("in process..., now: {}, sccm ts: {}", now, sccm_ts);
+                // SPDLOG_INFO("in process..., now: {}, sccm ts: {}", now, sccm_ts);
 
-                if (now - sccm_ts > 10)
-                {
-                        SPDLOG_WARN(
-                            "@@@@ too slow    in process..., {}, {}, {}", now, sccm_ts,
-                            now - sccm_ts);
-                }
+                // if (now - sccm_ts > 10)
+                // {
+                //         SPDLOG_WARN(
+                //             "@@@@ too slow    in process..., {}, {}, {}", now, sccm_ts,
+                //             now - sccm_ts);
+                // }
                 // ######
 
                 // SPDLOG_INFO("##################################");
@@ -467,27 +453,27 @@ void* calc_graph(
 
                 // SPDLOG_INFO("##################################");
 
-                std::string str_ret = "";
-                str_ret +=
-                    ("# single_nic_analysis inMbps: *" +
-                     std::to_string(rb_header.netdev_stats[0]) + "*\n");
-                str_ret +=
-                    ("# single_nic_analysis outMbps: *" +
-                     std::to_string(rb_header.netdev_stats[2]) + "*\n");
-                str_ret +=
-                    ("# single_nic_analysis dmsDropMbps: *" +
-                     std::to_string(
-                         rb_header.additional_stats[4] * 8.0 / 1000.0 / 1000.0) +
-                     "*\n");
-                str_ret +=
-                    ("# single_nic_analysis speedStr: *" +
-                     std::to_string(rb_header.speed) + "Mb/s*\n");
-                str_ret +=
-                    ("# single_nic_analysis cur_cpu: *" +
-                     std::to_string(rb_header.cur_cpu) + "*\n");
-                str_ret +=
-                    ("# single_nic_analysis tag: *" + std::to_string(rb_header.ts) +
-                     "*\n");
+                // std::string str_ret = "";
+                // str_ret +=
+                //     ("# single_nic_analysis inMbps: *" +
+                //      std::to_string(rb_header.netdev_stats[0]) + "*\n");
+                // str_ret +=
+                //     ("# single_nic_analysis outMbps: *" +
+                //      std::to_string(rb_header.netdev_stats[2]) + "*\n");
+                // str_ret +=
+                //     ("# single_nic_analysis dmsDropMbps: *" +
+                //      std::to_string(
+                //          rb_header.additional_stats[4] * 8.0 / 1000.0 / 1000.0) +
+                //      "*\n");
+                // str_ret +=
+                //     ("# single_nic_analysis speedStr: *" +
+                //      std::to_string(rb_header.speed) + "Mb/s*\n");
+                // str_ret +=
+                //     ("# single_nic_analysis cur_cpu: *" +
+                //      std::to_string(rb_header.cur_cpu) + "*\n");
+                // str_ret +=
+                //     ("# single_nic_analysis tag: *" + std::to_string(rb_header.ts) +
+                //      "*\n");
 
                 // timestamp of server send resp
                 result->set_ts(Utils::now());
@@ -511,16 +497,19 @@ void* calc_graph(
                         // SPDLOG_INFO("Anomaly!!!");
 
                         // TODO: if need payload of packet
-                        std::vector<std::unordered_map<std::string, uint32_t>> packets;
+                        // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
+                        std::vector<std::vector<uint32_t>> packets;
 
                         // if countTotal > 10000, sccm will apply 10000 packets
                         // else, will apply countTotal packets
                         uint32_t pkts_cnt =
                             (rb_header.pkts_stats[0] > 10000 ? 10000
                                                              : rb_header.pkts_stats[0]);
+
+                        packets.reserve(pkts_cnt);
                         dni::parse_packets(nic_data + offset, pkts_cnt, packets);
 
-                        SPDLOG_DEBUG(
+                        SPDLOG_INFO(
                             "want host nic name: {}, {}, {}, {}", rb_header.host_nic_name,
                             rb_header.ts, rb_header.pkts_stats[0], packets.size());
 
@@ -563,26 +552,26 @@ void* calc_graph(
 
                                 auto b = Utils::now();
                                 auto c = b - a;
-                                SPDLOG_INFO(
+                                SPDLOG_WARN(
                                     "############ graph {} cost {} ms #############", i,
                                     c / 1000000);
 
                                 // SPDLOG_INFO("G3out {} result is: {}", out,
                                 // ret.size());
 
-                                str_ret += ("# single_nic_analysis result: *Confirmed "
-                                            "Attack*\n");
+                                // str_ret += ("# single_nic_analysis result: *Confirmed "
+                                //             "Attack*\n");
 
                                 result->set_detect_result("Confirmed Attack");
 
-                                std::string str_rules = "";
+                                // std::string str_rules = "";
                                 for (auto&& p : ret)
                                 {
-                                        str_rules += ("host-nicname:" + p.first + ":");
+                                        // str_rules += ("host-nicname:" + p.first + ":");
                                         for (auto&& d : p.second)
                                         {
-                                                str_rules +=
-                                                    ("[" + fmt::to_string(d) + "]\n");
+                                                // str_rules +=
+                                                //     ("[" + fmt::to_string(d) + "]\n");
 
                                                 GraphDMSRule* rule = result->add_rules();
                                                 rule->set_hostnicsign(p.first);
@@ -606,9 +595,9 @@ void* calc_graph(
                                         }
                                 }
 
-                                str_ret +=
-                                    ("# single_nic_analysis detail: *{" + str_rules +
-                                     "}*");
+                                // str_ret +=
+                                //     ("# single_nic_analysis detail: *{" + str_rules +
+                                //      "}*");
 
                                 g->g3->ClearResult();
                         }
@@ -616,8 +605,9 @@ void* calc_graph(
                         {
                                 SPDLOG_INFO("Possible Attack.");
 
-                                str_ret +=
-                                    ("# single_nic_analysis result: *Possible Attack*\n");
+                                // str_ret +=
+                                //     ("# single_nic_analysis result: *Possible
+                                //     Attack*\n");
 
                                 result->set_detect_result("Possible Attack");
 
@@ -628,8 +618,8 @@ void* calc_graph(
                         {
                                 SPDLOG_INFO("No Attack.");
 
-                                str_ret +=
-                                    ("# single_nic_analysis result: *No Attack*\n");
+                                // str_ret +=
+                                //     ("# single_nic_analysis result: *No Attack*\n");
 
                                 result->set_detect_result("No Attack");
 
@@ -641,7 +631,7 @@ void* calc_graph(
                 {
                         SPDLOG_INFO("No Anomaly.\n\n");
 
-                        str_ret += ("# single_nic_analysis result: *No Anomaly*\n");
+                        // str_ret += ("# single_nic_analysis result: *No Anomaly*\n");
 
                         result->set_detect_result("No Anomaly");
 
@@ -649,7 +639,7 @@ void* calc_graph(
                         rule->set_packets_ts(rb_header.ts);
                 }
 
-                SPDLOG_INFO("graph: {}, {}", g->index, str_ret);
+                // SPDLOG_INFO("graph: {}, {}", g->index, str_ret);
 
                 writer_mutex->lock();
                 if (!writer->Write(response))
@@ -715,7 +705,7 @@ void start_graph(
     std::vector<uint32_t>& all_known_ips, ServerWriter<GraphResponse>* writer,
     std::mutex* writer_mutex, uint32_t count_total_threshold)
 {
-        SPDLOG_INFO("cnt {}", cnt);
+        SPDLOG_WARN("cnt {}", cnt);
 
         for (size_t i = 0; i < cnt; i++)
         {
@@ -796,18 +786,18 @@ void* read_rb(uint8_t* rb_buffer, int graph_cnt, std::vector<graph_t*>& concurre
                 slot += nic_name_len;
 
                 // ######
-                int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
-                int64_t sccm_ts = *((uint64_t*) slot);
+                // int64_t now = (((int64_t) Utils::now()) / (int64_t) 1000000000);
+                // int64_t sccm_ts = *((uint64_t*) slot);
 
-                SPDLOG_INFO(
-                    "receive rb data, push to graph_index: {}, now: {}, sccm ts: {}",
-                    graph_index, now, sccm_ts);
+                // SPDLOG_INFO(
+                //     "receive rb data, push to graph_index: {}, now: {}, sccm ts: {}",
+                //     graph_index, now, sccm_ts);
 
-                if (now - sccm_ts > 10)
-                {
-                        SPDLOG_WARN(
-                            "@@@@ too slow, {}, {}, {}", now, sccm_ts, now - sccm_ts);
-                }
+                // if (now - sccm_ts > 10)
+                // {
+                //         SPDLOG_WARN(
+                //             "@@@@ too slow, {}, {}, {}", now, sccm_ts, now - sccm_ts);
+                // }
 
                 // g->mutex_lock.lock();
                 // g->slots.push_back(nic_data);
@@ -824,7 +814,7 @@ Status DNIServiceImpl::CalculateGraph(
     ServerWriter<GraphResponse>* writer)
 {
         SPDLOG_INFO("CalculateGraph Enter");
-        printHeaders(context);
+        // printHeaders(context);
         if (client != nullptr)
         {
                 grpc::ClientContext c;
@@ -841,7 +831,7 @@ Status DNIServiceImpl::CalculateGraph(
         }
 
         uint32_t count_total_threshold = request->count_total_threshold();
-        SPDLOG_INFO("count_total_threshold: {}", count_total_threshold);
+        SPDLOG_WARN("count_total_threshold: {}", count_total_threshold);
 
         std::vector<uint32_t> all_known_ips;
         for (auto&& ip : request->all_ips())

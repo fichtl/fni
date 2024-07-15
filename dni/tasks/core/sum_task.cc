@@ -21,7 +21,8 @@ public:
                 SPDLOG_DEBUG("{}: Datum size: {}", name_, ctx->Inputs().size());
 
                 double_t sum = 0.0;
-                for (int i = 0; i < ctx->Inputs().size(); i++)
+                auto input_size = ctx->Inputs().size();
+                for (int i = 0; i < input_size; i++)
                 {
                         Datum d = ctx->Inputs()[i].Value();
 

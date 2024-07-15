@@ -35,7 +35,7 @@ void DNIClient::CalculateGraph(const std::string& fpath)
         req.add_all_ips(0xC0A8103C);
         req.add_all_ips(0xC0A80F3C);
 
-        req.set_all_nic_number(6);
+        req.set_all_nic_number(3);
         req.set_count_total_threshold(1000);
 
         const std::unique_ptr<::grpc::ClientReader<GraphResponse>>& response(
@@ -106,7 +106,7 @@ void DNIClient::printGraphResponse(ClientContext& context, const GraphResponse& 
 
                 str_ret += ("# single_nic_analysis detail: *{" + str_rules + "}*");
 
-                SPDLOG_INFO("{}", str_ret);
+                SPDLOG_WARN("{}", str_ret);
         }
 
         const multimap<grpc::string_ref, grpc::string_ref>& tails =

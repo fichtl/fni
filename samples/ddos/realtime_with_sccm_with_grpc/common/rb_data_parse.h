@@ -30,6 +30,6 @@ namespace dni {
 
         void parse_packets(
             unsigned char* pktsdata, uint32_t cnt,
-            std::vector<std::unordered_map<std::string, uint32_t>>& packets);
+            std::vector<std::vector<uint32_t>>& packets);
 
 }   // namespace dni

@@ -43,7 +43,17 @@ private:
             double_t proto_ratioMax,
             const ProtoStrings& proto_stat_type);
 
-        bool belongs(CIDR cidr, uint32_t ip);
+        // 2nd arg `ip` actually is CIDR{ip, 32}
+        // `ip`为`cidr`的匹配集的子集等价于:
+        // `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
+        bool belongs(CIDR cidr, uint32_t ip)
+        {
+                if (cidr.len > 32)
+                        return false;
+                if ((cidr.ip ^ ip) >> (32 - cidr.len))
+                        return false;
+                return true;
+        }
 
         SndSIPBaseMergeTaskOptions options_;
         double num_ratioMin_;
@@ -93,10 +103,10 @@ int SndSIPBaseMergeDeDupTask::Open(TaskContext* ctx)
 int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 {
         // input0, packets
+        // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
         Datum packets_d = ctx->Inputs().Tag("PACKET").Value();
         SPDLOG_DEBUG("{}: Consume packets: {}", name_, packets_d);
-        auto packets_opt =
-            packets_d.Consume<std::vector<std::unordered_map<std::string, uint32_t>>>();
+        auto packets_opt = packets_d.Consume<std::vector<std::vector<uint32_t>>*>();
         if (!packets_opt)
         {
                 SPDLOG_CRITICAL("{}: invalid input packets", name_);
@@ -156,24 +166,28 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         std::unordered_map<std::string, std::vector<int>> cidr_include_positions;
         int index = 0;
         bool is_belong = false;
-        for (auto&& packet : packets)
+        auto pkts_size = packets->size();
+        for (size_t i = 0; i < pkts_size; i++)
         {
+                // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
+                auto& packet = packets->at(i);
                 is_belong = false;
-                for (size_t i = 0; i < attacker_ip_merge.attackerIPs.size(); ++i)
+                auto ips_size = attacker_ip_merge.attackerIPs.size();
+                for (size_t i = 0; i < ips_size; ++i)
                 {
-                        if (belongs(attacker_ip_merge.attackerIPs[i], packet["SIP"]))
+                        if (belongs(attacker_ip_merge.attackerIPs[i], packet[0]))
                         {
                                 snding::SIPBaseMergeResult& ret =
                                     all_merge_ret[cidr_string_vec[i]];
                                 ret.packet_total++;
-                                ret.sport.insert(packet["SPort"]);
-                                ret.dport.insert(packet["DPort"]);
-                                ret.length.insert(packet["Length"]);
+                                ret.sport.insert(packet[1]);
+                                ret.dport.insert(packet[2]);
+                                ret.length.insert(packet[4]);
 
-                                int& count = ret.protocol[packet["Protocol"]];
+                                int& count = ret.protocol[packet[3]];
                                 count++;
 
-                                ret.dstIP.insert(packet["DIP"]);
+                                ret.dstIP.insert(packet[5]);
 
                                 auto& positions =
                                     cidr_include_positions[cidr_string_vec[i]];
@@ -185,7 +199,7 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                         }
                 }
 
-                auto& pos_vec = ip_positions[packet["SIP"]];
+                auto& pos_vec = ip_positions[packet[0]];
                 pos_vec.push_back(index);
 
                 if (!is_belong)
@@ -198,6 +212,7 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         }
 
         // sip based merge, step 2, random merge
+        // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
         if (attacker_ip_merge.containRandomAttack)
         {
                 SPDLOG_DEBUG("{}: with random IPs", name_);
@@ -208,17 +223,17 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                 {
                         for (auto&& index : ip_positions[random_ip])
                         {
-                                auto p = packets[index];
+                                auto& p = packets->at(index);
 
                                 randomMerge.packet_total++;
-                                randomMerge.sport.insert(p["SPort"]);
-                                randomMerge.dport.insert(p["DPort"]);
-                                randomMerge.length.insert(p["Length"]);
+                                randomMerge.sport.insert(p[1]);
+                                randomMerge.dport.insert(p[2]);
+                                randomMerge.length.insert(p[4]);
 
-                                int& count = randomMerge.protocol[p["Protocol"]];
+                                int& count = randomMerge.protocol[p[3]];
                                 count++;
 
-                                randomMerge.dstIP.insert(p["DIP"]);
+                                randomMerge.dstIP.insert(p[5]);
                         }
                 }
         }
@@ -268,11 +283,13 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                 {
                         stat.srcPort.value = std::move(merge_ret.second.sport);
                 }
+
                 stat.dstPort.stat_type = dport_stat_type;
                 if (dport_stat_type == options_.num_stat().label()[0])
                 {
                         stat.dstPort.value = std::move(merge_ret.second.dport);
                 }
+
                 stat.length.stat_type = length_stat_type;
                 if (length_stat_type == options_.num_stat().label()[0])
                 {
@@ -312,26 +329,26 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         {
                 // use stat to replace each packet in packets, the packet ip belongs to
                 // the stat.first, or it is RANDOM ip
-
                 auto& positions = cidr_include_positions[stat.first];
 
                 for (auto&& index : positions)
                 {
+                        // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
                         rule_elements = "";
                         std::unordered_map<std::string, std::string> rule_stat;
 
                         // this is original packet
-                        auto& p = packets[index];
+                        auto& p = packets->at(index);
                         rule_elements += (stat.first + "--");
                         rule_stat["SIP"] = stat.first;
 
-                        rule_elements += (std::to_string(p["DIP"]) + "--");
-                        rule_stat["DIP"] = std::to_string(p["DIP"]);
+                        rule_elements += (std::to_string(p[5]) + "--");
+                        rule_stat["DIP"] = std::to_string(p[5]);
 
                         if (stat.second.srcPort.stat_type == "centralize")
                         {
-                                rule_elements += (std::to_string(p["SPort"]) + "--");
-                                rule_stat["SPort"] = std::to_string(p["SPort"]);
+                                rule_elements += (std::to_string(p[1]) + "--");
+                                rule_stat["SPort"] = std::to_string(p[1]);
                         }
                         else
                         {
@@ -341,8 +358,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 
                         if (stat.second.dstPort.stat_type == "centralize")
                         {
-                                rule_elements += (std::to_string(p["DPort"]) + "--");
-                                rule_stat["DPort"] = std::to_string(p["DPort"]);
+                                rule_elements += (std::to_string(p[2]) + "--");
+                                rule_stat["DPort"] = std::to_string(p[2]);
                         }
                         else
                         {
@@ -350,8 +367,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                                 rule_stat["DPort"] = stat.second.dstPort.stat_type;
                         }
 
-                        rule_elements += (std::to_string(p["Protocol"]) + "--");
-                        rule_stat["Protocol"] = std::to_string(p["Protocol"]);
+                        rule_elements += (std::to_string(p[3]) + "--");
+                        rule_stat["Protocol"] = std::to_string(p[3]);
 
                         rule_stat["hostNicSign"] = stat.second.hostNicSign;
 
@@ -360,8 +377,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
                         // length join in rule_elements
                         if (stat.second.length.stat_type == "centralize")
                         {
-                                rule_elements += std::to_string(p["Length"]);
-                                rule_stat["Length"] = std::to_string(p["Length"]);
+                                rule_elements += std::to_string(p[4]);
+                                rule_stat["Length"] = std::to_string(p[4]);
                         }
                         else
                         {
@@ -383,18 +400,6 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         return 0;
 }
 
-// 2nd arg `ip` actually is CIDR{ip, 32}
-// `ip`为`cidr`的匹配集的子集等价于:
-// `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
-bool SndSIPBaseMergeDeDupTask::belongs(CIDR cidr, uint32_t ip)
-{
-        if (cidr.len > 32)
-                return false;
-        if ((cidr.ip ^ ip) >> (32 - cidr.len))
-                return false;
-        return true;
-}
-
 std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
     const std::unordered_set<uint32_t>& uset,
     double_t num_ratioMin,
@@ -414,7 +419,8 @@ std::string SndSIPBaseMergeDeDupTask::calc_number_stat_type(
         }
         std::sort(keys.begin(), keys.end());
         std::unordered_set<uint32_t> keyDiffs;
-        for (size_t i = 0; i < keys.size() - 1; i++)
+        int key_size = (int) ((int) (keys.size()) - 1);
+        for (int i = 0; i < key_size; i++)
         {
                 keyDiffs.insert(keys[i + 1] - keys[i]);
                 // SPDLOG_DEBUG(

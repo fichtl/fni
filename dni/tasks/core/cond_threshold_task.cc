@@ -75,8 +75,8 @@ public:
 
                 // scoring
                 double_t score = default_;
-
-                for (size_t i = 0; i < cond_vals.size(); i++)
+                auto cond_size = cond_vals.size();
+                for (size_t i = 0; i < cond_size; i++)
                 {
                         if (cond_vals[i] < options_.conditions(i))
                         {

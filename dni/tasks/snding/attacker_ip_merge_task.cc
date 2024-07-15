@@ -27,8 +27,17 @@ public:
         }
 
 private:
-        bool belongs_24(uint32_t cidr_24, uint32_t ip);
-        bool belongs_16(uint32_t cidr_16, uint32_t ip);
+        // 1st arg `cidr` actually is CIDR{ip, 24},
+        // 2nd arg `ip` actually is CIDR{ip, 32},
+        // `ip`为`cidr`的匹配集的子集等价于:
+        // `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
+        bool belongs_24(uint32_t cidr_24, uint32_t ip) { return !((cidr_24 ^ ip) >> 8); }
+
+        // 1st arg `cidr` actually is CIDR{ip, 16},
+        // 2nd arg `ip` actually is CIDR{ip, 32},
+        // `ip`为`cidr`的匹配集的子集等价于:
+        // `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
+        bool belongs_16(uint32_t cidr_16, uint32_t ip) { return !((cidr_16 ^ ip) >> 16); }
 
         std::string name_;
 
@@ -111,9 +120,10 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         std::vector<uint32_t> ipFw4;
         // masklen is 24~32, as /24, /27 ...
         std::vector<CIDR> attacker_ip_32;
+        int ipCountSum_ipFw4CountRatio = (int) (ipCountSum * ipFw4CountRatio_);
         for (auto&& ip_count : ipCountDF)
         {
-                if (ip_count.second >= ipCountSum * ipFw4CountRatio_)
+                if (ip_count.second >= ipCountSum_ipFw4CountRatio)
                 {
                         ipFw4.push_back(ip_count.first);
                         attacker_ip_32.emplace_back(ip_count.first, 32);
@@ -171,11 +181,13 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         std::vector<CIDR> attacker_ip_24;
         // FwIPs, masklen is 24
         std::vector<uint32_t> ipSusFw3IPs;
-        if (ipCountFw3DF.size() >= ipCountSum * ipFw3CountRatio_)
+        int ipCountSum_ipFw3CountRatio = (int) (ipCountSum * ipFw3CountRatio_);
+        int ipCountSum_ipFw3CountRatio_half = (int) (ipCountSum * ipFw3CountRatio_ / 2);
+        if (ipCountFw3DF.size() >= ipCountSum_ipFw3CountRatio)
         {
                 for (auto&& ip_count : ipCountFw3DF)
                 {
-                        if (ip_count.second >= ipCountSum * ipFw3CountRatio_ / 2)
+                        if (ip_count.second >= ipCountSum_ipFw3CountRatio_half)
                         {
                                 SPDLOG_DEBUG(
                                     "{}: >= ipCountSum * ipFw3CountRatio_ / 2, {:x}",
@@ -188,7 +200,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         {
                 for (auto&& ip_count : ipCountFw3DF)
                 {
-                        if (ip_count.second >= ipCountSum * ipFw3CountRatio_)
+                        if (ip_count.second >= ipCountSum_ipFw3CountRatio)
                         {
                                 SPDLOG_DEBUG(
                                     "{}: >= ipCountSum * ipFw3CountRatio_, {:x}", name_,
@@ -322,11 +334,13 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         std::vector<CIDR> attacker_ip_16;
         // FwIPs, masklen is 16
         std::vector<uint32_t> ipSusFw2IPs;
-        if (ipCountFw2DF.size() >= ipCountSum * ipFw2CountRatio_)
+        int ipCountSum_ipFw2CountRatio = (int) (ipCountSum * ipFw2CountRatio_);
+        int ipCountSum_ipFw2CountRatio_half = (int) (ipCountSum * ipFw2CountRatio_ / 2);
+        if (ipCountFw2DF.size() >= ipCountSum_ipFw2CountRatio)
         {
                 for (auto&& ip_count : ipCountFw2DF)
                 {
-                        if (ip_count.second >= ipCountSum * ipFw2CountRatio_ / 2)
+                        if (ip_count.second >= ipCountSum_ipFw2CountRatio_half)
                         {
                                 SPDLOG_DEBUG(
                                     "{}: >= ipCountSum * ipFw2CountRatio_ / 2, {:x}",
@@ -339,7 +353,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         {
                 for (auto&& ip_count : ipCountFw2DF)
                 {
-                        if (ip_count.second >= ipCountSum * ipFw2CountRatio_)
+                        if (ip_count.second >= ipCountSum_ipFw2CountRatio)
                         {
                                 SPDLOG_DEBUG(
                                     "{}: >= ipCountSum * ipFw2CountRatio_, {:x}", name_,
@@ -421,7 +435,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         // erase, rest is ipCountDF3
         for (auto&& ipSusFw2IP : ipSusFw2IPs)
         {
-                auto orig_ips = origInputIPs[ipSusFw2IP];
+                auto& orig_ips = origInputIPs[ipSusFw2IP];
                 for (auto&& orig_ip : orig_ips)
                 {
                         ipCountDF.erase(orig_ip);
@@ -458,6 +472,8 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
             all_DF3_ips.begin(), all_DF3_ips.end(), all_known_ips.begin(),
             all_known_ips.end(), std::inserter(all_unknown_ips, all_unknown_ips.begin()));
 
+        SPDLOG_DEBUG("{}: all_unknown_ips size: {}", name_, all_unknown_ips.size());
+
         int ipUnknownRandCountSum = 0;
         // std::unordered_set<uint32_t> randIPs;                     //
         // debug
@@ -490,27 +506,11 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
 
         nodeRet.containRandomAttack = is_random;
 
+        SPDLOG_DEBUG("{}: after Prog4, nodeRet: {}", name_, nodeRet);
+
         ctx->Outputs()[0].AddDatum(Datum(std::move(nodeRet)));
 
         return 0;
-}
-
-// 1st arg `cidr` actually is CIDR{ip, 24},
-// 2nd arg `ip` actually is CIDR{ip, 32},
-// `ip`为`cidr`的匹配集的子集等价于:
-// `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
-bool SndAttackerIPMergeTask::belongs_24(uint32_t cidr_24, uint32_t ip)
-{
-        return !((cidr_24 ^ ip) >> 8);
-}
-
-// 1st arg `cidr` actually is CIDR{ip, 16},
-// 2nd arg `ip` actually is CIDR{ip, 32},
-// `ip`为`cidr`的匹配集的子集等价于:
-// `cidr`的前缀长度不大于32的且`cidr`和`ip`的前`cidr`.len位完全相同
-bool SndAttackerIPMergeTask::belongs_16(uint32_t cidr_16, uint32_t ip)
-{
-        return !((cidr_16 ^ ip) >> 16);
 }
 
 REGISTER(SndAttackerIPMergeTask);
