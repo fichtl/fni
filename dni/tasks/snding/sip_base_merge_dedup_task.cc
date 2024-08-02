@@ -142,7 +142,8 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
 
         // sip based merge
         std::vector<std::string> cidr_string_vec;
-        std::map<std::string, CIDR> convert_map;
+        cidr_string_vec.reserve(attacker_ip_merge.attackerIPs.size());
+        std::unordered_map<std::string, CIDR> convert_map;
         for (auto&& ip : attacker_ip_merge.attackerIPs)
         {
                 cidr_string_vec.emplace_back(
@@ -167,12 +168,12 @@ int SndSIPBaseMergeDeDupTask::Process(TaskContext* ctx)
         int index = 0;
         bool is_belong = false;
         auto pkts_size = packets->size();
-        for (size_t i = 0; i < pkts_size; i++)
+        auto ips_size = attacker_ip_merge.attackerIPs.size();
+        for (size_t k = 0; k < pkts_size; k++)
         {
                 // 0:SIP, 1:SPort, 2:DPort, 3:Protocol, 4:Length, 5:DIP
-                auto& packet = packets->at(i);
+                auto& packet = packets->at(k);
                 is_belong = false;
-                auto ips_size = attacker_ip_merge.attackerIPs.size();
                 for (size_t i = 0; i < ips_size; ++i)
                 {
                         if (belongs(attacker_ip_merge.attackerIPs[i], packet[0]))

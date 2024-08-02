@@ -42,6 +42,24 @@ cc_library(
 )
 
 cc_library(
+    name = "rb_data_mfr",
+    srcs = ["common/rb_data_mfr.cc"],
+    hdrs = ["common/rb_data_mfr.h"],
+    deps = [
+        "@spdlog",
+    ],
+)
+
+cc_library(
+    name = "snding_mfr_model",
+    srcs = ["common/snding_mfr_model.cc"],
+    hdrs = ["common/snding_mfr_model.h"],
+    deps = [
+        "@spdlog",
+    ],
+)
+
+cc_library(
     name = "all_net_ip",
     srcs = ["common/all_net_ip.cc"],
     hdrs = ["common/all_net_ip.h"],
@@ -65,6 +83,8 @@ cc_library(
         ":dni_service_conn",
         ":dni_service_utils",
         ":rb_data_parse",
+        ":rb_data_mfr",
+        ":snding_mfr_model",
         ":all_net_ip",
         "//samples/ddos/realtime_with_sccm_with_grpc/protos:dni_service_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -82,6 +102,7 @@ cc_library(
         "//dni/tasks/snding:number_stats_task",
         "//dni/tasks/snding:protocol_stats_task",
         "//dni/tasks/snding:sip_base_merge_dedup_task",
+        "//samples/dni/tasks/onnx:onnx_snding_mfr_task",
         "@fmtlib",
         "@spdlog",
     ],

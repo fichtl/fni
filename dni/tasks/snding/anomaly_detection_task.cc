@@ -45,6 +45,7 @@ public:
                 }
                 auto pkt = *(pkt_opt.value());
                 SPDLOG_DEBUG("{}: pkt: {}", name_, pkt);
+                SPDLOG_INFO("{}: pkt: {}", name_, (int(pkt + 0.5)));
                 sum += (int(pkt + 0.5));
 
                 Datum netdev_d = ctx->Inputs().Tag("NETDEV").Value();
@@ -57,6 +58,7 @@ public:
                 }
                 auto netdev = *(netdev_opt.value());
                 SPDLOG_DEBUG("{}: netdev: {}", name_, netdev);
+                SPDLOG_INFO("{}: pkt: {}", name_, (int(netdev + 0.5)));
                 sum += (int(netdev + 0.5));
 
                 Datum resource_d = ctx->Inputs().Tag("RESOURCE").Value();
@@ -69,9 +71,10 @@ public:
                 }
                 auto resource = *(resource_opt.value());
                 SPDLOG_DEBUG("{}: resource: {}", name_, resource);
+                SPDLOG_INFO("{}: pkt: {}", name_, (int(resource + 0.5)));
                 sum += (int(resource + 0.5));
 
-                int abnormal_type = 0;   // -1, normal
+                int abnormal_type = 0;   // 0, normal
                 if (sum == 3)
                 {
                         abnormal_type = 1;

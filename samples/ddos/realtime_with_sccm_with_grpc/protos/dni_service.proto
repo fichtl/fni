@@ -62,6 +62,7 @@ message GraphCalcResult {
 
   int32 abnormal_type = 20;
   int32 attack_type = 21;
+  int32 label_relation_index = 22; // mfr onnx model
 
   repeated GraphDMSRule rules = 50;
 }

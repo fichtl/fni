@@ -1,5 +1,6 @@
 #include "dni_server.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <fcntl.h>
@@ -24,12 +25,15 @@
 #include "dni/framework/framework.h"
 #include "dni/tasks/snding/snding_defines.h"
 #include "fmt/format.h"
+#include "samples/ddos/realtime_with_sccm_with_grpc/common/rb_data_mfr.h"
 #include "samples/ddos/realtime_with_sccm_with_grpc/common/rb_data_parse.h"
+#include "samples/ddos/realtime_with_sccm_with_grpc/common/snding_mfr_model.h"
 #include "spdlog/spdlog.h"
 
 const std::string protoPath1 = "./graph1.pbtxt";
 const std::string protoPath2 = "./graph2.pbtxt";
 const std::string protoPath3 = "./graph3.pbtxt";
+const std::string protoPath4 = "./graph4.pbtxt";
 
 // std::vector<uint32_t> all_known_ips;
 
@@ -37,6 +41,8 @@ const std::string protoPath3 = "./graph3.pbtxt";
 // std::mutex g_writer_mutex;
 
 #define SHM_KEY 0x1234
+
+#define MFR_BATCH_SIZE 64
 
 // ring buffer
 typedef struct {
@@ -154,6 +160,27 @@ dni::Graph* start_graph3(const std::string& protoPath3)
         g->PrepareForRun();
 
         SPDLOG_INFO("start_graph3.");
+
+        return g;
+}
+
+dni::Graph* start_graph4(const std::string& protoPath4)
+{
+        auto gc = dni::LoadTextprotoFile(protoPath4);
+        if (!gc)
+        {
+                spdlog::error("invalid pbtxt config: {}", protoPath4);
+                return nullptr;
+        }
+
+        dni::Graph* g = new dni::Graph(gc.value());
+
+        std::string out = "ret";
+        g->ObserveOutputStream(out);
+
+        g->PrepareForRun();
+
+        SPDLOG_INFO("start_graph4.");
 
         return g;
 }
@@ -311,7 +338,28 @@ void g3_inject_after(
 
         g->AddDatumToInputStream("netdevs_1", dni::Datum(netdevs));
 
-        g->AddDatumToInputStream("sip_count", dni::Datum(sip_count_ret));
+        g->AddDatumToInputStream("sip_count", dni::Datum(&sip_count_ret));
+}
+
+void userPrepareInputData4(
+    std::vector<std::vector<float>*>& input_data, float* model_np_list, int64_t total)
+{
+        std::vector<float>* input_tensor = new std::vector<float>();
+        for (int64_t i = 0; i < total; i++)
+        {
+                input_tensor->push_back(model_np_list[i]);
+                // input_tensor->push_back(0.7);
+        }
+
+        input_data.push_back(input_tensor);
+}
+
+void inject_after4(dni::Graph* g, float* model_np_list, int64_t total)
+{
+        std::vector<std::vector<float>*> input_data;
+        userPrepareInputData4(input_data, model_np_list, total);   // user call
+
+        g->AddDatumToInputStream("data", dni::Datum(input_data));
 }
 
 class spsc {
@@ -356,6 +404,7 @@ struct graph_t {
         dni::Graph* g1;
         dni::Graph* g2;
         dni::Graph* g3;
+        dni::Graph* g4;
 
         // std::list<unsigned char*> slots;
         // std::mutex mutex_lock;
@@ -375,6 +424,10 @@ void* calc_graph(
         int i = g->index;
         SPDLOG_INFO("calc_graph {} start", i);
         unsigned char* nic_data;
+        std::vector<std::string> mfr_bytes_list;
+        float* model_np_list =
+            (float*) malloc(MFR_BATCH_SIZE * 1 * 40 * 40 * sizeof(float));
+        memset(model_np_list, 0, MFR_BATCH_SIZE * 1 * 40 * 40 * sizeof(float));
         while (1)
         {
                 if (!g->ptrs_rb->pop(nic_data))
@@ -608,11 +661,41 @@ void* calc_graph(
                                 // str_ret +=
                                 //     ("# single_nic_analysis result: *Possible
                                 //     Attack*\n");
+                                dni::get_mfr_bytes(
+                                    mfr_bytes_list, nic_data + offset, pkts_cnt,
+                                    MFR_BATCH_SIZE);
+
+                                dni::get_model_input(mfr_bytes_list, model_np_list);
+                                inject_after4(
+                                    g->g4, model_np_list,
+                                    (int64_t) MFR_BATCH_SIZE * 1 * 40 * 40);
+
+                                g->g4->RunOnce();
+
+                                g->g4->Wait();
+
+                                auto ret = g->g4->GetResult<
+                                    std::vector<std::vector<std::vector<float_t>>>>(
+                                    "ret");
+
+                                // spdlog::info("Gout {} result is: {}", out, ret);
+                                int label_relation_index = -1;
+                                auto predicted_class = dni::get_label_from_infer_ret(
+                                    ret, label_relation_index);
+                                spdlog::info(
+                                    "label_relation_index: {}, Predicted class: {}",
+                                    label_relation_index, predicted_class);
 
                                 result->set_detect_result("Possible Attack");
+                                result->set_label_relation_index(label_relation_index);
 
                                 GraphDMSRule* rule = result->add_rules();
                                 rule->set_packets_ts(rb_header.ts);
+
+                                mfr_bytes_list.clear();
+                                memset(
+                                    model_np_list, 0,
+                                    MFR_BATCH_SIZE * 1 * 40 * 40 * sizeof(float));
                         }
                         else
                         {
@@ -656,9 +739,15 @@ void* calc_graph(
         g->g1->Cancel();
         g->g2->Cancel();
         g->g3->Cancel();
+        g->g4->Cancel();
+
         g->g1->Finish();
         g->g2->Finish();
         g->g3->Finish();
+        g->g4->Finish();
+
+        free(model_np_list);
+        model_np_list = 0;
 
         return nullptr;
 }
@@ -717,6 +806,7 @@ void start_graph(
                 g->g1 = start_graph1(protoPath1);
                 g->g2 = start_graph2(protoPath2);
                 g->g3 = start_graph3(protoPath3);
+                g->g4 = start_graph4(protoPath4);
 
                 g->ptrs_rb = new spsc(100);
 
@@ -838,6 +928,7 @@ Status DNIServiceImpl::CalculateGraph(
         {
                 all_known_ips.push_back(ip);
         }
+        std::sort(all_known_ips.begin(), all_known_ips.end());
         SPDLOG_INFO("all_known_ips size: {}", all_known_ips.size());
 
         std::mutex writer_mutex;
@@ -853,8 +944,10 @@ Status DNIServiceImpl::CalculateGraph(
         //                                                      : (all_nic_number / 3 +
         //                                                      1));
 
-        int graph_cnt =
-            ((all_nic_number) > (concur_cnt / 2) ? (concur_cnt / 2) : (all_nic_number));
+        // int graph_cnt =
+        //     ((all_nic_number) > (concur_cnt / 2) ? (concur_cnt / 2) :
+        //     (all_nic_number));
+        int graph_cnt = 1;
 
         start_graph(
             concurrent_graphs, threads, graph_cnt, all_known_ips, writer, &writer_mutex,
@@ -875,6 +968,7 @@ Status DNIServiceImpl::CalculateGraph(
                 delete g->g1;
                 delete g->g2;
                 delete g->g3;
+                delete g->g4;
                 delete g->ptrs_rb;
                 delete g;
         }

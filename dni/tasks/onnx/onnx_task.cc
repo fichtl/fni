@@ -47,6 +47,16 @@ int OnnxTask::Open(TaskContext* ctx)
 int OnnxTask::Process(TaskContext* ctx)
 {
         // input
+        /* 类型：std::vector<std::vector<float>*>，表示模型推理时的数据输入，
+        这里设计的是两层vector，外层的vector表示的是模型的每个输入节点，
+        模型有几个输入节点，那么外层的vector的size就是几。
+
+        内层是每个输入节点的数据在进行一维化后的数据，例如某个输入节点原始维度是[10][2][7]，
+        那么该节点在内层的vector的size就是 10 * 2 * 7 = 140。
+
+        因此模型推理时，使用的输入数据，就是将每个输入节点的数据先一维化，存入内层vector，
+        然后内层vector依次加入外层vector，最后将外层vector加入onnx算子的输入即可。
+        */
         Datum data_d = ctx->Inputs()[0].Value();
         SPDLOG_DEBUG("{}: Consume Datum: {}", name_, data_d);
         auto data_opt = data_d.Consume<std::vector<std::vector<float>*>>();

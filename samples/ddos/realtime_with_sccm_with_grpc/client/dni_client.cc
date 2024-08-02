@@ -76,7 +76,9 @@ void DNIClient::printGraphResponse(ClientContext& context, const GraphResponse& 
                     ("graph1 result, abnormal_type: " +
                      std::to_string(result.abnormal_type()) +
                      ", graph2 result, attack_type: " +
-                     std::to_string(result.attack_type()) + "\n");
+                     std::to_string(result.attack_type()) +
+                     ", graph2 result, label_relation_index: " +
+                     std::to_string(result.label_relation_index()) + "\n");
 
                 str_ret +=
                     ("# single_nic_analysis inMbps: *" + std::to_string(result.inmbps()) +
@@ -131,20 +133,20 @@ void DNIClient::buildHeaders(ClientContext& context)
 
 namespace fmt {
 
-        template <>
-        struct formatter<GraphDMSRule>: formatter<std::string_view> {
-                auto format(const GraphDMSRule& rule, format_context& ctx) const
-                {
-                        return format_to(
-                            ctx.out(),
-                            "packet_ts: {}, hostNicSign: {}\n, srcIP: {:X}/{}\t, dstIP: "
-                            "{:X}/{}\n,"
-                            "sPort: {}\t, dPort: {}\t, length: {}\t, protocol: {}\n"
-                            "action: {}\t, limitMode: {}\t, limitMaxValue: {}\n\n",
-                            rule.packets_ts(), rule.hostnicsign(), rule.srcip(),
-                            rule.srcip_len(), rule.dstip(), rule.dstip_len(),
-                            rule.sport(), rule.dport(), rule.length(), rule.protocol(),
-                            rule.action(), rule.limitmode(), rule.limitmaxvalue());
-                }
-        };
+template <>
+struct formatter<GraphDMSRule>: formatter<std::string_view> {
+        auto format(const GraphDMSRule& rule, format_context& ctx) const
+        {
+                return format_to(
+                    ctx.out(),
+                    "packet_ts: {}, hostNicSign: {}\n, srcIP: {:X}/{}\t, dstIP: "
+                    "{:X}/{}\n,"
+                    "sPort: {}\t, dPort: {}\t, length: {}\t, protocol: {}\n"
+                    "action: {}\t, limitMode: {}\t, limitMaxValue: {}\n\n",
+                    rule.packets_ts(), rule.hostnicsign(), rule.srcip(), rule.srcip_len(),
+                    rule.dstip(), rule.dstip_len(), rule.sport(), rule.dport(),
+                    rule.length(), rule.protocol(), rule.action(), rule.limitmode(),
+                    rule.limitmaxvalue());
+        }
+};
 }   // namespace fmt

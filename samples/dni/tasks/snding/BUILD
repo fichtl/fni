@@ -173,3 +173,12 @@ cc_binary(
         "//dni/tasks/snding:sip_base_merge_dedup_task",
     ],
 )
+
+cc_binary(
+    name = "mfr_preprocess_test",
+    srcs = ["mfr_preprocess_test.cc"],
+    deps = [
+        "//third_party:libpcap",
+        "@spdlog",
+    ],
+)

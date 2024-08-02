@@ -83,14 +83,15 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         // input 0, key: srcip/32, value: count
         Datum ip_map_d = ctx->Inputs().Tag("SIP").Value();
         SPDLOG_DEBUG("{}: Consume ip_map: {}", name_, ip_map_d);
-        auto ip_map_opt = ip_map_d.Consume<std::unordered_map<uint32_t, int>>();
+        auto ip_map_opt = ip_map_d.Consume<std::unordered_map<uint32_t, int>*>();
         if (!ip_map_opt)
         {
                 SPDLOG_CRITICAL("{}: invalid input ip_map", name_);
                 return -1;
         }
         auto ipCountDF = *(ip_map_opt.value());
-        SPDLOG_DEBUG("{}: ipCountDF size: {}", name_, ipCountDF.size());
+        auto ipCountDFSize = ipCountDF->size();
+        SPDLOG_DEBUG("{}: ipCountDF size: {}", name_, ipCountDFSize);
         SPDLOG_TRACE("{}: ipCountDF: {}", name_, ipCountDF);
 
         // input 1, all known IPs in net, /32
@@ -106,30 +107,33 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         SPDLOG_DEBUG("{}: val: {}", name_, all_known_ips);
 
         snding::AttackerIPMergeResult nodeRet;
+        nodeRet.attackerIPs.reserve(10000);
+        nodeRet.randomIPs.reserve(10000);
 
         // merge begin
         // std::unordered_set<uint32_t> all_attack_ips;   // 全部IP
         int ipCountSum = 0;
-        for (auto&& ip_count : ipCountDF)
+        for (auto iter = ipCountDF->begin(); iter != ipCountDF->end(); iter++)
         {
-                ipCountSum += ip_count.second;
-                // all_attack_ips.insert(ip_count.first);
+                ipCountSum += (iter->second);
         }
 
         // Program1, ip_suspect_fw4, process mask=32
         std::vector<uint32_t> ipFw4;
+        ipFw4.reserve(ipCountDFSize);
         // masklen is 24~32, as /24, /27 ...
         std::vector<CIDR> attacker_ip_32;
+        attacker_ip_32.reserve(ipCountDFSize);
         int ipCountSum_ipFw4CountRatio = (int) (ipCountSum * ipFw4CountRatio_);
-        for (auto&& ip_count : ipCountDF)
+        for (auto iter1 = ipCountDF->begin(); iter1 != ipCountDF->end(); iter1++)
         {
-                if (ip_count.second >= ipCountSum_ipFw4CountRatio)
+                if (iter1->second >= ipCountSum_ipFw4CountRatio)
                 {
-                        ipFw4.push_back(ip_count.first);
-                        attacker_ip_32.emplace_back(ip_count.first, 32);
+                        ipFw4.push_back(iter1->first);
+                        attacker_ip_32.emplace_back(iter1->first, 32);
 
                         SPDLOG_DEBUG(
-                            "{}: will delete after Prog1: {:x}", name_, ip_count.first);
+                            "{}: will delete after Prog1: {:x}", name_, iter1->first);
                 }
         }
 
@@ -143,10 +147,10 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         // erase, rest is ipCountDF1
         for (auto&& ip : ipFw4)
         {
-                ipCountDF.erase(ip);
+                ipCountDF->erase(ip);
         }
 
-        if (ipCountDF.size() == 0)
+        if (ipCountDF->size() == 0)
         {
                 // 直接ipFw3和ipCountDF2为空，不需要走这一步和后续的流程了
                 SPDLOG_DEBUG("{}: after Prog1, no ip left", name_);
@@ -155,7 +159,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 return 0;
         }
 
-        SPDLOG_DEBUG("{}: after Prog1, ipCountDF size: {}", name_, ipCountDF.size());
+        SPDLOG_DEBUG("{}: after Prog1, ipCountDF size: {}", name_, ipCountDF->size());
 
         // Program2, ip_suspect_fw3, process 24<=mask<32
 
@@ -168,19 +172,22 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         std::unordered_map<uint32_t, std::vector<uint32_t>> origInputIPs;
 
         // now, ipCountDF is just ipCountDF1
-        for (auto&& ip_count : ipCountDF)
+        for (auto iter2 = ipCountDF->begin(); iter2 != ipCountDF->end(); iter2++)
         {
-                auto& cnt = ipCountFw3DF[ip_count.first & 0xFFFFFF00];
-                cnt += ip_count.second;
+                auto& cnt = ipCountFw3DF[iter2->first & 0xFFFFFF00];
+                cnt += iter2->second;
 
-                auto& vec = origInputIPs[ip_count.first & 0xFFFFFF00];
-                vec.push_back(ip_count.first);
+                auto& vec = origInputIPs[iter2->first & 0xFFFFFF00];
+                vec.push_back(iter2->first);
         }
 
         // masklen is 24~32, as /24, /27 ...
         std::vector<CIDR> attacker_ip_24;
+        attacker_ip_24.reserve(10000);
         // FwIPs, masklen is 24
         std::vector<uint32_t> ipSusFw3IPs;
+        ipSusFw3IPs.reserve(ipCountFw3DF.size());
+
         int ipCountSum_ipFw3CountRatio = (int) (ipCountSum * ipFw3CountRatio_);
         int ipCountSum_ipFw3CountRatio_half = (int) (ipCountSum * ipFw3CountRatio_ / 2);
         if (ipCountFw3DF.size() >= ipCountSum_ipFw3CountRatio)
@@ -210,16 +217,28 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 }
         }
 
+        std::vector<uint8_t> ipFw3P4List;
+        ipFw3P4List.reserve(ipCountDF->size());
         // 遍历每一个 ipSusFw3IP,收集所有的攻击源IP段结果
+        std::vector<uint8_t>::iterator minPos;
+        uint8_t ipSusFw3Min;
+        std::vector<uint8_t>::iterator maxPos;
+        uint8_t ipSusFw3Max;
+        int ipFw3Range;
+        dni::CIDR ipFw3_cidrs_min = {0, 32};
+        dni::CIDR ipFw3_cidrs_max = {0, 32};
         for (auto&& ipSusFw3IP : ipSusFw3IPs)
         {
                 SPDLOG_DEBUG("{}: ipSusFw3IP begin ...., {:x}", name_, ipSusFw3IP);
-                std::vector<uint8_t> ipFw3P4List;
-                for (auto&& ip : ipCountDF)
+
+                ipFw3P4List.clear();
+
+                for (auto iter2_2 = ipCountDF->begin(); iter2_2 != ipCountDF->end();
+                     iter2_2++)
                 {
-                        if (belongs_24(ipSusFw3IP, ip.first))
+                        if (belongs_24(ipSusFw3IP, iter2_2->first))
                         {
-                                ipFw3P4List.push_back(ip.first & 0x000000FF);
+                                ipFw3P4List.push_back(iter2_2->first & 0x000000FF);
                         }
                 }
 
@@ -230,13 +249,13 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                         continue;
                 }
 
-                auto minPos = std::min_element(ipFw3P4List.begin(), ipFw3P4List.end());
-                auto ipSusFw3Min = *minPos;
+                minPos = std::min_element(ipFw3P4List.begin(), ipFw3P4List.end());
+                ipSusFw3Min = *minPos;
 
-                auto maxPos = std::max_element(ipFw3P4List.begin(), ipFw3P4List.end());
-                auto ipSusFw3Max = *maxPos;
+                maxPos = std::max_element(ipFw3P4List.begin(), ipFw3P4List.end());
+                ipSusFw3Max = *maxPos;
 
-                auto ipFw3Range = ipSusFw3Max - ipSusFw3Min;
+                ipFw3Range = ipSusFw3Max - ipSusFw3Min;
                 SPDLOG_DEBUG(
                     "{}: ipSusFw3IP ...., {:x}, {}, {}, {}", name_, ipSusFw3IP,
                     ipSusFw3Max, ipSusFw3Min, ipFw3Range);
@@ -257,10 +276,8 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                         }
                         else
                         {
-                                dni::CIDR ipFw3_cidrs_min = {
-                                    ipSusFw3IP + ipSusFw3Min, 32};
-                                dni::CIDR ipFw3_cidrs_max = {
-                                    ipSusFw3IP + ipSusFw3Max, 32};
+                                ipFw3_cidrs_min.ip = ipSusFw3IP + ipSusFw3Min;
+                                ipFw3_cidrs_max.ip = ipSusFw3IP + ipSusFw3Max;
                                 SPDLOG_DEBUG(
                                     "{}: ipSusFw3IP ...., {:x}, ipFw3_cidrs_min: "
                                     "{:x}/32, ipFw3_cidrs_max: {:x}/32",
@@ -297,10 +314,10 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 auto orig_ips = origInputIPs[ipSusFw3IP];
                 for (auto&& orig_ip : orig_ips)
                 {
-                        ipCountDF.erase(orig_ip);
+                        ipCountDF->erase(orig_ip);
                 }
         }
-        if (ipCountDF.size() == 0)
+        if (ipCountDF->size() == 0)
         {
                 // 直接ipFw2，ipCountDF3为空，不需要走这一步和后续的流程了
                 SPDLOG_DEBUG("{}: after Prog2, no ip left", name_);
@@ -309,7 +326,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 return 0;
         }
 
-        SPDLOG_DEBUG("{}: after Prog2, ipCountDF size: {}", name_, ipCountDF.size());
+        SPDLOG_DEBUG("{}: after Prog2, ipCountDF size: {}", name_, ipCountDF->size());
 
         // Program3, ip_suspect_fw2, process 16<=mask<24
 
@@ -321,19 +338,22 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         origInputIPs.clear();
 
         // now, ipCountDF is just ipCountDF2
-        for (auto&& ip_count : ipCountDF)
+        for (auto iter3 = ipCountDF->begin(); iter3 != ipCountDF->end(); iter3++)
         {
-                auto& cnt = ipCountFw2DF[ip_count.first & 0xFFFF0000];
-                cnt += ip_count.second;
+                auto& cnt = ipCountFw2DF[iter3->first & 0xFFFF0000];
+                cnt += iter3->second;
 
-                auto& vec = origInputIPs[ip_count.first & 0xFFFF0000];
-                vec.push_back(ip_count.first);
+                auto& vec = origInputIPs[iter3->first & 0xFFFF0000];
+                vec.push_back(iter3->first);
         }
 
         // masklen is 16~24, as /16, /19 ...
         std::vector<CIDR> attacker_ip_16;
+        attacker_ip_16.reserve(10000);
         // FwIPs, masklen is 16
         std::vector<uint32_t> ipSusFw2IPs;
+        ipSusFw2IPs.reserve(ipCountFw2DF.size());
+
         int ipCountSum_ipFw2CountRatio = (int) (ipCountSum * ipFw2CountRatio_);
         int ipCountSum_ipFw2CountRatio_half = (int) (ipCountSum * ipFw2CountRatio_ / 2);
         if (ipCountFw2DF.size() >= ipCountSum_ipFw2CountRatio)
@@ -363,18 +383,29 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 }
         }
 
+        std::vector<uint8_t> ipFw2P3List;
+        ipFw2P3List.reserve(ipCountDF->size());
+        std::vector<uint8_t> ipFw2P4List;
+        ipFw2P4List.reserve(ipCountDF->size());
+
+        dni::CIDR ipFw2_cidrs_min = {0, 24};
+        dni::CIDR ipFw2_cidrs_max = {0, 24};
+
         // 遍历每一个 ipSusFw2IP,收集所有的攻击源IP段结果
         for (auto&& ipSusFw2IP : ipSusFw2IPs)
         {
                 SPDLOG_DEBUG("{}: ipSusFw2IP begin ...., {:x}", name_, ipSusFw2IP);
-                std::vector<uint8_t> ipFw2P3List;
-                std::vector<uint8_t> ipFw2P4List;
-                for (auto&& ip : ipCountDF)
+
+                ipFw2P3List.clear();
+                ipFw2P4List.clear();
+
+                for (auto iter3_2 = ipCountDF->begin(); iter3_2 != ipCountDF->end();
+                     iter3_2++)
                 {
-                        if (belongs_16(ipSusFw2IP, ip.first))
+                        if (belongs_16(ipSusFw2IP, iter3_2->first))
                         {
-                                ipFw2P3List.push_back(ip.first & 0x0000FF00);
-                                ipFw2P4List.push_back(ip.first & 0x000000FF);
+                                ipFw2P3List.push_back(iter3_2->first & 0x0000FF00);
+                                ipFw2P4List.push_back(iter3_2->first & 0x000000FF);
                         }
                 }
 
@@ -398,13 +429,11 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 }
                 else
                 {
-                        auto minPos =
-                            std::min_element(ipFw2P3List.begin(), ipFw2P3List.end());
-                        auto maxPos =
-                            std::max_element(ipFw2P3List.begin(), ipFw2P3List.end());
+                        minPos = std::min_element(ipFw2P3List.begin(), ipFw2P3List.end());
+                        maxPos = std::max_element(ipFw2P3List.begin(), ipFw2P3List.end());
 
-                        dni::CIDR ipFw2_cidrs_min = {ipSusFw2IP + ((*minPos) << 8), 24};
-                        dni::CIDR ipFw2_cidrs_max = {ipSusFw2IP + ((*maxPos) << 8), 24};
+                        ipFw2_cidrs_min.ip = (ipSusFw2IP + ((*minPos) << 8));
+                        ipFw2_cidrs_max.ip = (ipSusFw2IP + ((*maxPos) << 8));
                         SPDLOG_DEBUG(
                             "{}: ipSusFw2IP ...., {:x}, ipFw2_cidrs_min: {:x}/32, "
                             "ipFw2_cidrs_max: {:x}/32",
@@ -438,10 +467,10 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 auto& orig_ips = origInputIPs[ipSusFw2IP];
                 for (auto&& orig_ip : orig_ips)
                 {
-                        ipCountDF.erase(orig_ip);
+                        ipCountDF->erase(orig_ip);
                 }
         }
-        if (ipCountDF.size() == 0)
+        if (ipCountDF->size() == 0)
         {
                 // 直接ipRand，ipCountDF4为空，不需要走这一步和后续的流程了
                 SPDLOG_DEBUG("{}: after Prog3, no ip left", name_);
@@ -450,7 +479,7 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
                 return 0;
         }
 
-        SPDLOG_DEBUG("{}: after Prog3, ipCountDF size: {}", name_, ipCountDF.size());
+        SPDLOG_DEBUG("{}: after Prog3, ipCountDF size: {}", name_, ipCountDF->size());
 
         // Program4, ip_suspect_rand
         // 全部IP： 		ipCountDF3 包含的IP
@@ -459,15 +488,18 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         // 未知随机IP：     所有未知IP - 未知正常IP
         // ipCountDF3 包含的IP
         std::vector<uint32_t> all_DF3_ips;
-        for (auto&& ip_count : ipCountDF)
+        all_DF3_ips.reserve(ipCountDF->size());
+
+        for (auto iter4 = ipCountDF->begin(); iter4 != ipCountDF->end(); iter4++)
         {
-                all_DF3_ips.push_back(ip_count.first);
+                all_DF3_ips.push_back(iter4->first);
         }
 
         // calc all_DF3_ips - all_known_ips
         std::unordered_set<uint32_t> all_unknown_ips;   // 所有未知IP
+        all_unknown_ips.reserve(10000);
         std::sort(all_DF3_ips.begin(), all_DF3_ips.end());
-        std::sort(all_known_ips.begin(), all_known_ips.end());
+        // std::sort(all_known_ips.begin(), all_known_ips.end());
         std::set_difference(
             all_DF3_ips.begin(), all_DF3_ips.end(), all_known_ips.begin(),
             all_known_ips.end(), std::inserter(all_unknown_ips, all_unknown_ips.begin()));
@@ -475,33 +507,30 @@ int SndAttackerIPMergeTask::Process(TaskContext* ctx)
         SPDLOG_DEBUG("{}: all_unknown_ips size: {}", name_, all_unknown_ips.size());
 
         int ipUnknownRandCountSum = 0;
-        // std::unordered_set<uint32_t> randIPs;                     //
-        // debug
-        std::unordered_map<uint32_t, int> ipCountDF4;   // debug
         nodeRet.randomIPs.clear();
         for (auto&& ip : all_unknown_ips)
         {
-                auto cnt = ipCountDF[ip];
+                auto cnt = ipCountDF->operator[](ip);
                 if (cnt <= ipRandCountThreshold_)
                 {
                         ipUnknownRandCountSum += cnt;
 
                         nodeRet.randomIPs.insert(ip);
-                        ipCountDF4[ip] = cnt;
                 }
         }
+
+        SPDLOG_DEBUG(
+            "{}: ipUnknownRandCountSum: {}, nodeRet.randomIPs size: {}, ipCountSum: {}",
+            name_, ipUnknownRandCountSum, nodeRet.randomIPs.size(), ipCountSum);
 
         bool is_random = false;
         if (ipUnknownRandCountSum >= ipCountSum * ipRandCountRatio_)
         {
                 is_random = true;
-
-                // debug print for randIPs and ipCountDF4
         }
         else
         {
                 nodeRet.randomIPs.clear();
-                ipCountDF4.clear();
         }
 
         nodeRet.containRandomAttack = is_random;

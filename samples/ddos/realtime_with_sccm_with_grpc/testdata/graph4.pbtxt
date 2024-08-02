@@ -1,0 +1,17 @@
+type: "Onnx-MFR-Model"
+
+input_stream: "GIn_Data:0:data"
+output_stream: "GOut_Ret:0:ret"
+
+node {
+    name: "A"
+    task: "OnnxSNDingMFRTask"
+    input_stream: "GIn_Data:0:data"
+    output_stream: "GOut_Ret:0:ret"
+
+    options {
+        [type.asnapis.io/dni.OnnxTaskOptions] {
+            model_path: "./snding_finetuned_model_200_20240724163131.onnx"
+        }
+    }
+}

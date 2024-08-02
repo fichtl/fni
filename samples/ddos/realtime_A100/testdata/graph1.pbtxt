@@ -1,0 +1,213 @@
+type: "Anomaly Detection Graph"
+
+# packet: countTotal
+input_stream: "countTotal"
+
+# packet: countType_length
+input_stream: "countType_length"
+input_stream: "cond_countType_length"
+
+# packet: countType_srcIP
+input_stream: "countType_srcIP"
+input_stream: "cond_countType_srcIP"
+
+# packet: countType_dstIP
+input_stream: "countType_dstIP"
+input_stream: "cond_countType_dstIP"
+
+# packet: countType_protocol
+input_stream: "countType_protocol"
+input_stream: "cond_countType_protocol"
+
+# packet: countType_srcPortTcp
+input_stream: "countType_srcPortTcp"
+input_stream: "cond_countType_srcPortTcp"
+
+# packet: countType_dstPortTcp
+input_stream: "countType_dstPortTcp"
+input_stream: "cond_countType_dstPortTcp"
+
+# packet: countType_srcPortUdp
+input_stream: "countType_srcPortUdp"
+input_stream: "cond_countType_srcPortUdp"
+
+# packet: countType_dstPortUdp
+input_stream: "countType_dstPortUdp"
+input_stream: "cond_countType_dstPortUdp"
+
+# Graph output
+output_stream: "packet_abnormal"
+
+
+node{
+    name: "packet_countTotal_score"
+    task: "ThresholdTask"
+    input_stream: "countTotal"
+    output_stream: "packet_countTotal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 4000 score: 0.4}
+            thresh_scores { threshold: 10000 score: 0.6}
+            thresh_scores { threshold: 100000 score: 0.8}
+            thresh_scores { threshold: 15000000 score: 1.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_length_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_length"
+    input_stream: "COND:0:cond_countType_length"
+    output_stream: "packet_countType_length"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.2}
+            thresh_scores { threshold: 500 score: 0.1}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_srcIP_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_srcIP"
+    input_stream: "COND:0:cond_countType_srcIP"
+    output_stream: "packet_countType_srcIP"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 255 score: 0.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_dstIP_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_dstIP"
+    input_stream: "COND:0:cond_countType_dstIP"
+    output_stream: "packet_countType_dstIP"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 255 score: 0.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_protocol_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_protocol"
+    input_stream: "COND:0:cond_countType_protocol"
+    output_stream: "packet_countType_protocol"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.1}
+            thresh_scores { threshold: 100 score: 0.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_srcPortTcp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_srcPortTcp"
+    input_stream: "COND:0:cond_countType_srcPortTcp"
+    output_stream: "packet_countType_srcPortTcp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 100 score: 0.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_dstPortTcp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_dstPortTcp"
+    input_stream: "COND:0:cond_countType_dstPortTcp"
+    output_stream: "packet_countType_dstPortTcp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 100 score: 0.2}
+        }
+    }
+}
+
+node{
+    name: "packet_countType_srcPortUdp_score"
+    task: "ConditionThresholdTask"
+    input_stream: "STAT:0:countType_srcPortUdp"
+    input_stream: "COND:0:cond_countType_srcPortUdp"
+    output_stream: "packet_countType_srcPortUdp"
+    options {
+        [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 100 score: 0.2}
+        }
+    }
+}
+
+node{
+        name: "packet_countType_dstPortUdp_score"
+        task: "ConditionThresholdTask"
+        input_stream: "STAT:0:countType_dstPortUdp"
+        input_stream: "COND:0:cond_countType_dstPortUdp"
+        output_stream: "packet_countType_dstPortUdp"
+        options {
+            [type.asnapis.io/dni.CondThresholdTaskOptions] {
+            conditions: 2000
+            thresh_scores { threshold: 6 score: 0.05}
+            thresh_scores { threshold: 100 score: 0.2}
+            }
+        }
+}
+
+node{
+    name: "packet_total_score"
+    task: "SumTask"
+    input_stream: "packet_countTotal"
+    input_stream: "packet_countType_length"
+    input_stream: "packet_countType_srcIP"
+    input_stream: "packet_countType_dstIP"
+    input_stream: "packet_countType_protocol"
+    input_stream: "packet_countType_srcPortTcp"
+    input_stream: "packet_countType_dstPortTcp"
+    input_stream: "packet_countType_srcPortUdp"
+    input_stream: "packet_countType_dstPortUdp"
+    output_stream: "packet_scores_sum"
+}
+
+node{
+    name: "packet_abnormal_judge"
+    task: "ThresholdTask"
+    input_stream: "packet_scores_sum"
+    output_stream: "packet_abnormal"
+    options {
+        [type.asnapis.io/dni.ThresholdTaskOptions] {
+            thresh_scores { threshold: 0.3 score: 1}
+        }
+    }
+}
+
+
+
+#node{
+#    name: "abnormal_judge_result"
+#    task: "SndAdTask"
+#    input_stream: "PACKET:0:packet_abnormal"
+#    input_stream: "NETDEV:0:netdev_abnormal"
+#    input_stream: "RESOURCE:0:resource_abnormal"
+#    output_stream: "GOut_abnormal_res:0:abnormal_res"
+#}

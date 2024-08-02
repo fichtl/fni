@@ -43,7 +43,21 @@ Datum OnnxTwoDimesionTask::ParseInferenceResult(std::vector<Ort::Value>& inferen
                 spdlog::info(
                     "Dimensions of the output is: {}", outputInfo.GetShape().size());
 
-                for (int m = 0; m < outputInfo.GetShape().size(); m++)
+                if (outputInfo.GetShape().size() != 2)
+                {
+                        spdlog::error(
+                            "output dims is not 2, it is {}",
+                            outputInfo.GetShape().size());
+
+                        return Datum();
+                }
+
+                spdlog::info(
+                    "out_shape, {}, {}",
+                    outputInfo.GetShape()[0],
+                    outputInfo.GetShape()[1]);
+
+                for (int m = 0; m < outputInfo.GetShape()[0]; m++)
                 {
                         std::vector<float_t> second_layer_vec;
 
@@ -78,7 +92,8 @@ void OnnxTwoDimesionTask::DumpInferenceRet(std::vector<Ort::Value>& inference_re
                                   << outputInfo.GetShape().size() << "\n";
                         std::cout << "Shape of the output: ";
                         for (unsigned int shapeI = 0;
-                             shapeI < outputInfo.GetShape().size(); shapeI++)
+                             shapeI < outputInfo.GetShape().size();
+                             shapeI++)
                                 std::cout << outputInfo.GetShape()[shapeI] << ", ";
 
                         std::cout << std::endl << "[" << std::endl;

@@ -1,0 +1,78 @@
+syntax = "proto3";
+package dni.service.grpc;
+
+service DNIService {
+  rpc CalculateGraph (GraphRequest) returns (stream GraphResponse) {
+  }
+}
+
+message GraphRequest {
+  // pbtxt content
+  string pbtxt = 1;
+
+  // sidedata ?
+  repeated uint32 all_ips = 2;
+  uint32 all_nic_number = 3;
+  uint32 count_total_threshold = 4;
+}
+
+message GraphDMSRule {
+  string hostNicSign = 1;
+
+  uint32 srcIP = 2;
+  int32 srcIP_len = 3;
+
+  uint32 dstIP = 4;
+  int32 dstIP_len = 5;
+
+  string sPort = 6;
+  string dPort = 7;
+  string length = 8;
+
+  int32 protocol = 9;
+
+  string action = 10;
+  string limitMode = 11;
+  uint64 limitMaxValue = 12;
+
+  // timestamp of packets from sccm
+  uint64 packets_ts = 20;
+};
+
+
+message GraphResponse {
+  repeated GraphCalcResult results = 2;
+}
+
+message GraphCalcResult {
+  // timestamp of server send resp
+  uint64 ts = 1;
+
+  //enum
+  GraphResultType type = 2;
+
+  string host_nic_name = 3;
+
+  double inMbps = 10;
+  double outMbps = 11;
+  double dmsDropMbps = 12;
+  int64 speed = 13;
+  double cur_cpu = 14;
+  string detect_result = 15;
+
+  int32 abnormal_type = 20;
+  int32 attack_type = 21;
+
+  repeated GraphDMSRule rules = 50;
+}
+
+enum GraphResultType {
+  GraphLoadOK = 0;
+  GraphLoadFail = 1;
+  GraphCalcOK = 2;
+  GraphCalcFail = 3;
+}
+
+
+
+
